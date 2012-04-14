@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>HDO Group</title>
+  <title>HDO Group2</title>
   <%= stylesheet_link_tag 'application' %>
   <%= javascript_include_tag 'application' %>
   <%= csrf_meta_tags %>
@@ -9,7 +9,7 @@
 
 <body>
   <div id="header">
-    <h1><%= link_to 'HDO Group', '/' %></h1>
+    <h1><%= link_to 'HDO Group 2', '/' %></h1>
     
     <p id="login-link">
       <% if current_shop %>
