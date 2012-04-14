@@ -13,9 +13,11 @@ gem 'kaminari'	# pagination
 
 group :development, :test do
 	gem 'heroku'
-	gem 'factory_girl_rails'
+	#gem 'factory_girl_rails'
 	gem 'mocha'
 	gem 'watir-webdriver'
+	#TESTING GEMS
+	gem "rspec-rails", ">= 2.8.1"
 end
 
 gem 'amazon-mws', :git => 'git://github.com/aew/amazon-mws.git'
@@ -56,5 +58,12 @@ group :test do
 	gem 'simplecov', :require => false
 	#gem 'rspec-rails'
 	#gem 'shoulda'
-	#gem 'fakeweb'  
+	#gem 'fakeweb' 
+	#TESTING GEMS
+	gem "factory_girl_rails", ">= 1.7.0"
+	gem "email_spec", ">= 1.2.1"
+	gem "cucumber-rails", ">= 1.3.0"
+	gem "capybara", ">= 1.1.2"
+	gem "database_cleaner", ">= 0.7.1"
+	gem "launchy", ">= 2.0.5" 
 end
