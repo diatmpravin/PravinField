@@ -1,4 +1,6 @@
 Fieldday::Application.routes.draw do
+  devise_for :users
+
   resources :sku_mappings
 
   resources :states

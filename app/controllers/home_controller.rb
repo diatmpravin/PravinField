@@ -2,6 +2,8 @@
 require 'RubyOmx'
 
 class HomeController < ApplicationController
+
+	before_filter :authenticate_user!
     
   def welcome  	
     current_host = "#{request.host}#{':' + request.port.to_s if request.port != 80}"
@@ -9,7 +11,7 @@ class HomeController < ApplicationController
     #@callback_url = "http://localhost:3000/"
   end
   
-  def index
+  def index    
 		# get 3 products    
     #@products = ShopifyAPI::Product.find(:all, :params => {:limit => 3})
 		@products = nil

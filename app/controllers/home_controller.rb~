@@ -9,7 +9,7 @@ class HomeController < ApplicationController
     #@callback_url = "http://localhost:3000/"
   end
   
-  def index
+  def index    
 		# get 3 products    
     #@products = ShopifyAPI::Product.find(:all, :params => {:limit => 3})
 		@products = nil
@@ -19,4 +19,4 @@ class HomeController < ApplicationController
     #@orders   = ShopifyAPI::Order.find(:all, :params => {:limit => 3, :order => "created_at DESC" })
   end
 	
-end 
+end

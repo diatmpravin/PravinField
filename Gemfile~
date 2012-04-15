@@ -13,7 +13,7 @@ gem 'kaminari'	# pagination
 
 group :development, :test do
 	gem 'heroku'
-	gem 'factory_girl_rails'
+	#gem 'factory_girl_rails'
 	gem 'mocha'
 	gem 'watir-webdriver'
 	#TESTING GEMS

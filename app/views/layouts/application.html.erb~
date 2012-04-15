@@ -9,14 +9,16 @@
 
 <body>
   <div id="header">
-    <h1><%= link_to 'HDO Group 2', '/' %></h1>
+    <h1><%= link_to 'HDO Group2', '/' %></h1>
     
-    <p id="login-link">
+    <%= render 'shared/navigation' %>	
+    <p id="login-link">      
       <% if current_shop %>
           <span class="note">current shop</span> <%= link_to current_shop.url, "https://#{current_shop.url}", :class => 'shop_name' %> <span class="note">|</span>
           <%= link_to 'logout', logout_path %>
-      <% end %>
+      <% end %>  
     </p>
+    
   </div>
 
   <div id="container" class="clearfix">
@@ -35,6 +37,9 @@
     <!-- Flash error & notice-->
     <% if flash[:error] %> <div id="flasherrors"><%= flash[:error] %></div><% end %>
     <% if flash[:notice] %><div id="flashnotices"><%= flash[:notice] %></div><% end %>
+    
+     <p class="notice"><%= notice %></p>
+     <p class="alert"><%= alert %></p>
   
     <!-- begin div.main-->
     <div id="main">
