@@ -8,8 +8,8 @@ gem 'paperclip', "~>2.4.5"
 gem 'aws-s3', :require => 'aws/s3'
 #gem 'aws-sdk'		#TODO new version for paperclip, bump to paperclip 3.0, deal with consequences
 gem 'kaminari'	# pagination
-gem "devise", ">= 2.0.4" #authentication
-
+gem "devise", ">= 2.0.4" #AUTHENTICATION
+gem "cancan" # MODEL PERMISSION
 
 
 group :development, :test do

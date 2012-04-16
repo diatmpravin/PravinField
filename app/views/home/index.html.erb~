@@ -2,6 +2,8 @@
   <h3>Where to start</h3>
 </div>
 
+<%= current_user.name %>
+
 <div id="orders">
   <h2>Recent orders</h2>
   <% if @orders.blank? %>  

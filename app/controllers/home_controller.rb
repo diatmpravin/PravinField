@@ -2,9 +2,7 @@
 require 'RubyOmx'
 
 class HomeController < ApplicationController
-
-	before_filter :authenticate_user!
-    
+  
   def welcome  	
     current_host = "#{request.host}#{':' + request.port.to_s if request.port != 80}"
     @callback_url = "http://#{current_host}/login/finalize"
