@@ -32,7 +32,7 @@ class BrandTest < ActiveSupport::TestCase
 	end
 	
 	#test "process_from_vendor should work" do
-		#what to test here?
+		#TODO what to test here?
 	#end
 
 	test "has a vendor" do
@@ -40,19 +40,19 @@ class BrandTest < ActiveSupport::TestCase
 		assert_instance_of Vendor, b.vendor, 'Brand does not have a valid parent vendor'
 	end
 
-	test "add_to_store and remove_from_store should work" do
+	test "add_listings should work" do
 		b = FactoryGirl.create(:brand)
 		p = FactoryGirl.create(:product, :brand => b)
 		p2 = FactoryGirl.create(:product, :brand => b)
-		s = FactoryGirl.create(:store, :store_type => 'MWS')
-		assert_difference('ProductsStore.count',2) do 
-			b.add_to_store(s)
+		s = FactoryGirl.create(:store, :store_type => 'Shopify')
+		assert_difference('Listing.count',2) do 
+			b.add_listings(s)
 		end
 		assert_equal 1, p.stores.count
 		assert_equal 1, p2.stores.count
 		assert_equal 2, s.products.count
-		assert_difference('ProductsStore.count',-2) do 
-			b.remove_from_store(s)
+		assert_difference('Listing.count',-2) do 
+			b.remove_listings(s)
 		end
 		assert_equal 0, p.reload.stores.count
 		assert_equal 0, p2.reload.stores.count

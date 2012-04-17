@@ -4,7 +4,7 @@ Fieldday::Application.routes.draw do
   resources :sku_mappings
 
   resources :states
-  resources :stores
+  resources :stores #TODO member do for adding groups of products to store
   resources :vendors do
   	get 'by_name', :on => :collection
   end
@@ -27,7 +27,7 @@ Fieldday::Application.routes.draw do
   	get 'by_sku', :on => :collection
   end
   
-  resources :products_stores, :only => [:create, :destroy]
+  #resources :products_stores, :only => [:create, :destroy]
   
   resources :omx_requests, :only => [:show]
   resources :mws_requests, :only => [:show, :index]

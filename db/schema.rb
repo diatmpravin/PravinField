@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120415090408) do
+ActiveRecord::Schema.define(:version => 20120417205258) do
 
   create_table "brands", :force => true do |t|
     t.string   "name"
@@ -26,6 +26,18 @@ ActiveRecord::Schema.define(:version => 20120415090408) do
   end
 
   add_index "brands", ["vendor_id"], :name => "index_brands_on_vendor_id"
+
+  create_table "listings", :force => true do |t|
+    t.integer  "product_id"
+    t.integer  "store_id"
+    t.string   "handle"
+    t.string   "foreign_id"
+    t.integer  "mws_request_id"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.boolean  "active",             :default => true
+    t.datetime "inactive_timestamp"
+  end
 
   create_table "mws_order_items", :force => true do |t|
     t.string   "asin"
@@ -115,6 +127,8 @@ ActiveRecord::Schema.define(:version => 20120415090408) do
     t.datetime "updated_at"
     t.integer  "store_id"
     t.integer  "mws_request_id"
+    t.string   "feed_type"
+    t.text     "message"
   end
 
   add_index "mws_requests", ["mws_request_id"], :name => "index_mws_requests_on_mws_request_id"
@@ -132,6 +146,8 @@ ActiveRecord::Schema.define(:version => 20120415090408) do
     t.string   "amazon_order_id"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "feed_submission_id"
+    t.string   "processing_status"
   end
 
   add_index "mws_responses", ["amazon_order_id"], :name => "index_mws_responses_on_amazon_order_id"

@@ -82,5 +82,79 @@ class StoreTest < ActiveSupport::TestCase
 		assert_instance_of Amazon::MWS::Base, s.mws_connection
 		#s.mws_connection.stubs(:get).returns(xml_for('error',401))
 	end
+
+  setup do
+    @p = FactoryGirl.create(:product)
+		assert_equal 0, @p.stores.count
+
+  end
+
+	test "add and remove listings should work for Shopify" do
+    # add shopify store
+		s = FactoryGirl.create(:store, :store_type => 'Shopify')		
+		assert_equal 0, s.products.count
+		
+		# add product
+		p = FactoryGirl.create(:product)
+		
+		# add listing to store
+		s.add_listings([p])
+		#ps = ProductsStore.new(:product_id => p.to_param, :store_id => s.to_param)		
+		# Not stubbing connection to Shopify right now as connection is to test store
+		#ps.stubs(:append_to_shopify).returns('TEST_FOREIGN_ID')
+		#ps.save
+		
+    # confirm successful addition to store
+		assert_equal 1, s.reload.products.count
+		assert_equal 1, p.reload.stores.count
+		assert_equal p, s.products.first
+		assert_equal s, p.stores.first
+
+    # remove from store
+		s.remove_listings([p])
+		assert_equal 0, s.reload.products.count
+		assert_equal 0, p.reload.stores.count
+	end
+
+  test "only active listings should be returned" do
+    s = FactoryGirl.create(:store, :store_type => 'Shopify')
+    p = FactoryGirl.create(:product)
+    l = FactoryGirl.create(:listing, :product_id=>p.to_param, :store_id=>s.to_param, :active=>true)
+    assert_equal 1, s.reload.listings.count
+    assert_equal 1, s.products.count
+    
+    l.inactivate
+    #l.destroy
+    assert_equal 0, s.reload.listings.count
+    assert_equal 0, s.reload.products.count
+  end
+
+  test "add_listings should work for mws" do
+		s = FactoryGirl.create(:store, :store_type => 'MWS')		
+		assert_equal 0, s.products.count
+
+		# add product
+		p = FactoryGirl.create(:product)
+		
+		# stub mws_connection
+		s.mws_connection.stubs(:submit_feed).returns(xml_for('submit_feed',200))
+  	s.connection.stubs(:post).returns(xml_for('submit_feed',200)) 
+				
+		# add listing to store
+		s.add_listings([p])
+		#ps = ProductsStore.create(:product_id => p.to_param, :store_id => s.to_param)
+		
+		# confirm product was received
+		#assert_equal 1, s.reload.products.count
+		#assert_equal 1, p.reload.stores.count
+		#assert_equal p, s.products.first
+		#assert_equal s, p.stores.first
+
+    # remove product from store
+		#ps.destroy
+		#assert_equal 0, s.reload.products.count
+		#assert_equal 0, p.reload.stores.count		
+    
+  end
 		
 end

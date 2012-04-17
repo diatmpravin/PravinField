@@ -2,7 +2,7 @@ require 'test_helper'
 
 class ProductsControllerTest < ActionController::TestCase
   setup do
-    @store = FactoryGirl.create(:store)
+    @store = FactoryGirl.create(:store, :store_type=>'Shopify')
     @vendor = FactoryGirl.create(:vendor)
     @brand = FactoryGirl.create(:brand, :vendor => @vendor)
     @brand2 = FactoryGirl.create(:brand, :vendor => @vendor)
@@ -10,8 +10,7 @@ class ProductsControllerTest < ActionController::TestCase
     @product2 = FactoryGirl.create(:product, :brand => @brand)
     @product3 = FactoryGirl.create(:product, :brand => @brand2)
     @product4 = FactoryGirl.build(:product)
-    @ps = FactoryGirl.create(:products_store, :product => @product, :store => @store)
-    @ps2 = FactoryGirl.create(:products_store, :product => @product3, :store => @store)
+    @brand.add_listings(@store)
     @u = FactoryGirl.create(:user)
     sign_in :user, @u    
   end
@@ -35,11 +34,11 @@ class ProductsControllerTest < ActionController::TestCase
     assert_not_nil assigns(:products)
     assert_select 'div.product', 2
     
-    # only 1 product for this combination of brand and store
+    # 2 products for this combination of brand and store
     get :index, :brand_id => @brand.id, :store_id => @store.id
     assert_response :success
     assert_not_nil assigns(:products)
-    assert_select 'div.product', 1
+    assert_select 'div.product', 2
     
     # 3 products across 2 brands for this vendor
     get :index, :vendor_id => @vendor.id

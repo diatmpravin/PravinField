@@ -1,17 +1,6 @@
 require 'test_helper'
 
 class ProductTest < ActiveSupport::TestCase
-	test "product stores relation should work" do
-		s = FactoryGirl.create(:store)
-		s2 = FactoryGirl.create(:store, :name => 'LuxuryVision')
-		p = FactoryGirl.create(:product)
-		ProductsStore.find_or_create_by_product_id_and_store_id(p.id, s.id)
-		assert_equal 1, p.stores.count
-		ProductsStore.find_or_create_by_product_id_and_store_id(p.id, s2.id)
-		assert_equal 2, p.stores.count
-		assert_equal s, p.stores[0]
-		assert_equal s2, p.stores[1]
-	end
 	
 	test "variants relation should work" do
 		p = FactoryGirl.create(:product)

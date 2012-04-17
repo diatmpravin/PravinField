@@ -30,21 +30,12 @@ class Brand < ActiveRecord::Base
 		v.process_brand(self)
 	end
 
-	def add_to_store(store)
-		self.products.each do |p|
-			ProductsStore.create!(:product => p, :store => store)
-		end
-		return true
+	def add_listings(store)
+		store.add_listings(self.products)
 	end
 
-	def remove_from_store(store)
-		self.products.each do |p|
-			ps = ProductsStore.find_by_product_id_and_store_id(p.id, store.id)
-			if !ps.nil?
-				ps.destroy
-			end
-		end
-		return true
+	def remove_listings(store)
+    store.remove_listings(self.products)
 	end
 
 end

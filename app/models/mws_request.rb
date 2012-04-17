@@ -4,6 +4,9 @@ class MwsRequest < ActiveRecord::Base
 	has_many :mws_orders, :through => :mws_responses
 	has_many :sub_requests, :class_name => "MwsRequest"
   belongs_to :parent_request, :class_name => "MwsRequest", :foreign_key => "mws_request_id"
+  
+  #TODO implement code to send request
+  #after_create :send_request
 
 	def get_request_summary_string
 		error_count = get_responses_with_errors.count
@@ -105,6 +108,36 @@ class MwsRequest < ActiveRecord::Base
 
 	def get_last_date
 		self.mws_responses.order('last_updated_before DESC').first.last_updated_before
+	end
+	
+	private
+
+  #   FEED_TYPES = {
+  #      :product_data              => '_POST_PRODUCT_DATA_',
+  #      :product_relationship_data => '_POST_PRODUCT_RELATIONSHIP_DATA_',
+  #      :item_data                 => '_POST_ITEM_DATA_',
+  #      :product_overrides         => '_POST_PRODUCT_OVERRIDES_DATA_',
+  #      :product_image_data        => '_POST_PRODUCT_IMAGE_DATA_',
+  #      :product_pricing           => '_POST_PRODUCT_PRICING_DATA_',
+  #      :inventory_availability    => '_POST_INVENTORY_AVAILABILITY_DATA_',
+  #      :order_acknowledgement     => '_POST_ORDER_ACKNOWLEDGEMENT_DATA_',
+  #      :order_fulfillment         => '_POST_ORDER_FULFILLMENT_DATA_',
+  #      :payment_adjustment        => '_POST_PAYMENT_ADJUSTMENT_DATA_',
+	
+	def send_request
+    if self.request_type=='SubmitFeed'
+      if self.feed_type==:product_data
+        response = self.store.mws_connection.submit_feed(:product_data,'Product',self.message)
+        MwsResponse.create(
+			    :request_type => self.request_type,
+			    :mws_request_id => self.id, 
+			    :amazon_request_id => response_xml.request_id,
+			    :feed_submission_id => response_xml.feed_submission.id,
+			    :processing_status => response_xml.feed_submission.feed_processing_status
+		    )
+		    #TODO begin process to poll status periodically, creating a sub request each time, and a response each time
+		  end
+		end
 	end
 	
 end

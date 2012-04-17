@@ -118,7 +118,7 @@ class BrandsController < ApplicationController
   	@store = Store.find(params[:store_id])
 
     respond_to do |format|
-      if @brand.add_to_store(@store)
+      if @brand.add_listings(@store)
         format.html { redirect_to brands_path, notice: 'Brand successfully added to store.' }
         format.json { head :ok }
       else
@@ -134,7 +134,7 @@ class BrandsController < ApplicationController
   	@store = Store.find(params[:store_id])
 
     respond_to do |format|
-      if @brand.remove_from_store(@store)
+      if @brand.remove_listings(@store)
         format.html { redirect_to brands_path, notice: 'Brand successfully removed from store.' }
         format.json { head :ok }
       else
