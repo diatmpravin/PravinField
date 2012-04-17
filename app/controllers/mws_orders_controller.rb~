@@ -1,4 +1,4 @@
-#require 'fastercsv'
+
 require 'csv'
 
 class MwsOrdersController < ApplicationController
@@ -52,15 +52,81 @@ class MwsOrdersController < ApplicationController
   
   def export_to_csv
   	filename ="order_#{Date.today.strftime('%d%b%y')}"
-		@users = User.find(:all) 
+		@orders = MwsOrder.find(:all) 
 		#csv_string = FasterCSV.generate do |csv|
 		csv_string = CSV.generate do |csv| 
 		  # header row 
-		  csv << ["Id", "Name", "Email","Role"] 
+		  csv << [
+		  	"id",
+		  	"amazon_order_id",
+		  	"seller_order_id",
+		  	"purchase_date",
+		  	"last_updat_data",
+		  	"order_status",
+		  	"fulfillment_channel",
+		  	"sales_channel",
+		  	"order_channel",
+		  	"ship_service_level",
+		  	"amount",
+		  	"current_code",
+		  	"address_line_1",
+		  	"address_line_2",
+		  	"address_line_3",
+		  	"city",
+		  	"countery",
+		  	"district",
+		  	"state_or_regin",
+		  	"postal_code",
+		  	"phone",
+		  	"number_of_items_shipped",
+		  	"number_of_items_unshipped",
+		  	"marketplace_id",
+		  	"buyer_name",
+		  	"buyer_email",
+		  	"mws_response_id",
+		  	"created_at",
+		  	"updated_at",
+		  	"shipment_service_level_category",
+		  	"name",
+		  	"store_id"
+		  	] 
 	 
 		  # data rows 
-		 @users.each do |user| 
-		    csv << [user.id, user.name, user.name, user.role] 
+		 @orders.each do |order| 
+		    csv << [
+		    	order.id,
+		  		order.amazon_order_id,
+		  		order.seller_order_id,
+		  		order.purchase_date,
+		  		order.last_updat_data,
+		  		order.order_status,
+		  		order.fulfillment_channel,
+		  		order.sales_channel,
+		  		order.order_channel,
+		  		order.ship_service_level,
+		  		order.amount,
+		  		order.current_code,
+		  		order.address_line_1,
+		  		order.address_line_2,
+		  		order.address_line_3,
+		  		order.city,
+		  		order.countery,
+		  		order.district,
+		  		order.state_or_regin,
+		  		order.postal_code,
+		  		order.phone,
+		  		order.number_of_items_shipped,
+		  		order.number_of_items_unshipped,
+		  		order.marketplace_id,
+		  		order.buyer_name,
+		  		order.buyer_email,
+		  		order.mws_response_id,
+		  		order.created_at,
+		  		order.updated_at,
+		  		order.shipment_service_level_category,
+		  		order.name,
+		  		order.store_id
+		    	] 
 		  end 
 		end 
 	 
