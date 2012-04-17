@@ -15,7 +15,7 @@
 				<%#= link_to('Create user', new_user_registration_path)  %>		 
 			</li>
 		<%# end %>
-		<% if idAdmin? %>
+		<% if current_user.role == "admin" %>
 	  	<li>
 				<%= link_to('Create user', new_user_registration_path)  %>		 
 			</li>
