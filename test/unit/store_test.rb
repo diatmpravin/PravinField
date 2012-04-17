@@ -119,7 +119,7 @@ class StoreTest < ActiveSupport::TestCase
   test "only active listings should be returned" do
     s = FactoryGirl.create(:store, :store_type => 'Shopify')
     p = FactoryGirl.create(:product)
-    l = FactoryGirl.create(:listing, :product_id=>p.to_param, :store_id=>s.to_param, :active=>true)
+    l = FactoryGirl.create(:listing, :product_id=>p.to_param, :store_id=>s.to_param)
     assert_equal 1, s.reload.listings.count
     assert_equal 1, s.products.count
     

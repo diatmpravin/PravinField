@@ -1,6 +1,6 @@
 class Product < ActiveRecord::Base
 	belongs_to :brand
-	has_many :listings
+	has_many :listings, :dependent => :destroy
 	has_many :stores, :through => :listings
 	has_many :variants, :dependent => :destroy
 	has_many :mws_order_items#, :foreign_key => 'parent_product_id'

@@ -10,12 +10,8 @@ class Listing < ActiveRecord::Base
   
   # listing cannot be destroyed - instead it is merely inactivated
   def inactivate
-    #TODO eliminate active field, redundant with inactive_timestamp
-    #self.active = false
     self.inactive_timestamp = Time.now
     self.save
-    puts self.inspect
-    false
   end
   
 end

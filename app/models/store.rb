@@ -5,7 +5,7 @@ class Store < ActiveRecord::Base
 	has_many :mws_requests, :dependent => :destroy
 	has_many :mws_orders, :dependent => :destroy
 	has_many :mws_order_items, :through => :mws_orders
-	has_many :listings
+	has_many :listings, :dependent => :destroy
 	has_many :products, :through => :listings
 	has_attached_file :icon, PAPERCLIP_STORAGE_OPTIONS.merge({:path => "/:class/:attachment/:id/:style/:filename"})
 	after_initialize :init_mws_connection
