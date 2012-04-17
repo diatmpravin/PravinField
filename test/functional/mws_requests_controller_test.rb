@@ -3,6 +3,8 @@ require 'test_helper'
 class MwsRequestsControllerTest < ActionController::TestCase
   setup do
     @mws_request = FactoryGirl.create(:mws_request)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u
   end
 
   test "should get index" do

@@ -4,6 +4,8 @@ class VendorsControllerTest < ActionController::TestCase
   setup do
     @vendor = FactoryGirl.create(:vendor)
     @vendor2 = FactoryGirl.build(:vendor)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u    
   end
 
   test "should get index" do

@@ -4,6 +4,8 @@ class SkuMappingsControllerTest < ActionController::TestCase
   setup do
     @sku_mapping = FactoryGirl.create(:sku_mapping)
     @sku_mapping2 = FactoryGirl.build(:sku_mapping)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u    
   end
 
   test "should get index" do

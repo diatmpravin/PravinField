@@ -4,6 +4,8 @@ class VariantImagesControllerTest < ActionController::TestCase
   setup do
     @variant_image = FactoryGirl.create(:variant_image)
     @variant_image.unique_image_file_name = 'unique_file_name'
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u    
   end
 
   test "should get index" do

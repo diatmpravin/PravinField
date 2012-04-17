@@ -4,6 +4,8 @@ class StoresControllerTest < ActionController::TestCase
   setup do
     @store = FactoryGirl.create(:store)
     @store.name = "UniqueStore"
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u    
   end
 
   test "should get index" do

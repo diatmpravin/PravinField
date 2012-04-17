@@ -1,9 +1,0 @@
-<?xml version="1.0"?>
-<Library>
-  <NAME><![CDATA[Favorite Books]]></NAME>
-  <Books ISBN="0201710897">
-    <Title>The PickAxe</Title>
-    <Description><![CDATA[Best Ruby book out there!]]></Description>
-    <Author>David Thomas, Andrew Hunt, Dave Thomas</Author>
-  </Books>
-</Library>

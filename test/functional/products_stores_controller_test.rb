@@ -7,6 +7,8 @@ class ProductsStoresControllerTest < ActionController::TestCase
     @product2 = FactoryGirl.create(:product)
     @ps = FactoryGirl.build(:products_store, :store => @store, :product => @product)
     @ps2 = FactoryGirl.create(:products_store, :store => @store, :product => @product2)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u    
   end
 
   test "should create products_store" do

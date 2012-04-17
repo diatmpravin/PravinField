@@ -12,6 +12,8 @@ class ProductsControllerTest < ActionController::TestCase
     @product4 = FactoryGirl.build(:product)
     @ps = FactoryGirl.create(:products_store, :product => @product, :store => @store)
     @ps2 = FactoryGirl.create(:products_store, :product => @product3, :store => @store)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u    
   end
 
   test "should get index" do

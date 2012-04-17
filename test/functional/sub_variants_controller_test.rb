@@ -4,6 +4,8 @@ class SubVariantsControllerTest < ActionController::TestCase
   setup do
     @sub_variant = FactoryGirl.create(:sub_variant)
     @sub_variant2 = FactoryGirl.build(:sub_variant)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u    
   end
 
   test "should get index" do
