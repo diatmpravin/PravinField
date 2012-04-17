@@ -9,8 +9,13 @@
 			<%#= link_to('Sign up', new_user_registration_path)  %>		 
 		</li>
 	<% end %>
-	<% if user_signed_in? %>
-		<% if can? :new, :registeration %>
+	<% if user_signed_in? %>		
+		<%# if can? :new, :registeration %>
+	  	<li>
+				<%#= link_to('Create user', new_user_registration_path)  %>		 
+			</li>
+		<%# end %>
+		<% if current_user.role == "admin" %>
 	  	<li>
 				<%= link_to('Create user', new_user_registration_path)  %>		 
 			</li>

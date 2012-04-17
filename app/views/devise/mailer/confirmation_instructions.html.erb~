@@ -1,6 +1,6 @@
 <p>Dear <%= @resource.name %>!</p>
 
-<p>Here are the login details for your HDO Account.</p>
+<p>Here are the login details for your HDO Account</p>
 
 <p><b>User Name/Email:</b> <%= @resource.email %></p>
 

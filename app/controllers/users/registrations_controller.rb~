@@ -4,8 +4,10 @@ class Users::RegistrationsController < Devise::RegistrationsController
  
   def check_permissions
     #authorize! :create, resource
-    if current_user.role == "admin"
-    	return true
-    end
+    
+    	if current_user.role == "admin"
+    		return true
+    	end
+    	
   end
 end

@@ -249,7 +249,6 @@ ActiveRecord::Schema.define(:version => 20120415090408) do
   create_table "users", :force => true do |t|
     t.string   "email",                  :default => "", :null => false
     t.string   "encrypted_password",     :default => "", :null => false
-    t.string   "role",                   :default => "", :null => false
     t.string   "reset_password_token"
     t.datetime "reset_password_sent_at"
     t.datetime "remember_created_at"
@@ -264,6 +263,7 @@ ActiveRecord::Schema.define(:version => 20120415090408) do
     t.string   "unconfirmed_email"
     t.datetime "created_at"
     t.datetime "updated_at"
+    t.string   "role",                   :default => ""
     t.string   "name"
   end
 
