@@ -263,7 +263,7 @@ ActiveRecord::Schema.define(:version => 20120415090408) do
     t.string   "unconfirmed_email"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string   "role",                   :default => ""
+    t.string   "role"
     t.string   "name"
   end
 

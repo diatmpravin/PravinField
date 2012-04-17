@@ -15,6 +15,11 @@
 				<%#= link_to('Create user', new_user_registration_path)  %>		 
 			</li>
 		<%# end %>
+		<% if idAdmin? %>
+	  	<li>
+				<%= link_to('Create user', new_user_registration_path)  %>		 
+			</li>
+		<% end %>
 		<li>
 			<%= link_to('Edit account', edit_user_registration_path) %>
 		</li>

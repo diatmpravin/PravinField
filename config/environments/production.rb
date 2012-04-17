@@ -76,8 +76,8 @@ Fieldday::Application.configure do
     :port => 587,
     :domain => "gmail.com",
     :authentication => :login,
-    :user_name => 'dojitsu.whitebelt@gmail.com',
-    :password => 'whitebelt',
+    :user_name => 'hdo.whiteblt@gmail.com',
+    :password => 'hdotesting',
   }
   
 end
