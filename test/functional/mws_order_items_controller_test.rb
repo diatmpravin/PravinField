@@ -3,6 +3,8 @@ require 'test_helper'
 class MwsOrderItemsControllerTest < ActionController::TestCase
   setup do
     @mws_order_item = FactoryGirl.create(:mws_order_item)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u
   end
 
   test "should show mws_order_item" do

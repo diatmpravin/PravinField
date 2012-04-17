@@ -8,6 +8,8 @@ class BrandsControllerTest < ActionController::TestCase
     @store = FactoryGirl.create(:store, :store_type => 'MWS')
     @product1 = FactoryGirl.create(:product, :brand => @brand)
     @product2 = FactoryGirl.create(:product, :brand => @brand)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u
   end
 
   test "should get index" do

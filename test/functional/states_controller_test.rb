@@ -4,6 +4,8 @@ class StatesControllerTest < ActionController::TestCase
   setup do
     @state = FactoryGirl.create(:state)
     @state2 = FactoryGirl.build(:state)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u    
   end
 
   test "should get index" do

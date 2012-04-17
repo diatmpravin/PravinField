@@ -4,6 +4,8 @@ class MwsOrdersControllerTest < ActionController::TestCase
   setup do
     @store = FactoryGirl.create(:store, :name => 'FieldDay')
     @mws_order = FactoryGirl.create(:mws_order, :store => @store)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u
   end
 
   test "should get index" do

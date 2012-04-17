@@ -5,6 +5,8 @@ class VariantsControllerTest < ActionController::TestCase
     @product = FactoryGirl.create(:product)
     @variant = FactoryGirl.create(:variant, :product => @product)
     @variant2 = FactoryGirl.build(:variant)
+    @u = FactoryGirl.create(:user)
+    sign_in :user, @u    
   end
 
   test "should get index" do

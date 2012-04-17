@@ -30,6 +30,10 @@ class ActiveSupport::TestCase
 	  response.content_type = content_type
 	  return response
 	end
+
+  class ActionController::TestCase
+    include Devise::TestHelpers
+  end
     
 end
 
