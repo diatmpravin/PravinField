@@ -31,7 +31,11 @@ Fieldday::Application.routes.draw do
   
   resources :omx_requests, :only => [:show]
   resources :mws_requests, :only => [:show, :index]
-  resources :mws_orders, :only => [:show, :index, :update]
+  resources :mws_orders do #, :only => [:show, :index, :update] do
+  	collection do
+  		get "export_to_csv"
+  	end	
+  end
   resources :mws_order_items, :only => [:show]	
 
   match 'welcome'            => 'home#welcome'

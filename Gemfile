@@ -11,7 +11,6 @@ gem 'kaminari'	# pagination
 gem "devise", ">= 2.0.4" #AUTHENTICATION
 gem "cancan" # MODEL PERMISSION
 
-
 group :development, :test do
 	gem 'heroku'
 	#gem 'factory_girl_rails'
