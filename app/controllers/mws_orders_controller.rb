@@ -51,8 +51,11 @@ class MwsOrdersController < ApplicationController
   end
   
   def export_to_csv
+  	#@start_date = "2012-04-13" 
+  	#@end_date = "2012-04-17"
   	filename ="order_#{Date.today.strftime('%d%b%y')}"
-		@orders = MwsOrder.find(:all) 
+		@orders = MwsOrder.find(:all)
+		#@orders = MwsOrder.where(:purchase_date => (@start_date.to_date)..(@end_date.to_date) ) 
 		#csv_string = FasterCSV.generate do |csv|
 		csv_string = CSV.generate do |csv| 
 		  # header row 
