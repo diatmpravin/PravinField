@@ -142,7 +142,7 @@ class Store < ActiveRecord::Base
 		end
 	end
 
-	#private
+	private
 	def add_listings_shopify(products)
 		if self.authenticated_url.nil?
 			return nil
@@ -167,15 +167,17 @@ class Store < ActiveRecord::Base
 	  message = []
 		products.each do |p|
 		  message << p.attributes_for_amazon(:product_data)
+      Listing.create(:product_id=>p.to_param, :store_id=>self.id)
+      # listing needs to be qualified as pending, incomplete, etc
 		end
-    request = MwsRequest.create(:request_type=>'SubmitFeed', :feed_type=>:product_data, :message=>message)
+    request = MwsRequest.create(:store=>self, :request_type=>'SubmitFeed', :feed_type=>:product_data, :message=>message)    
 	end
 	
 	def remove_listings_amazon(products)
 	  products.each do |p|
-		  #l = Listing.find_by_store_id_and_product_id(p.id,self.id)
+		  l = Listing.find_by_store_id_and_product_id(self.id, p.id)
   		#TODO code for remove from mws
-		  #l.destroy	    
+		  l.inactivate
 	  end
 	end
 	
