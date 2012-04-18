@@ -1,0 +1,32 @@
+Feature: Login
+	I want to access protected sections of HDO site
+	As a user
+	I want to login 
+	
+	Scenario: User is not registered in
+		Given I do not exit as a user
+		When I sign in with valid credentials
+		Then I see an invalid login message
+			And I should be signed out
+			
+	Scenario: User login successfully
+		Given I exist as a user
+			And I am not logged in
+		When I login with valid credentials
+		Then I see a successful login message
+		When I return to the site
+		Then I should be signed in
+		
+	Scenario: User enters wrong email
+		Given I exist as a user
+		And I am not logged in
+		When I sign in with wrong email
+		Then I see an invalid login message
+		And I should be signed out
+		
+	Scenario: User enters wrong password
+		Given I exist as a user
+		And I am not logged in
+		When I sign with a wrong password
+		Then I see an invalid login message
+		And I should be signed out						

@@ -54,8 +54,8 @@ gem 'jquery-rails'
 # gem 'ruby-debug19', :require => 'ruby-debug'
 
 group :test do
-	#gem 'turn', '0.8.2',:require => false	# Pretty printed test output
-	gem 'turn',:require => false	# Pretty printed test output	
+	gem 'turn', '0.8.2',:require => false	# Pretty printed test output
+	#gem 'turn',:require => false	# Pretty printed test output	
 	gem 'simplecov', :require => false
 	#gem 'rspec-rails'
 	#gem 'shoulda'
