@@ -130,30 +130,31 @@ class StoreTest < ActiveSupport::TestCase
   end
 
   test "add_listings should work for mws" do
-		s = FactoryGirl.create(:store, :store_type => 'MWS')		
+		s = FactoryGirl.create(:store, :store_type => 'MWS', :name => 'Dummy')		
 		assert_equal 0, s.products.count
 
 		# add product
 		p = FactoryGirl.create(:product)
 		
 		# stub mws_connection
-		s.mws_connection.stubs(:submit_feed).returns(xml_for('submit_feed',200))
-  	s.connection.stubs(:post).returns(xml_for('submit_feed',200)) 
-				
-		# add listing to store
-		s.add_listings([p])
-		#ps = ProductsStore.create(:product_id => p.to_param, :store_id => s.to_param)
+		s.mws_connection.stubs(:post).returns(xml_for('submit_feed',200))
+    assert_difference('MwsRequest.count', 1) do
+      assert_difference('MwsResponse.count', 1) do
+		    # add listing to store
+		    s.add_listings([p])
+		  end
+		end
 		
-		# confirm product was received
-		#assert_equal 1, s.reload.products.count
-		#assert_equal 1, p.reload.stores.count
-		#assert_equal p, s.products.first
-		#assert_equal s, p.stores.first
+		# confirm listing was created
+		assert_equal 1, s.reload.products.count
+		assert_equal 1, p.reload.stores.count
+		assert_equal p, s.products.first
+		assert_equal s, p.stores.first
 
     # remove product from store
-		#ps.destroy
-		#assert_equal 0, s.reload.products.count
-		#assert_equal 0, p.reload.stores.count		
+		s.remove_listings([p])
+		assert_equal 0, s.reload.products.count
+		assert_equal 0, p.reload.stores.count		
     
   end
 		

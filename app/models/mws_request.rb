@@ -6,7 +6,7 @@ class MwsRequest < ActiveRecord::Base
   belongs_to :parent_request, :class_name => "MwsRequest", :foreign_key => "mws_request_id"
   
   #TODO implement code to send request
-  #after_create :send_request
+  after_create :send_request
 
 	def get_request_summary_string
 		error_count = get_responses_with_errors.count
@@ -128,13 +128,15 @@ class MwsRequest < ActiveRecord::Base
     if self.request_type=='SubmitFeed'
       if self.feed_type==:product_data
         response = self.store.mws_connection.submit_feed(:product_data,'Product',self.message)
+        #puts response.inspect
         MwsResponse.create(
 			    :request_type => self.request_type,
 			    :mws_request_id => self.id, 
-			    :amazon_request_id => response_xml.request_id,
-			    :feed_submission_id => response_xml.feed_submission.id,
-			    :processing_status => response_xml.feed_submission.feed_processing_status
+			    :amazon_request_id => response.request_id,
+			    :feed_submission_id => response.feed_submission.id,
+			    :processing_status => response.feed_submission.feed_processing_status
 		    )
+		    
 		    #TODO begin process to poll status periodically, creating a sub request each time, and a response each time
 		  end
 		end
