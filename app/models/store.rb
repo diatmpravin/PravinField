@@ -5,8 +5,8 @@ class Store < ActiveRecord::Base
 	has_many :mws_requests, :dependent => :destroy
 	has_many :mws_orders, :dependent => :destroy
 	has_many :mws_order_items, :through => :mws_orders
-	has_many :products_stores
-	has_many :products, :through => :products_stores
+	has_many :listings, :dependent => :destroy
+	has_many :products, :through => :listings
 	has_attached_file :icon, PAPERCLIP_STORAGE_OPTIONS.merge({:path => "/:class/:attachment/:id/:style/:filename"})
 	after_initialize :init_mws_connection
 	
@@ -121,4 +121,62 @@ class Store < ActiveRecord::Base
 			return Time.now.ago(60*60*3)
 		end
 	end
+
+  # code for listing multiple products
+
+  # takes an array of products, adds them to the appropriate storefront
+	def add_listings(products=[])
+		if self.store_type == 'Shopify'
+			add_listings_shopify(products)
+		elsif self.store_type == 'MWS'
+			add_listings_amazon(products)
+		end
+	end
+
+  # takes an array of products, removes them from the appropriate storefront
+	def remove_listings(products)
+		if self.store_type == 'Shopify'
+			remove_listings_shopify(products)
+		elsif self.store_type == 'MWS'
+			remove_listings_amazon(products)
+		end
+	end
+
+	#private
+	def add_listings_shopify(products)
+		if self.authenticated_url.nil?
+			return nil
+		end
+		ShopifyAPI::Base.site = self.authenticated_url
+		products.each do |p|
+		  shopify_product = ShopifyAPI::Product.create(p.attributes_for_shopify)
+      Listing.create(:product_id=>p.to_param, :store_id=>self.id, :handle=>shopify_product.handle, :foreign_id=>shopify_product.id)
+		end
+	end
+	
+	def remove_listings_shopify(products)
+	  products.each do |p|
+		  l = Listing.find_by_store_id_and_product_id(self.id, p.id)
+		  shopify_product = ShopifyAPI::Product.find(l.foreign_id)
+		  shopify_product.destroy
+		  l.inactivate
+		end
+	end
+
+	def add_listings_amazon(products)
+	  message = []
+		products.each do |p|
+		  message << p.attributes_for_amazon(:product_data)
+		end
+    request = MwsRequest.create(:request_type=>'SubmitFeed', :feed_type=>:product_data, :message=>message)
+	end
+	
+	def remove_listings_amazon(products)
+	  products.each do |p|
+		  #l = Listing.find_by_store_id_and_product_id(p.id,self.id)
+  		#TODO code for remove from mws
+		  #l.destroy	    
+	  end
+	end
+	
 end

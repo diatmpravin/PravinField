@@ -49,4 +49,47 @@ class StoresControllerTest < ActionController::TestCase
 
     assert_redirected_to stores_path
   end
+
+  # do not use stub / mock for shopify as they provide a test store
+  test "should add listings for shopify" do
+    #@store2 = FactoryGirl.create(:store, :store_type => 'Shopify')
+    #@ps = FactoryGirl.build(:products_store, :store_id => @store.to_param, :product_id => @product.to_param)
+    #assert_nil @ps.foreign_id
+
+    # add product to shopify test store  
+    #assert_difference('ProductsStore.count') do
+    #  post :create, products_store: @ps.attributes
+    #end
+    
+    # confirm shopify test store received product
+    #assert_redirected_to @product
+    #@ps = @product.reload.products_stores.first
+    #assert_not_nil @ps.foreign_id
+    #assert_kind_of ShopifyAPI::Product, ShopifyAPI::Product.find(@ps.foreign_id)
+
+    # get product count including product just added
+    #shopify_product_count = ShopifyAPI::Product.all.count
+  
+    # delete created product to avoid collecting in test store, limit 101 products
+    #assert_difference('ProductsStore.count',-1) do    
+    #	delete :destroy, id: @ps.to_param
+    #end
+    #assert_redirected_to products_path
+     
+    # confirm product is no longer on the store
+    #assert_equal shopify_product_count-1, ShopifyAPI::Product.all.count         
+  end
+  
+  test "should add listings for amazon" do
+    #@store = FactoryGirl.create(:store, :store_type => 'MWS')
+    #@ps = FactoryGirl.build(:products_store, :store_id => @store.to_param, :product_id => @product.to_param)
+    #assert_nil @ps.foreign_id
+
+  
+  end
+  
+  test "should remove listings for amazon" do
+  
+  end
+  
 end

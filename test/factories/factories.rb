@@ -20,7 +20,7 @@ FactoryGirl.define do
 		authenticated_url 'https://10631e6948f35b5f0e390c16c5b7c810:c9b2449f54de4b0ca0dbfb9ebd31ffc2@rippin-group7856.myshopify.com/admin'
 	end
 
-	factory :products_store do
+	factory :listing do
   	#product { |a| a.association(:product) }
   	#store { |a| a.association(:store) }
   	product
