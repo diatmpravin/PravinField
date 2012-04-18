@@ -9,10 +9,18 @@
 		%p
 			= link_to 'Orders With Unmatched SKUs', mws_orders_path(:unmatched=>1)
 		%p
-			= link_to "Download order", export_to_csv_mws_orders_path
-
+			= link_to "Download order", export_to_csv_mws_orders_path	
+			
 %h1="Listing Orders Received From Amazon"
 
+#exportOrders
+	= form_tag export_to_csv_mws_orders_path, :autocomplete => 'off' ,:method => 'get' do
+		%p
+			Start date:
+			= text_field_tag :startDate, '' , :size => 10, :class => "exportOrdersDate", :required => "required"
+			End date:			 
+			= text_field_tag :endDate, '' , :size => 10, :class => "exportOrdersDate", :required => "required"
+			= submit_tag "Download order"
 %table
 	%tr
 		%th="Store"

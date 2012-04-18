@@ -11,4 +11,3 @@ div.block { background: #EEEEEE; border: 1px solid #CCCCCC; float: left; width: 
 div.block > form { float: right; }
 div.block h2 { padding: 0px; margin: 0px 0px 5px 0px; }
 div.block p { margin: 0px 0px 5px 0px; }
-
