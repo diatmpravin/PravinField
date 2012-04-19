@@ -4,4 +4,3 @@ test
 spec
 features
 .rspec
-Gemfile.lock
