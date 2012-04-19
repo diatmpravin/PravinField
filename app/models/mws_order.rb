@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 require 'amazon/mws'
-require 'RubyOmx'
+#require 'RubyOmx'
 
 class MwsOrder < ActiveRecord::Base
 	belongs_to :mws_response

@@ -1,5 +1,5 @@
 require 'amazon/mws'
-require 'RubyOmx'
+#require 'RubyOmx'
 
 class Store < ActiveRecord::Base	
 	has_many :mws_requests, :dependent => :destroy
