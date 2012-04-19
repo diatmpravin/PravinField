@@ -30,15 +30,14 @@ class BrandTest < ActiveSupport::TestCase
 		assert b.invalid?
 		assert b.errors[:default_markup].any?
 	end
-	
-	#test "process_from_vendor should work" do
-		#TODO what to test here?
-	#end
 
-	test "has a vendor" do
-		b = FactoryGirl.create(:brand)
-		assert_instance_of Vendor, b.vendor, 'Brand does not have a valid parent vendor'
-	end
+  test "revise_variant_skus should work" do
+    b = FactoryGirl.create(:brand, :name=>'Polo')
+    p = FactoryGirl.create(:product, :brand_id=>b.to_param, :base_sku=>'polo_base')
+    v = FactoryGirl.create(:variant, :product_id=>p.to_param, :sku=>'nonsense', :color1_code=>'XX')
+    b.revise_variant_skus
+    assert_equal 'polo_base-XX', v.reload.sku
+  end
 
 	test "add_listings should work" do
 		b = FactoryGirl.create(:brand)

@@ -14,6 +14,18 @@ class MwsOrdersControllerTest < ActionController::TestCase
     assert_not_nil assigns(:mws_orders)
   end
 
+  test "should get index for search" do
+    get :index, :search=>'search'
+    assert_response :success
+    assert_not_nil assigns(:mws_orders)
+  end
+  
+  test "should get index for unmatched" do
+    get :index, :unmatched=>'1'
+    assert_response :success
+    assert_not_nil assigns(:mws_orders)    
+  end
+
   test "should show mws_order" do
     get :show, id: @mws_order.to_param
     assert_response :success

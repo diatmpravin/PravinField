@@ -72,15 +72,17 @@ class MwsRequest < ActiveRecord::Base
 			#shipping_update = 0
 			amazon_orders = Array.new
 			response_xml.orders.each do |o|
-				h = MwsHelper.instance_vars_to_hash(o)
-				amz_order = MwsOrder.find_by_amazon_order_id(o.amazon_order_id)
+				#h = MwsHelper.instance_vars_to_hash(o)
+				#h = o.as_hash
+				#amz_order = MwsOrder.find_by_amazon_order_id(o.amazon_order_id)
 				#if !amz_order.nil? && amz_order.number_of_items_unshipped>0 && h['number_of_items_unshipped'] == 0 
 				#	amz_order.set_shipped
 				#	shipping_update = 1 # this is likely just a 'shipped' update, so don't pull new items
 				#else
 					amz_order = MwsOrder.create(:amazon_order_id => o.amazon_order_id)
 				#end
-				h = MwsHelper.instance_vars_to_hash(o)
+				#h = MwsHelper.instance_vars_to_hash(o)
+				h = o.as_hash
 				h[:mws_response_id] = response.id
 				h[:store_id] = self.store_id
 				amz_order.update_attributes(h)

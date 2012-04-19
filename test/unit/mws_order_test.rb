@@ -78,6 +78,29 @@ class MwsOrderTest < ActiveSupport::TestCase
   	#TODO what to assert?  Just needs to not return error?
 	end
 	
+	test "set_shipped should work" do
+	  o = FactoryGirl.create(:mws_order)
+		i = FactoryGirl.create(:mws_order_item, :mws_order_id=>o.to_param, :quantity_ordered => 2, :quantity_shipped => 0)
+		i2 = FactoryGirl.create(:mws_order_item, :mws_order_id=>o.to_param, :quantity_ordered => 2, :quantity_shipped => 0)
+		
+		assert_equal 0, i.quantity_shipped
+		assert_equal 0, i2.quantity_shipped
+		o.set_shipped
+		assert_equal 2, i.reload.quantity_shipped
+		assert_equal 2, i2.reload.quantity_shipped	  
+	end
+	
+	test "get prices should work" do
+	  o = FactoryGirl.create(:mws_order)
+		i = FactoryGirl.create(:mws_order_item, :mws_order_id=>o.to_param, :quantity_ordered => 2, :quantity_shipped => 0, :item_price=>1, :shipping_price=>2, :gift_price=>3)
+		i2 = FactoryGirl.create(:mws_order_item, :mws_order_id=>o.to_param, :quantity_ordered => 2, :quantity_shipped => 0, :item_price=>1, :shipping_price=>2, :gift_price=>3)	  
+	  
+	  assert_equal 2, o.get_item_price
+	  assert_equal 4, o.get_ship_price
+	  assert_equal 6, o.get_gift_price
+	  assert_equal (o.get_item_price + o.get_ship_price + o.get_gift_price), o.get_total_price
+	end
+	
 	test "omx_responses relation and pushed_to_omx? should work" do
 		s = FactoryGirl.create(:store, :name => 'FieldDay')
 		o = FactoryGirl.create(:mws_order, :store => s, :order_status => 'Unshipped')
@@ -130,7 +153,7 @@ class MwsOrderTest < ActiveSupport::TestCase
 		assert_equal 'Smith', o.omx_last_name
 		
 		o.name = nil
-		assert_equal '[Blank]', o.omx_last_name		
+		assert_equal '[Blank]', o.omx_last_name
 	end
 	
 	test "omx_shipping_method should work" do

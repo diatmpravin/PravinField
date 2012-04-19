@@ -74,6 +74,6 @@ class MwsRequestTest < ActiveSupport::TestCase
 		assert_equal 1, resp.reload.mws_orders.count
 		assert_equal "ERROR: #{arr.count} errors, 1 response pages, 1 orders, 1 without items", req.get_request_summary_string
 	end
-			
+	
 	# process_response
 end

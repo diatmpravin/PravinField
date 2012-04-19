@@ -122,9 +122,7 @@ class Store < ActiveRecord::Base
 		end
 	end
 
-  # code for listing multiple products
-
-  # takes an array of products, adds them to the appropriate storefront
+  # takes an array of products, lists them on the appropriate storefront
 	def add_listings(products=[])
 		if self.store_type == 'Shopify'
 			add_listings_shopify(products)
@@ -133,7 +131,7 @@ class Store < ActiveRecord::Base
 		end
 	end
 
-  # takes an array of products, removes them from the appropriate storefront
+  # takes an array of products, removes listings from the appropriate storefront
 	def remove_listings(products)
 		if self.store_type == 'Shopify'
 			remove_listings_shopify(products)
@@ -164,13 +162,13 @@ class Store < ActiveRecord::Base
 	end
 
 	def add_listings_amazon(products)
-	  message = []
+	  messages = []
 		products.each do |p|
-		  message << p.attributes_for_amazon(:product_data)
+		  messages << p.attributes_for_amazon(:product_data)
       Listing.create(:product_id=>p.to_param, :store_id=>self.id)
       # listing needs to be qualified as pending, incomplete, etc
 		end
-    request = MwsRequest.create(:store=>self, :request_type=>'SubmitFeed', :feed_type=>:product_data, :message=>message)    
+    request = MwsRequest.create(:store=>self, :request_type=>'SubmitFeed', :feed_type=>:product_data, :message=>messages)    
 	end
 	
 	def remove_listings_amazon(products)

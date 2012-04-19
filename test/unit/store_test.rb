@@ -1,6 +1,11 @@
 require 'test_helper'
 
 class StoreTest < ActiveSupport::TestCase
+
+  setup do
+    @p = FactoryGirl.create(:product)
+		assert_equal 0, @p.stores.count
+  end
     
   test "store_type should be valid" do
 		s = FactoryGirl.create(:store)
@@ -52,6 +57,11 @@ class StoreTest < ActiveSupport::TestCase
 		
 	end
 
+  test "fetch_orders should work" do
+    
+  end
+
+
 	# shopify stores should have an authenticated URL
 	test "shopify stores should have an authenticated URL" do
 		s = FactoryGirl.create(:store)
@@ -83,12 +93,6 @@ class StoreTest < ActiveSupport::TestCase
 		#s.mws_connection.stubs(:get).returns(xml_for('error',401))
 	end
 
-  setup do
-    @p = FactoryGirl.create(:product)
-		assert_equal 0, @p.stores.count
-
-  end
-
 	test "add and remove listings should work for Shopify" do
     # add shopify store
 		s = FactoryGirl.create(:store, :store_type => 'Shopify')		
@@ -97,12 +101,8 @@ class StoreTest < ActiveSupport::TestCase
 		# add product
 		p = FactoryGirl.create(:product)
 		
-		# add listing to store
+		# add listing to store.  Not stubbing connection to Shopify right now as connection is to test store
 		s.add_listings([p])
-		#ps = ProductsStore.new(:product_id => p.to_param, :store_id => s.to_param)		
-		# Not stubbing connection to Shopify right now as connection is to test store
-		#ps.stubs(:append_to_shopify).returns('TEST_FOREIGN_ID')
-		#ps.save
 		
     # confirm successful addition to store
 		assert_equal 1, s.reload.products.count

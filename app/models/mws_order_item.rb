@@ -24,7 +24,7 @@ class MwsOrderItem < ActiveRecord::Base
 		
 	def set_shipped
 		self.quantity_shipped = self.quantity_ordered
-		self.save!
+		self.save
 	end
 
 	def is_gift?
