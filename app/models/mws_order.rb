@@ -145,11 +145,14 @@ class MwsOrder < ActiveRecord::Base
 		return return_code
 	end
 	
+	# fetch items associated with this order
+	# calls the Amazon MWS API
 	def fetch_order_items(mws_connection)		
 		parent_request = self.mws_response.mws_request
 		request = MwsRequest.create!(:request_type => "ListOrderItems", :store_id => parent_request.store_id, :mws_request_id => parent_request.id)
 		response = mws_connection.get_list_order_items(:amazon_order_id => self.amazon_order_id)
 		next_token = request.process_response(mws_connection, response,0,0)
+		#puts "after fetching order items, next token is #{next_token}"
 		if next_token.is_a?(Numeric)
 			return next_token
 		end

@@ -1,0 +1,43 @@
+<?xml version="1.0"?>
+<ListOrdersResponse xmlns="https://mws.amazonservices.com/Orders/2011-01-01">
+  <ListOrdersResult>
+    <NextToken>2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=</NextToken>	
+    <LastUpdatedBefore>2010-10-05T18:12:20.687Z</LastUpdatedBefore>
+    <Orders>
+      <Order>
+        <AmazonOrderId>058-1233752-8214740</AmazonOrderId>
+        <PurchaseDate>2010-10-05T00:06:07.000Z</PurchaseDate>
+        <LastUpdatedDate>2010-10-05T12:43:16.000Z</LastUpdatedDate>
+        <OrderStatus>Unshipped</OrderStatus>
+        <SalesChannel>Checkout by Amazon</SalesChannel>
+        <ShipServiceLevel>Std DE Dom</ShipServiceLevel>
+        <FulfillmentChannel>MFN</FulfillmentChannel>
+        <OrderTotal>
+          <CurrencyCode>USD</CurrencyCode>
+          <Amount>4.78</Amount>
+        </OrderTotal>
+        <ShippingAddress>
+          <Name>John Smith</Name>
+          <AddressLine1>2700 First Avenue</AddressLine1>
+          <City>Seattle</City>
+          <StateOrRegion>WA</StateOrRegion>
+          <PostalCode>98102</PostalCode>
+          <Country>US</Country>
+        </ShippingAddress>
+        <NumberOfItemsShipped>0</NumberOfItemsShipped>
+        <NumberOfItemsUnshipped>1</NumberOfItemsUnshipped>
+        <MarketplaceId>ATVPDKIKX0DER</MarketplaceId>
+        <BuyerName>Amazon User</BuyerName>
+        <BuyerEmail>5vlh04mgfmjh9h5@marketplace.amazon.com</BuyerEmail>
+        <ShipServiceLevelCategory>Standard</ShipServiceLevelCategory>
+        <OrderTotal>
+          <CurrencyCode>USD</CurrencyCode>
+          <Amount>25.75<Amount/>
+        </OrderTotal>
+      </Order>
+    </Orders>
+  </ListOrdersResult>
+  <ResponseMetadata>
+    <RequestId>88faca76-b600-46d2-343c-0c8c4533e43a</RequestId>
+  </ResponseMetadata>
+</ListOrdersResponse>

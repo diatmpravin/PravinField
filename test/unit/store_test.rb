@@ -57,8 +57,58 @@ class StoreTest < ActiveSupport::TestCase
 		
 	end
 
-  test "fetch_orders should work" do
+  test "get_last_date should work" do
+    s = FactoryGirl.create(:store)
+    d = s.get_last_date # x hours back
+    assert_kind_of Time, d
+    assert_equal -1, d <=> s.get_last_date # Time.now progresses, so they cannot be equal
     
+    # if there is an order, the date should be set on that order
+    d = Time.parse('2012-04-19 15:49:16 +0200')
+    o = FactoryGirl.create(:mws_order, :last_update_date=>d, :store_id=>s.to_param)
+    assert (d - o.last_update_date) < 1 #TODO why is this 1 second off in postgres?
+    assert (d - s.reload.get_last_date) < 1
+    
+    # new order added but with an older last update date
+    o2 = FactoryGirl.create(:mws_order, :last_update_date=>(d-1.hours), :store_id=>s.to_param)
+    assert (d - s.reload.get_last_date) < 1
+  end
+
+  test "fetch_recent_orders should work" do
+    s = FactoryGirl.create(:store)
+    c = s.mws_connection
+    
+    c.stubs(:post).returns(xml_for('request_orders',200))
+		orders_response = c.get_orders_list(
+			:last_updated_after => Time.now.iso8601,
+			:results_per_page => 100,
+      :fulfillment_channel => ["MFN","AFN"],
+			:order_status => ["Unshipped", "PartiallyShipped", "Shipped", "Unfulfillable"],
+			:marketplace_id => ['ATVPDKIKX0DER']
+		)
+		assert_kind_of RequestOrdersResponse, orders_response    
+    c.stubs(:get_orders_list).returns(orders_response)
+
+  	c.stubs(:post).returns(xml_for('request_order_items',200))  
+		items_response = c.get_list_order_items(:amazon_order_id => '134-562342326-223434325')
+		assert_kind_of RequestOrderItemsResponse, items_response
+		c.stubs(:get_list_order_items).returns(items_response)
+		
+  	c.stubs(:post).returns(xml_for('request_order_items_by_next_token',200))  
+		items_response2 = c.get_list_order_items(:amazon_order_id => '134-562342326-223434325')
+		assert_kind_of RequestOrderItemsResponse, items_response2
+		c.stubs(:get_list_order_items).returns(items_response2)		
+    
+  	c.stubs(:post).returns(xml_for('request_orders_by_next_token',200))
+		orders_response2 = c.get_orders_list_by_next_token(:next_token => '2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=')
+		assert_kind_of RequestOrdersByNextTokenResponse, orders_response2
+		c.stubs(:get_orders_list_by_next_token).returns(orders_response2)		
+        
+    assert_difference('MwsOrder.count', 2) do
+      assert_difference('MwsOrderItem.count', 1) do #TODO should be 2??
+        x = s.fetch_recent_orders
+      end
+    end
   end
 
 
@@ -90,8 +140,9 @@ class StoreTest < ActiveSupport::TestCase
 	test "init_mws_connection should work" do
   	s = FactoryGirl.create(:store, :store_type=>'MWS')
 		assert_instance_of Amazon::MWS::Base, s.mws_connection
-		#s.mws_connection.stubs(:get).returns(xml_for('error',401))
 	end
+
+  # tests for listings
 
 	test "add and remove listings should work for Shopify" do
     # add shopify store
@@ -129,7 +180,7 @@ class StoreTest < ActiveSupport::TestCase
     assert_equal 0, s.reload.products.count
   end
 
-  test "add_listings should work for mws" do
+  test "add and remove listings should work for mws" do
 		s = FactoryGirl.create(:store, :store_type => 'MWS', :name => 'Dummy')		
 		assert_equal 0, s.products.count
 
