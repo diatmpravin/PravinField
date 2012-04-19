@@ -10,7 +10,6 @@ class ProductsControllerTest < ActionController::TestCase
     @product2 = FactoryGirl.create(:product, :brand => @brand)
     @product3 = FactoryGirl.create(:product, :brand => @brand2)
     @product4 = FactoryGirl.build(:product)
-    @brand.add_listings(@store)
     @u = FactoryGirl.create(:user)
     sign_in :user, @u    
   end
@@ -21,30 +20,34 @@ class ProductsControllerTest < ActionController::TestCase
     assert_response :success
     assert_not_nil assigns(:products)
     assert_select 'div.product', 3
-    
-    # only 2 products are for same store
-    get :index, :store_id => @store.id
-    assert_response :success
-    assert_not_nil assigns(:products)
-    assert_select 'div.product', 2
-    
+        
     # only 2 products are for the given brand
     get :index, :brand_id => @brand.id
     assert_response :success
     assert_not_nil assigns(:products)
     assert_select 'div.product', 2
-    
-    # 2 products for this combination of brand and store
-    get :index, :brand_id => @brand.id, :store_id => @store.id
-    assert_response :success
-    assert_not_nil assigns(:products)
-    assert_select 'div.product', 2
-    
+        
     # 3 products across 2 brands for this vendor
     get :index, :vendor_id => @vendor.id
     assert_response :success
     assert_not_nil assigns(:products)
     assert_select 'div.product', 3
+    
+    @brand.add_listings(@store)    
+
+    # only 2 products are for same store
+    get :index, :store_id => @store.id
+    assert_response :success
+    assert_not_nil assigns(:products)
+    assert_select 'div.product', 2
+
+    # 2 products for this combination of brand and store
+    get :index, :brand_id => @brand.id, :store_id => @store.id
+    assert_response :success
+    assert_not_nil assigns(:products)
+    assert_select 'div.product', 2
+
+    @brand.remove_listings(@store)
   end
 
 	test "should get specific product if base_sku and brand_id are passed" do

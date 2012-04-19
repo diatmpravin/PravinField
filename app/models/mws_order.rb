@@ -50,6 +50,7 @@ class MwsOrder < ActiveRecord::Base
 		end
 	end
 
+  # set each item in an order to shipped
 	def set_shipped
 		self.mws_order_items.each do |i|
 			i.set_shipped
@@ -128,9 +129,7 @@ class MwsOrder < ActiveRecord::Base
 
 	def reprocess_order
 		store = self.store
-		if store.mws_connection.nil?
-			logger.debug "store mws connection is nil, store is #{store.name}"
-		else
+		if !store.mws_connection.nil?
 			return process_order(store.mws_connection)
 		end 
 	end
@@ -173,7 +172,8 @@ class MwsOrder < ActiveRecord::Base
 	end
 
 	def process_order_item(item, response_id)		
-		h = MwsHelper.instance_vars_to_hash(item)
+		#h = MwsHelper.instance_vars_to_hash(item)
+		h = item.as_hash
 		h[:mws_response_id] = response_id
 		h[:mws_order_id] = self.id
 		h[:amazon_order_id] = self.amazon_order_id		
@@ -200,12 +200,7 @@ class MwsOrder < ActiveRecord::Base
 			return '[Blank]'
 		end
 		a = self.name.strip.split(/ /)
-		last_name = a.last
-		if last_name.nil? || last_name == ''
-			return '[Blank]'
-		else
-			return last_name
-		end
+		a.last
 	end
 	
 	def omx_shipping_method

@@ -36,7 +36,8 @@ Fieldday::Application.routes.draw do
   		get "export_to_csv"
   	end	
   end
-  resources :mws_order_items, :only => [:show]	
+  resources :mws_order_items, :only => [:show]
+  resources :analytics, :only => [:index]	
 
   match 'welcome'            => 'home#welcome'
   match 'design'             => 'home#design'
