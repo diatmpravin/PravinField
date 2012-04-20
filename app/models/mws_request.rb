@@ -45,7 +45,6 @@ class MwsRequest < ActiveRecord::Base
   # calls the Amazon MWS API
   def process_orders(mws_connection, response)
 		next_token = process_response(mws_connection, response,0,0)
-		#puts "after processing orders, next token is #{next_token}"
 		if next_token.is_a?(Numeric)
 			return next_token
 		end
@@ -105,7 +104,6 @@ class MwsRequest < ActiveRecord::Base
 			# Process all orders first
 			amazon_orders = Array.new
 			response_xml.orders.each do |o|
-			  #puts "adding order #{o.amazon_order_id}"
 				amz_order = MwsOrder.create(:amazon_order_id => o.amazon_order_id)
 				h = o.as_hash
 				h[:mws_response_id] = response.id
@@ -118,7 +116,6 @@ class MwsRequest < ActiveRecord::Base
 			sleep_time = MwsOrder::get_sleep_time_per_order(amazon_orders.count)
 			amazon_orders.each do |amz_order|
 				sleep sleep_time
-				#puts "processing order #{amz_order.amazon_order_id}"
 				r = amz_order.process_order(mws_connection)
 			end
 			
@@ -126,9 +123,7 @@ class MwsRequest < ActiveRecord::Base
 		elsif self.request_type=="ListOrderItems"
 			response.amazon_order_id = response_xml.amazon_order_id
 			response.save!
-			
-			#puts "items for order #{response.amazon_order_id}"
-			
+						
 			amz_order = MwsOrder.find_by_amazon_order_id(response.amazon_order_id)
 			if !amz_order.nil?
 			  response_xml.order_items.each do |i|
@@ -161,7 +156,6 @@ class MwsRequest < ActiveRecord::Base
     if self.request_type=='SubmitFeed'
       if self.feed_type==:product_data
         response = self.store.mws_connection.submit_feed(:product_data,'Product',self.message)
-        #puts response.inspect
         MwsResponse.create(
 			    :request_type => self.request_type,
 			    :mws_request_id => self.id, 

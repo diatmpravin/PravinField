@@ -95,9 +95,9 @@ class StoreTest < ActiveSupport::TestCase
 		c.stubs(:get_list_order_items).returns(items_response)
 		
   	c.stubs(:post).returns(xml_for('request_order_items_by_next_token',200))  
-		items_response2 = c.get_list_order_items(:amazon_order_id => '134-562342326-223434325')
-		assert_kind_of RequestOrderItemsResponse, items_response2
-		c.stubs(:get_list_order_items).returns(items_response2)		
+		items_response2 = c.get_list_order_items_by_next_token(:next_token => '2YgYW55IGNhcm99999999Vhc3VyZS4=')
+		assert_kind_of RequestOrderItemsByNextTokenResponse, items_response2
+		c.stubs(:get_list_order_items_by_next_token).returns(items_response2)		
     
   	c.stubs(:post).returns(xml_for('request_orders_by_next_token',200))
 		orders_response2 = c.get_orders_list_by_next_token(:next_token => '2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=')
@@ -105,7 +105,7 @@ class StoreTest < ActiveSupport::TestCase
 		c.stubs(:get_orders_list_by_next_token).returns(orders_response2)		
         
     assert_difference('MwsOrder.count', 2) do
-      assert_difference('MwsOrderItem.count', 1) do #TODO should be 2??
+      assert_difference('MwsOrderItem.count', 2) do #TODO should be 2??
         x = s.fetch_recent_orders
       end
     end

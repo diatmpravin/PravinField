@@ -1,7 +1,7 @@
 <?xml version="1.0"?>
 <ListOrderItemsResponse xmlns="https://mws.amazonservices.com/Orders/2011-01-01">
 <ListOrderItemsResult>  
-  <NextToken>2YgYW55IGNhcm5hbCBwbGVhc3VyZS4=</NextToken>		
+  <NextToken>2YgYW55IGNhcm99999999Vhc3VyZS4=</NextToken>		
   <AmazonOrderId>058-1233752-8214740</AmazonOrderId>
   <OrderItems>
     <OrderItem>

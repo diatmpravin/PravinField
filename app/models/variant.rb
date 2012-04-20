@@ -1,5 +1,6 @@
 class Variant < ActiveRecord::Base
 	belongs_to :product
+	has_many :variant_updates, :dependent => :destroy
 	has_many :variant_images, :dependent => :destroy
 	has_many :sub_variants, :dependent => :destroy
 	has_many :mws_order_items#, :foreign_key => 'parent_variant_id'
@@ -13,6 +14,10 @@ class Variant < ActiveRecord::Base
 	#def register_changes
 		
 	#end
+
+  def get_last_update
+    #TODO return datetime of most recent VariantUpdate or return updated_at for this Variant
+  end
 
 	def product_master_succession
 		# while deleting, if this was the master previously, then set a new master

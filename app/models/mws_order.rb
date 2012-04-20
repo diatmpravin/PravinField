@@ -152,7 +152,6 @@ class MwsOrder < ActiveRecord::Base
 		request = MwsRequest.create!(:request_type => "ListOrderItems", :store_id => parent_request.store_id, :mws_request_id => parent_request.id)
 		response = mws_connection.get_list_order_items(:amazon_order_id => self.amazon_order_id)
 		next_token = request.process_response(mws_connection, response,0,0)
-		#puts "after fetching order items, next token is #{next_token}"
 		if next_token.is_a?(Numeric)
 			return next_token
 		end
@@ -174,8 +173,7 @@ class MwsOrder < ActiveRecord::Base
 		end
 	end
 
-	def process_order_item(item, response_id)		
-		#h = MwsHelper.instance_vars_to_hash(item)
+	def process_order_item(item, response_id)
 		h = item.as_hash
 		h[:mws_response_id] = response_id
 		h[:mws_order_id] = self.id

@@ -7,4 +7,10 @@ FactoryGirl.define do
     # required if the Devise Confirmable module is used
     #confirmed_at Time.now
   end
+  
+  factory :import do
+    import_date '2011-10-01'
+    format 'csv'
+    status 'done'
+  end
 end

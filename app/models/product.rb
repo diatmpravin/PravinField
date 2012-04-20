@@ -68,6 +68,10 @@ class Product < ActiveRecord::Base
 		end
 	end
 
+  def get_last_update
+    #TODO return datetime of most recent value for get_last_update for each variant of this product
+  end
+
   # return a hash structured to list this product on Shopify
   def attributes_for_shopify
 	  variants_arr = Array.new
