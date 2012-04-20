@@ -16,6 +16,7 @@ group :development, :test do
 	gem 'watir-webdriver'
 	gem "rspec-rails", ">= 2.8.1"
 	gem 'haml-rails'
+	gem 'rails-erd'
 end
 
 gem 'amazon-mws', :git => 'git://github.com/aew/amazon-mws.git'

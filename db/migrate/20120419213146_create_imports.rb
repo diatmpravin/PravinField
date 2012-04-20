@@ -1,5 +1,6 @@
 class CreateImports < ActiveRecord::Migration
   def change
+    drop_table :imports
     create_table :imports do |t|
       t.string :format
       t.has_attached_file :input_file
