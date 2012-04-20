@@ -83,4 +83,42 @@ class ImportsController < ApplicationController
       format.json { head :no_content }
     end
   end
+
+=begin  
+  def importProductFile 
+  	if request.post? && params[:file].present?
+  		infile = params[:file].read 		  		
+      n, errs = 0, []
+
+      CSV.parse(infile) do |row|
+        n += 1                       
+        next if n == 1 or row.join.blank? # SKIP: header i.e. first row OR blank row
+        @importproduct = Imports.build_from_csv(row) # build_from_csv method will map customer attributes & build new customer record                
+        if @importproduct.valid? # Save upon valid otherwise collect error records to export
+          @importproduct.save
+        else        	
+        	row.push @importproduct.errors.full_messages.join(',')
+         errs << row
+        end
+      end
+      
+       #Export Error file for later upload upon correction
+      if errs.any?      	
+        errFile ="errors_#{Date.today.strftime('%d%b%y')}.csv"
+        errs.insert(0, ImportProduct.csv_header)
+        errCSV = CSV.generate do |csv|
+          errs.each {|row| csv << row}
+        end
+        
+        send_data errCSV, :type => 'text/csv; charset=iso-8859-1; header=present',:disposition => "attachment; filename=#{errFile}.csv"
+        if @importproduct.errors == true
+        	redirect_to products_path, :notice=>"Errors: #{@importproduct.errors}" and return
+        end
+      else
+        redirect_to products_path, :notice=>'Import successful'
+      end
+    end
+  end
+=end
+
 end

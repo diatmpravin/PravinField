@@ -12,7 +12,7 @@
 %h1= "Products: #{@title}"
 
 .productUpload
-	= form_tag importProductFile_import_products_path, :method => 'post', :multipart => true do
+	= form_tag importProductFile_imports_path, :method => 'post', :multipart => true do
 		Select File:
 		= file_field_tag 'file'
 		= submit_tag 'Upload Product', :name => nil

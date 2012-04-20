@@ -1,11 +1,15 @@
 Fieldday::Application.routes.draw do
-
-  resources :sku_patterns
-
+  
   devise_for :users, :controllers => { :registrations => "users/registrations" }
 
   resources :sku_mappings
-  resources :imports, :only => [:index, :show, :new, :create]
+  resources :sku_patterns
+  
+  resources :imports, :only => [:index, :show, :new, :create] do
+    collection do
+      post 'importProductFile'
+    end
+  end
 
   resources :states
   resources :stores #TODO member do for adding groups of products to store
@@ -23,12 +27,6 @@ Fieldday::Application.routes.draw do
   	collection do  		
   		get 'by_base_sku_and_brand_id'
   	end		  	
-  end
-  
-  resources :import_products do
-  	collection do
-  		post 'importProductFile'
-  	end
   end
   
   resources :variants, :variant_images do

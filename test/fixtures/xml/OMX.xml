@@ -1,0 +1,41 @@
+xml version="1.0" encoding="UTF-8"
+<UDOARequest version="2.00">
+  <UDIParameter>
+    <Parameter key="UDIAuthToken">YourToken</Parameter>
+    <Parameter key="QueueFlag">True</Parameter>
+    <Parameter key="Keycode">JTESTKEY</Parameter>
+  </UDIParameter>
+  <Header>
+    <StoreCode>WEBSTORE01</StoreCode>
+    <OrderID>003465-A</OrderID>
+    <OrderDate>2003-04-01 22:15:10</OrderDate>
+    <OriginType>3</OriginType>
+  </Header>
+  <Customer>
+    <Address type="BillTo">
+      <TitleCode>0</TitleCode>
+      <Firstname>Bill</Firstname>
+      <Lastname>Thomas</Lastname>
+      <Address1>251 West 30th St</Address1>
+      <Address2>Apt 12E</Address2>
+      <City>New York</City>
+      <State>NY</State>
+      <ZIP>10001</ZIP>
+      <TLD>US</TLD>
+    </Address>
+  </Customer>
+  <ShippingInformation>
+    <MethodCode>0</MethodCode>
+  </ShippingInformation>
+  <Payment type="1">
+    <CardNumber>4111111111111111</CardNumber>
+    <CardExpDateMonth>09</CardExpDateMonth>
+    <CardExpDateYear>2011</CardExpDateYear>
+  </Payment>
+  <OrderDetail>
+    <LineItem>
+      <ItemCode>APPLE</ItemCode>
+      <Quantity>1</Quantity>
+    </LineItem>
+  </OrderDetail>
+</UDOARequest>
