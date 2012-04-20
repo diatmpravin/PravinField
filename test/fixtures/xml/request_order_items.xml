@@ -1,0 +1,52 @@
+<?xml version="1.0"?>
+<ListOrderItemsResponse xmlns="https://mws.amazonservices.com/Orders/2011-01-01">
+<ListOrderItemsResult>  
+  <NextToken>2YgYW55IGNhcm99999999Vhc3VyZS4=</NextToken>		
+  <AmazonOrderId>058-1233752-8214740</AmazonOrderId>
+  <OrderItems>
+    <OrderItem>
+      <ASIN>B034534547IMY</ASIN>
+      <OrderItemId>4067343455435394</OrderItemId>
+      <SellerSKU>024345345651</SellerSKU>
+      <Title>Wilson Basketball</Title>
+      <QuantityOrdered>1</QuantityOrdered>
+      <QuantityShipped>0</QuantityShipped>
+      <ItemPrice>
+        <CurrencyCode>USD</CurrencyCode>
+        <Amount>57.07</Amount>
+      </ItemPrice>
+      <ItemTax>
+        <CurrencyCode>USD</CurrencyCode>
+        <Amount>0.00</Amount>
+      </ItemTax>
+      <ShippingPrice>
+        <CurrencyCode>USD</CurrencyCode>
+        <Amount>0.00</Amount>
+      </ShippingPrice>
+      <ShippingTax>
+        <CurrencyCode>USD</CurrencyCode>
+        <Amount>0.00</Amount>
+      </ShippingTax>
+      <GiftWrapPrice>
+        <CurrencyCode>USD</CurrencyCode>
+        <Amount>0.00</Amount>
+      </GiftWrapPrice>
+      <GiftWrapTax>
+        <CurrencyCode>USD</CurrencyCode>
+        <Amount>0.00</Amount>
+      </GiftWrapTax>
+      <ShippingDiscount>
+        <CurrencyCode>USD</CurrencyCode>
+        <Amount>0.00</Amount>
+      </ShippingDiscount>
+      <PromotionDiscount>
+        <CurrencyCode>USD</CurrencyCode>
+        <Amount>0.00</Amount>
+      </PromotionDiscount>
+    </OrderItem>
+  </OrderItems>
+</ListOrderItemsResult>
+<ResponseMetadata>
+  <RequestId>dd345345ac-33458-43459-83451-68bfe3454345474b</RequestId>
+</ResponseMetadata>
+</ListOrderItemsResponse>

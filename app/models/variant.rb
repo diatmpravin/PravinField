@@ -1,5 +1,6 @@
 class Variant < ActiveRecord::Base
 	belongs_to :product
+	has_many :variant_updates, :dependent => :destroy
 	has_many :variant_images, :dependent => :destroy
 	has_many :sub_variants, :dependent => :destroy
 	has_many :mws_order_items#, :foreign_key => 'parent_variant_id'
@@ -13,6 +14,10 @@ class Variant < ActiveRecord::Base
 	#def register_changes
 		
 	#end
+
+  def get_last_update
+    #TODO return datetime of most recent VariantUpdate or return updated_at for this Variant
+  end
 
 	def product_master_succession
 		# while deleting, if this was the master previously, then set a new master
@@ -117,10 +122,7 @@ class Variant < ActiveRecord::Base
 
 	protected
 	def save_sku_mappings
-		SkuMapping.where(:granularity=>'variant',:foreign_id=>self.id,:source=>'auto').each do |sm|
-			sm.destroy
-		end
-		
+	  SkuMapping.clear_auto('variant', self.id)
 		p = self.product
 		if !p.base_sku.nil? && !self.color1_code.nil?
 			if !self.size.nil? && self.size.length>=2

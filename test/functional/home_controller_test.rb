@@ -7,6 +7,11 @@ class HomeControllerTest < ActionController::TestCase
     sign_in :user, @u    
   end
 
+  test "should get welcome" do
+    get :welcome
+    assert_response :success
+  end
+
   test "should get index" do
     get :index
     assert_response :success

@@ -1,0 +1,37 @@
+<%= form_for(@import) do |f| %>
+  <% if @import.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@import.errors.count, "error") %> prohibited this import from being saved:</h2>
+
+      <ul>
+      <% @import.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :format %><br />
+    <%= f.text_field :format %>
+  </div>
+  <div class="field">
+    <%= f.label :input_file %><br />
+    <%= f.text_field :input_file %>
+  </div>
+  <div class="field">
+    <%= f.label :error_file %><br />
+    <%= f.text_field :error_file %>
+  </div>
+  <div class="field">
+    <%= f.label :import_date %><br />
+    <%= f.datetime_select :import_date %>
+  </div>
+  <div class="field">
+    <%= f.label :status %><br />
+    <%= f.text_field :status %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>

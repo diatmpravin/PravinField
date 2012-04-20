@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>HDO Group2</title>
+  <title>HDO Group</title>
   <%= stylesheet_link_tag 'application' %>
   <%= javascript_include_tag 'application' %>
   <%= csrf_meta_tags %>
@@ -9,7 +9,7 @@
 
 <body>
   <div id="header">
-    <h1><%= link_to 'HDO Group2', '/' %></h1>
+    <h1><%= link_to 'HDO Group', '/' %></h1>
     
     <%= render 'shared/navigation' %>	
     <p id="login-link">      
@@ -32,7 +32,8 @@
       <%= tab :products, {:controller => '/products', :action => 'index'}, :label => 'Products' %>
       <%= tab :states, {:controller => '/states', :action => 'index'}, :label => 'State Abbrevs' %>
       <%= tab :sku_mappings, {:controller => '/sku_mappings', :action => 'index'}, :label => 'SKU Mappings' %>
-      <%= tab :analytics, {:controller => '/analytics', :action => 'index'}, :label => 'Analytics' %>      
+      <%= tab :analytics, {:controller => '/analytics', :action => 'index'}, :label => 'Analytics' %>
+	  <%= tab :imports, {:controller => '/imports', :action => 'index'}, :label => 'Imports' %>         
     </ul>
     
     <!-- Flash error & notice-->

@@ -1,5 +1,5 @@
 #require 'mechanize'
-require 'RubyOmx'
+#require 'RubyOmx'
 
 class HomeController < ApplicationController
   

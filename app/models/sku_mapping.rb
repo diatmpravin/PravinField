@@ -24,4 +24,10 @@ class SkuMapping < ActiveRecord::Base
 			return nil
 		end		
 	end
+	
+	def self.clear_auto(granularity, foreign_id)
+		SkuMapping.where(:granularity=>granularity,:foreign_id=>foreign_id,:source=>'auto').each do |sm|
+			sm.destroy
+		end
+	end
 end

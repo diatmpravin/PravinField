@@ -77,6 +77,7 @@ FactoryGirl.define do
 
   factory :variant_update do
     variant
+    import
   end
 
   factory :state do

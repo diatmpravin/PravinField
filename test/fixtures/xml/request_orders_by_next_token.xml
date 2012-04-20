@@ -1,0 +1,40 @@
+<?xml version="1.0"?>
+<ListOrdersByNextTokenResponse xmlns="https://mws.amazonservices.com/Orders/2011-01-01">
+<ListOrdersByNextTokenResult>
+  <LastUpdatedBefore>2012-04-18T20:57:22.000Z</LastUpdatedBefore>
+  <Orders>
+    <Order>
+      <AmazonOrderId>134-5622222326-223434325</AmazonOrderId>
+      <PurchaseDate>2012-04-18T04:07:38.000Z</PurchaseDate>
+      <LastUpdateDate>2012-04-18T04:37:56.000Z</LastUpdateDate>
+      <OrderStatus>Unshipped</OrderStatus>
+      <SalesChannel>Amazon.com</SalesChannel>
+      <ShipServiceLevel>Std Cont US Street Addr</ShipServiceLevel>
+      <FulfillmentChannel>MFN</FulfillmentChannel>
+      <OrderTotal>
+        <CurrencyCode>USD</CurrencyCode>
+        <Amount>57.07</Amount>
+      </OrderTotal>
+      <ShippingAddress>
+        <Name>Mike Smith</Name>
+        <AddressLine1>781 2nd Ave</AddressLine1>
+        <City>New York</City>
+        <StateOrRegion>NEW YORK</StateOrRegion>
+        <PostalCode>11222</PostalCode>
+        <CountryCode>US</CountryCode>
+        <Phone>30553423431</Phone>
+      </ShippingAddress>
+      <NumberOfItemsShipped>0</NumberOfItemsShipped>
+      <NumberOfItemsUnshipped>1</NumberOfItemsUnshipped>
+      <PaymentMethod>Other</PaymentMethod>
+      <MarketplaceId>ATVPDKIKX0DER</MarketplaceId>
+      <BuyerEmail>8v234234324234tyxv8@marketplace.amazon.com</BuyerEmail>
+      <BuyerName>John Smith</BuyerName>
+      <ShipmentServiceLevelCategory>Standard</ShipmentServiceLevelCategory>
+    </Order>
+  </Orders>
+</ListOrdersByNextTokenResult>
+<ResponseMetadata>
+  <RequestId>3fe5555b-1bf8-4434e-a3442-473442ed344460</RequestId>
+</ResponseMetadata>
+</ListOrdersByNextTokenResponse>

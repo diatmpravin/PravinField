@@ -1,7 +1,7 @@
 # encoding: utf-8
 
 require 'amazon/mws'
-require 'RubyOmx'
+#require 'RubyOmx'
 
 class MwsOrder < ActiveRecord::Base
 	belongs_to :mws_response
@@ -145,6 +145,8 @@ class MwsOrder < ActiveRecord::Base
 		return return_code
 	end
 	
+	# fetch items associated with this order
+	# calls the Amazon MWS API
 	def fetch_order_items(mws_connection)		
 		parent_request = self.mws_response.mws_request
 		request = MwsRequest.create!(:request_type => "ListOrderItems", :store_id => parent_request.store_id, :mws_request_id => parent_request.id)
@@ -171,8 +173,7 @@ class MwsOrder < ActiveRecord::Base
 		end
 	end
 
-	def process_order_item(item, response_id)		
-		#h = MwsHelper.instance_vars_to_hash(item)
+	def process_order_item(item, response_id)
 		h = item.as_hash
 		h[:mws_response_id] = response_id
 		h[:mws_order_id] = self.id

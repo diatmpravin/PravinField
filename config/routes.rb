@@ -3,6 +3,7 @@ Fieldday::Application.routes.draw do
   devise_for :users, :controllers => { :registrations => "users/registrations" }
 
   resources :sku_mappings
+  resources :imports, :only => [:index, :show, :new, :create]
 
   resources :states
   resources :stores #TODO member do for adding groups of products to store

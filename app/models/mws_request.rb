@@ -8,6 +8,9 @@ class MwsRequest < ActiveRecord::Base
   #TODO implement code to send request
   after_create :send_request
 
+	MAX_FAILURE_COUNT = 2
+	ORDER_FAIL_WAIT = 60  
+
 	def get_request_summary_string
 		error_count = get_responses_with_errors.count
 		order_count = self.mws_orders.count
@@ -37,7 +40,34 @@ class MwsRequest < ActiveRecord::Base
 		end			
 		return error_responses
 	end
+
+  # accepts a working MWS connection and a ListOrdersResponse, and fully processes these orders
+  # calls the Amazon MWS API
+  def process_orders(mws_connection, response)
+		next_token = process_response(mws_connection, response,0,0)
+		if next_token.is_a?(Numeric)
+			return next_token
+		end
+		
+		page_num = 1
+		failure_count = 0
+		while next_token.is_a?(String) && page_num<self.store.max_order_pages do
+			response = mws_connection.get_orders_list_by_next_token(:next_token => next_token)
+			n = process_response(mws_connection,response,page_num,ORDER_FAIL_WAIT)
+			if n.is_a?(Numeric)
+				failure_count += 1
+				if failure_count >= MAX_FAILURE_COUNT
+					return n
+				end
+			else
+				page_num += 1
+				next_token = n
+			end
+		end    
+  end
 	
+	# accepts a working MWS connection and the XML model of the response, and incorporates this information into the database
+	# calls process_order or process_order_item in turn, which call the Amazon MWS API
 	def process_response(mws_connection,response_xml,page_num,sleep_if_error)
 
 		# Update the request_id in our request parent object if not set already
@@ -54,6 +84,7 @@ class MwsRequest < ActiveRecord::Base
 			:page_num => page_num
 		)
 		
+		# If there is an error code, save the error in the record, sleep for some time to recover, and return the response id, indicating error
 		if response_xml.accessors.include?("code")
 			response.error_code = response_xml.code
 			response.error_message = response_xml.message
@@ -61,56 +92,51 @@ class MwsRequest < ActiveRecord::Base
 			sleep sleep_if_error
 			return response.id
 		end
-			
+		
+		# assign next token if given
 		response.next_token = response_xml.next_token
-	
+
+    # if this is a response containing orders
 		if self.request_type=="ListOrders"
 			response.last_updated_before = response_xml.last_updated_before
 			response.save!
 
 			# Process all orders first
-			#shipping_update = 0
 			amazon_orders = Array.new
 			response_xml.orders.each do |o|
-				#h = MwsHelper.instance_vars_to_hash(o)
-				#h = o.as_hash
-				#amz_order = MwsOrder.find_by_amazon_order_id(o.amazon_order_id)
-				#if !amz_order.nil? && amz_order.number_of_items_unshipped>0 && h['number_of_items_unshipped'] == 0 
-				#	amz_order.set_shipped
-				#	shipping_update = 1 # this is likely just a 'shipped' update, so don't pull new items
-				#else
-					amz_order = MwsOrder.create(:amazon_order_id => o.amazon_order_id)
-				#end
-				#h = MwsHelper.instance_vars_to_hash(o)
+				amz_order = MwsOrder.create(:amazon_order_id => o.amazon_order_id)
 				h = o.as_hash
 				h[:mws_response_id] = response.id
 				h[:store_id] = self.store_id
 				amz_order.update_attributes(h)
-				#if shipping_update == 0
 				amazon_orders << amz_order
-				#end
 			end
 			
-			# Then loop back to get item detail behind each order
+			# Then get item detail behind each order
 			sleep_time = MwsOrder::get_sleep_time_per_order(amazon_orders.count)
 			amazon_orders.each do |amz_order|
 				sleep sleep_time
 				r = amz_order.process_order(mws_connection)
 			end
+			
+		# else if this is a response containing items
 		elsif self.request_type=="ListOrderItems"
 			response.amazon_order_id = response_xml.amazon_order_id
 			response.save!
+						
 			amz_order = MwsOrder.find_by_amazon_order_id(response.amazon_order_id)
-			response_xml.order_items.each do |i|
-				amz_order.process_order_item(i,response.id)
+			if !amz_order.nil?
+			  response_xml.order_items.each do |i|
+				  amz_order.process_order_item(i,response.id)
+			  end
 			end
 		end
 		return response.next_token
 	end
 
-	def get_last_date
-		self.mws_responses.order('last_updated_before DESC').first.last_updated_before
-	end
+	#def get_last_date
+	#	self.mws_responses.order('last_updated_before DESC').first.last_updated_before
+	#end
 	
 	private
 
@@ -130,7 +156,6 @@ class MwsRequest < ActiveRecord::Base
     if self.request_type=='SubmitFeed'
       if self.feed_type==:product_data
         response = self.store.mws_connection.submit_feed(:product_data,'Product',self.message)
-        #puts response.inspect
         MwsResponse.create(
 			    :request_type => self.request_type,
 			    :mws_request_id => self.id, 

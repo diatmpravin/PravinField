@@ -61,5 +61,25 @@ class ProductTest < ActiveSupport::TestCase
 		assert arr.empty?
 	
 	end
+	
+	test "refresh all sku mappings should work" do
+	  b = FactoryGirl.create(:brand)
+	  p = FactoryGirl.create(:product, :brand_id=>b.id, :base_sku=>'xxxx')
+	  v = FactoryGirl.create(:variant, :product_id=>p.id, :size=>'34', :color1_code=>'RCGS', :sku=>'abcd')
+	  sv = FactoryGirl.create(:sub_variant, :variant_id=>v.id, :sku=>'1234')
+	  assert_equal 'xxxx', p.reload.base_sku
+	  assert_equal 'abcd', v.reload.sku
+	  assert_equal '1234', sv.reload.sku
+	
+    SkuMapping.clear_auto('variant', v.id)
+    SkuMapping.clear_auto('sub_variant', sv.id)
+	  assert_equal 0, SkuMapping.count
+	  
+    # refresh all sku mappings should completely regenerate the "auto" mappings for variants and subvariants
+	  Product.refresh_all_sku_mappings
+	  
+	  # sku mapping count should have rebuilt
+	  assert SkuMapping.count > 0
+	end
 				
 end

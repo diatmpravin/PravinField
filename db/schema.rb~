@@ -11,7 +11,11 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
+<<<<<<< HEAD
 ActiveRecord::Schema.define(:version => 20120420051843) do
+=======
+ActiveRecord::Schema.define(:version => 20120419213241) do
+>>>>>>> 4b9dca89b615e8d80a1da89601d9ad0c810bca22
 
   create_table "brands", :force => true do |t|
     t.string   "name"
@@ -27,6 +31,7 @@ ActiveRecord::Schema.define(:version => 20120420051843) do
 
   add_index "brands", ["vendor_id"], :name => "index_brands_on_vendor_id"
 
+<<<<<<< HEAD
   create_table "import_products", :force => true do |t|
     t.string   "name"
     t.text     "description"
@@ -45,7 +50,7 @@ ActiveRecord::Schema.define(:version => 20120420051843) do
     t.text     "keywords"
     t.datetime "created_at"
     t.datetime "updated_at"
-
+=======
   create_table "imports", :force => true do |t|
     t.string   "format"
     t.string   "input_file_file_name"
@@ -60,6 +65,7 @@ ActiveRecord::Schema.define(:version => 20120420051843) do
     t.string   "status"
     t.datetime "created_at",              :null => false
     t.datetime "updated_at",              :null => false
+>>>>>>> 4b9dca89b615e8d80a1da89601d9ad0c810bca22
   end
 
   create_table "listings", :force => true do |t|

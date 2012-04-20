@@ -6,9 +6,9 @@ class ProductsControllerTest < ActionController::TestCase
     @vendor = FactoryGirl.create(:vendor)
     @brand = FactoryGirl.create(:brand, :vendor => @vendor)
     @brand2 = FactoryGirl.create(:brand, :vendor => @vendor)
-    @product = FactoryGirl.create(:product, :brand => @brand)
-    @product2 = FactoryGirl.create(:product, :brand => @brand)
-    @product3 = FactoryGirl.create(:product, :brand => @brand2)
+    @product = FactoryGirl.create(:product, :brand => @brand, :name=>'Carrera 127/S')
+    @product2 = FactoryGirl.create(:product, :brand => @brand, :name=>'Carrera 127/S')
+    @product3 = FactoryGirl.create(:product, :brand => @brand2, :name=>'Carrera 128/S')
     @product4 = FactoryGirl.build(:product)
     @u = FactoryGirl.create(:user)
     sign_in :user, @u    
@@ -20,7 +20,12 @@ class ProductsControllerTest < ActionController::TestCase
     assert_response :success
     assert_not_nil assigns(:products)
     assert_select 'div.product', 3
-        
+
+    get :index, :search => 'Carrera 127/S'
+    assert_response :success
+    assert_not_nil assigns(:products)
+    assert_select 'div.product', 2    
+
     # only 2 products are for the given brand
     get :index, :brand_id => @brand.id
     assert_response :success

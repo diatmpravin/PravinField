@@ -1,5 +1,5 @@
 require 'amazon/mws'
-require 'RubyOmx'
+#require 'RubyOmx'
 
 class Store < ActiveRecord::Base	
 	has_many :mws_requests, :dependent => :destroy
@@ -21,11 +21,8 @@ class Store < ActiveRecord::Base
   validates :authenticated_url, :presence => true, :if => "store_type == 'Shopify'"
 	
 	US_MKT = "ATVPDKIKX0DER"
-	MAX_FAILURE_COUNT = 2
-	ORDER_FAIL_WAIT = 60
 	
-	attr_accessor :mws_connection, :cutoff_time
-	#@cutoff_time = nil
+	attr_accessor :mws_connection
 
 	def get_orders_missing_items
 		orders_array = Array.new
@@ -45,11 +42,7 @@ class Store < ActiveRecord::Base
 			sleep sleep_time
 		end
 	end
-
-	def fetch_recent_orders 		
-		response_id = fetch_orders
-	end
-
+  
 	def init_mws_connection
 		if self.name=='HDO'
 			self.mws_connection = Amazon::MWS::Base.new(
@@ -78,38 +71,25 @@ class Store < ActiveRecord::Base
  		end
 	end
 
-	def fetch_orders		
+  # get recent orders (from last order downloaded to present)
+	def fetch_recent_orders	  	
+		fetch_orders(get_last_date, Time.now)
+	end
 
-		@cutoff_time = get_last_date
 
-		request = MwsRequest.create!(:request_type => "ListOrders", :store_id => self.id) 
+  # get orders from time_from until time_to
+	def fetch_orders(time_from, time_to)
+		request = MwsRequest.create!(:request_type => "ListOrders", :store => self)
 		response = self.mws_connection.get_orders_list(      
-			:last_updated_after => @cutoff_time.iso8601,
+			:last_updated_after => time_from.iso8601,
+      :last_updated_before => time_to.iso8601,
 			:results_per_page => self.order_results_per_page,
       :fulfillment_channel => ["MFN","AFN"],
 			:order_status => ["Unshipped", "PartiallyShipped", "Shipped", "Unfulfillable"],
 			:marketplace_id => [US_MKT]
 		)
-		next_token = request.process_response(self.mws_connection,response,0,0)
-		if next_token.is_a?(Numeric)
-			return next_token
-		end
-		
-		page_num = 1
-		failure_count = 0
-		while next_token.is_a?(String) && page_num<self.max_order_pages do
-			response = self.mws_connection.get_orders_list_by_next_token(:next_token => next_token)
-			n = request.process_response(self.mws_connection,response,page_num,ORDER_FAIL_WAIT)
-			if n.is_a?(Numeric)
-				failure_count += 1
-				if failure_count >= MAX_FAILURE_COUNT
-					return n
-				end
-			else
-				page_num += 1
-				next_token = n
-			end
-		end
+		#TODO this handles a single US marketplace only
+		request.process_orders(self.mws_connection, response)
 	end
 
 	# if there are orders, take 1 second after the most recent order was updated, otherwise shoot 3 hours back

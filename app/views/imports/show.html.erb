@@ -1,0 +1,28 @@
+<p id="notice"><%= notice %></p>
+
+<p>
+  <b>Format:</b>
+  <%= @import.format %>
+</p>
+
+<p>
+  <b>Input file:</b>
+  <%= @import.input_file %>
+</p>
+
+<p>
+  <b>Error file:</b>
+  <%= @import.error_file %>
+</p>
+
+<p>
+  <b>Import date:</b>
+  <%= @import.import_date %>
+</p>
+
+<p>
+  <b>Status:</b>
+  <%= @import.status %>
+</p>
+
+<%= link_to 'Back', imports_path %>
