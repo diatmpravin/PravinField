@@ -101,6 +101,11 @@ GEM
     gherkin (2.9.3-x86-mingw32)
       json (>= 1.4.6)
     haml (3.1.4)
+    haml-rails (0.3.4)
+      actionpack (~> 3.0)
+      activesupport (~> 3.0)
+      haml (~> 3.0)
+      railties (~> 3.0)
     heroku (2.24.1)
       launchy (>= 0.3.2)
       netrc (~> 0.7.1)
@@ -261,6 +266,7 @@ DEPENDENCIES
   email_spec (>= 1.2.1)
   factory_girl_rails (>= 1.7.0)
   haml
+  haml-rails
   heroku
   jquery-rails
   kaminari

@@ -1,0 +1,54 @@
+%p#notice= notice
+
+%p
+  %b Name:
+  = @import_product.name
+%p
+  %b Description:
+  = @import_product.description
+%p
+  %b Available on:
+  = @import_product.available_on
+%p
+  %b Deleted at:
+  = @import_product.deleted_at
+%p
+  %b Meta description:
+  = @import_product.meta_description
+%p
+  %b Meta keywords:
+  = @import_product.meta_keywords
+%p
+  %b Brand:
+  = @import_product.brand_id
+%p
+  %b Base sku:
+  = @import_product.base_sku
+%p
+  %b Category:
+  = @import_product.category
+%p
+  %b Product type:
+  = @import_product.product_type
+%p
+  %b Variation theme:
+  = @import_product.variation_theme
+%p
+  %b Department:
+  = @import_product.department
+%p
+  %b File date:
+  = @import_product.file_date
+%p
+  %b Amazon template:
+  = @import_product.amazon_template
+%p
+  %b Keywords:
+  = @import_product.keywords
+%p
+  %b Keywords:
+  = @import_product.keywords
+
+= link_to 'Edit', edit_import_product_path(@import_product)
+\|
+= link_to 'Back', import_products_path

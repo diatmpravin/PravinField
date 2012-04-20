@@ -1,0 +1,13 @@
+require 'spec_helper'
+
+describe ProductsController do
+
+	describe "POST 'importProductFile'" do
+		it "should to get importProductFile action" do
+			post :importProductFile			
+		end
+	end
+
+end
+
+
