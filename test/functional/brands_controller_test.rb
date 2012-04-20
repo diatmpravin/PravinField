@@ -32,8 +32,10 @@ class BrandsControllerTest < ActionController::TestCase
     assert_difference('Brand.count') do
       post :create, brand: @brand2.attributes
     end
-
     assert_redirected_to brands_path
+
+    post :create, brand: @brand2.attributes
+    assert_response :success # render new, not a redirect
   end
 
   test "should show brand" do
@@ -48,6 +50,9 @@ class BrandsControllerTest < ActionController::TestCase
     get :by_name, :name=>@brand.name, :format => :json
     b = JSON.parse(@response.body)
     assert_equal @brand.name, b['']['name'] #TODO why is root element blank?
+    
+    get :by_name, :name=>'unknown name'
+    assert_redirected_to brands_path
   end
 
   test "should get edit" do
@@ -58,6 +63,10 @@ class BrandsControllerTest < ActionController::TestCase
   test "should update brand" do
     put :update, id: @brand.to_param, brand: @brand.attributes
     assert_redirected_to brands_path
+    
+    @brand3 = FactoryGirl.create(:brand)
+    put :update, id: @brand3.to_param, brand: @brand.attributes
+    assert_response :success # render edit, not a redirect
   end
 
   test "should destroy brand" do
@@ -68,13 +77,12 @@ class BrandsControllerTest < ActionController::TestCase
     assert_redirected_to brands_path
   end
 
-  test "should add and remove brand to store" do
+  test "should add and remove brand to store" do    
     put :add_to_store, id: @brand.to_param, store_id: @store.to_param
     assert_redirected_to brands_path
-  #end
-  
-  #test "should remove brand from store" do
+
     put :remove_from_store, id: @brand.to_param, store_id: @store.to_param
     assert_redirected_to brands_path
   end
+  
 end

@@ -122,10 +122,7 @@ class Variant < ActiveRecord::Base
 
 	protected
 	def save_sku_mappings
-		SkuMapping.where(:granularity=>'variant',:foreign_id=>self.id,:source=>'auto').each do |sm|
-			sm.destroy
-		end
-		
+	  SkuMapping.clear_auto('variant', self.id)
 		p = self.product
 		if !p.base_sku.nil? && !self.color1_code.nil?
 			if !self.size.nil? && self.size.length>=2

@@ -29,20 +29,21 @@ describe ImportsController do
   # Import. As you add validations to Import, be sure to
   # update the return value of this method accordingly.
   def valid_attributes
-    {}
+    { :import_date => '2011-10-01' }
   end
   
   # This should return the minimal set of values that should be in the session
   # in order to pass any filters (e.g. authentication) defined in
   # ImportsController. Be sure to keep this updated too.
-  def valid_session
-    {}
-  end
+  #def valid_session
+  #  {}
+  #end
 
   describe "GET index" do
     it "assigns all imports as @imports" do
-      import = Import.create! valid_attributes
-      get :index, {}, valid_session
+      import = Factory.create(:import)
+      #import = Import.create! valid_attributes
+      get :index
       assigns(:imports).should eq([import])
     end
   end
@@ -50,23 +51,15 @@ describe ImportsController do
   describe "GET show" do
     it "assigns the requested import as @import" do
       import = Import.create! valid_attributes
-      get :show, {:id => import.to_param}, valid_session
+      get :show, {:id => import.to_param}
       assigns(:import).should eq(import)
     end
   end
 
   describe "GET new" do
     it "assigns a new import as @import" do
-      get :new, {}, valid_session
+      get :new, {}
       assigns(:import).should be_a_new(Import)
-    end
-  end
-
-  describe "GET edit" do
-    it "assigns the requested import as @import" do
-      import = Import.create! valid_attributes
-      get :edit, {:id => import.to_param}, valid_session
-      assigns(:import).should eq(import)
     end
   end
 
@@ -74,18 +67,18 @@ describe ImportsController do
     describe "with valid params" do
       it "creates a new Import" do
         expect {
-          post :create, {:import => valid_attributes}, valid_session
+          post :create, {:import => valid_attributes}
         }.to change(Import, :count).by(1)
       end
 
       it "assigns a newly created import as @import" do
-        post :create, {:import => valid_attributes}, valid_session
+        post :create, {:import => valid_attributes}
         assigns(:import).should be_a(Import)
         assigns(:import).should be_persisted
       end
 
       it "redirects to the created import" do
-        post :create, {:import => valid_attributes}, valid_session
+        post :create, {:import => valid_attributes}
         response.should redirect_to(Import.last)
       end
     end
@@ -94,75 +87,16 @@ describe ImportsController do
       it "assigns a newly created but unsaved import as @import" do
         # Trigger the behavior that occurs when invalid params are submitted
         Import.any_instance.stub(:save).and_return(false)
-        post :create, {:import => {}}, valid_session
+        post :create, {:import => {}}
         assigns(:import).should be_a_new(Import)
       end
 
       it "re-renders the 'new' template" do
         # Trigger the behavior that occurs when invalid params are submitted
         Import.any_instance.stub(:save).and_return(false)
-        post :create, {:import => {}}, valid_session
+        post :create, {:import => {}}
         response.should render_template("new")
       end
-    end
-  end
-
-  describe "PUT update" do
-    describe "with valid params" do
-      it "updates the requested import" do
-        import = Import.create! valid_attributes
-        # Assuming there are no other imports in the database, this
-        # specifies that the Import created on the previous line
-        # receives the :update_attributes message with whatever params are
-        # submitted in the request.
-        Import.any_instance.should_receive(:update_attributes).with({'these' => 'params'})
-        put :update, {:id => import.to_param, :import => {'these' => 'params'}}, valid_session
-      end
-
-      it "assigns the requested import as @import" do
-        import = Import.create! valid_attributes
-        put :update, {:id => import.to_param, :import => valid_attributes}, valid_session
-        assigns(:import).should eq(import)
-      end
-
-      it "redirects to the import" do
-        import = Import.create! valid_attributes
-        put :update, {:id => import.to_param, :import => valid_attributes}, valid_session
-        response.should redirect_to(import)
-      end
-    end
-
-    describe "with invalid params" do
-      it "assigns the import as @import" do
-        import = Import.create! valid_attributes
-        # Trigger the behavior that occurs when invalid params are submitted
-        Import.any_instance.stub(:save).and_return(false)
-        put :update, {:id => import.to_param, :import => {}}, valid_session
-        assigns(:import).should eq(import)
-      end
-
-      it "re-renders the 'edit' template" do
-        import = Import.create! valid_attributes
-        # Trigger the behavior that occurs when invalid params are submitted
-        Import.any_instance.stub(:save).and_return(false)
-        put :update, {:id => import.to_param, :import => {}}, valid_session
-        response.should render_template("edit")
-      end
-    end
-  end
-
-  describe "DELETE destroy" do
-    it "destroys the requested import" do
-      import = Import.create! valid_attributes
-      expect {
-        delete :destroy, {:id => import.to_param}, valid_session
-      }.to change(Import, :count).by(-1)
-    end
-
-    it "redirects to the imports list" do
-      import = Import.create! valid_attributes
-      delete :destroy, {:id => import.to_param}, valid_session
-      response.should redirect_to(imports_url)
     end
   end
 

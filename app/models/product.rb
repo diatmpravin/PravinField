@@ -73,6 +73,7 @@ class Product < ActiveRecord::Base
   end
 
   # return a hash structured to list this product on Shopify
+  #TODO rename to as_shopify
   def attributes_for_shopify
 	  variants_arr = Array.new
 	  images_arr = Array.new 
@@ -103,6 +104,7 @@ class Product < ActiveRecord::Base
   end
 
 	#sku	product-id	product-id-type	product-name	brand	bullet-point1	bullet-point2	bullet-point3	bullet-point4	bullet-point5	product-description	clothing-type	size	size-modifier	color	color-map	material-fabric1	material-fabric2	material-fabric3	department1	department2	department3	department4	department5	style-keyword1	style-keyword2	style-keyword3	style-keyword4	style-keyword5	occasion-lifestyle1	occasion-lifestyle2	occasion-lifestyle3	occasion-lifestyle4	occasion-lifestyle5	search-terms1	search-terms2	search-terms3	search-terms4	search-terms5	size-map	waist-size-unit-of-measure	waist-size	inseam-length-unit-of-measure	inseam-length	sleeve-length-unit-of-measure	sleeve-length	neck-size-unit-of-measure	neck-size	chest-size-unit-of-measure	chest-size	cup-size	shoe-width	parent-child	parent-sku	relationship-type	variation-theme	main-image-url	swatch-image-url	other-image-url1	other-image-url2	other-image-url3	other-image-url4	other-image-url5	other-image-url6	other-image-url7	other-image-url8	shipping-weight-unit-measure	shipping-weight	product-tax-code	launch-date	release-date	msrp	item-price	sale-price	currency	fulfillment-center-id	sale-from-date	sale-through-date	quantity	leadtime-to-ship	restock-date	max-aggregate-ship-quantity	is-gift-message-available	is-gift-wrap-available	is-discontinued-by-manufacturer	registered-parameter	update-delete	
+  #TODO rename to as_mws
   def attributes_for_amazon(feed_type)
     if feed_type==:product_data
       #TODO must be completed for product data and other feed types
@@ -116,6 +118,7 @@ class Product < ActiveRecord::Base
 
 	protected
 	def save_sku_mappings
+		#TODO is there an auto generate at the product level?
 		#SkuMapping.where(:granularity=>'product',:foreign_id=>self.id,:source=>'auto').each do |sm|
 		#	sm.destroy
 		#end
