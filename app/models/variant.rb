@@ -3,15 +3,13 @@ class Variant < ActiveRecord::Base
 	has_many :variant_updates, :dependent => :destroy
 	has_many :variant_images, :dependent => :destroy
 	has_many :sub_variants, :dependent => :destroy
-	has_many :mws_order_items#, :foreign_key => 'parent_variant_id'
-	
-	###
+	has_many :mws_order_items
 	has_many :sku_mappings, :as=>:sku_mapable
-	###
 	
 	validates_uniqueness_of :sku
+
 	after_create :set_default_master
-	after_save :save_sku_mappings
+	after_save :generate_skus
 	around_destroy :product_master_succession
 	#before_update :register_changes
 
@@ -58,17 +56,6 @@ class Variant < ActiveRecord::Base
 		self.is_master = true
 		self.save
 	end
-
-  # Flatten variables and send to SkuMapping for evaluation
-  def generate_skus
-    SkuMapping.evaluate(self, { 
-      'brand'=>self.brand.name, 
-      'sku'=>self.sku, 
-      'base_sku'=>self.product.base_sku, 
-      'color1_code'=>self.color1_code, 
-      'size'=>self.size 
-    })
-  end
 
 	def get_clean_sku
 		p = self.product		
@@ -140,8 +127,15 @@ class Variant < ActiveRecord::Base
 	end
 
 	protected
-	def save_sku_mappings
-	  SkuMapping.auto_generate(self)
-	end
-	
+  # Flatten variables and send to SkuMapping for evaluation
+  def generate_skus
+    SkuMapping.auto_generate(self, { 
+      'brand'=>self.brand.name, 
+      'sku'=>self.sku, 
+      'base_sku'=>self.product.base_sku, 
+      'color1_code'=>self.color1_code, 
+      'size'=>self.size 
+    })
+  end	
+		
 end

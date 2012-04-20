@@ -3,7 +3,12 @@ class SkuPattern < ActiveRecord::Base
   belongs_to :brand
   
   # accepts an object, and a variables hash
-  # returns an array of possible skus (1 for sku plus 1 for each pattern associated with the brand)
+  # 1) object is used to get to a brand
+  # 2) iterate over sku_patterns associated with that brand
+  # 3) for each pattern and condition, for each hash key, globally substitute the hash value
+  # 4) eval the resulting string to get a rendered sku, and add this to the array of skus
+  # 5) if a hash key 'sku' was given, add this to the array of skus
+  # 6) return the unique elements from the array of skues
   def self.evaluate(o,h)
     skus = []
     
