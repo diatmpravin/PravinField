@@ -1,4 +1,5 @@
 FactoryGirl.define do
+  
   factory :user do
     name 'Test User'
     sequence(:email) { |n| "example-#{n}@example.com" }
@@ -11,4 +12,11 @@ FactoryGirl.define do
   factory :import do
     import_date '2011-10-01'
   end
+  
+  factory :sku_pattern do
+    pattern 'some pattern'
+    granularity 'Variant'
+    brand
+  end
+  
 end

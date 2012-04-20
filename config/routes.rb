@@ -1,5 +1,7 @@
 Fieldday::Application.routes.draw do
 
+  resources :sku_patterns
+
   devise_for :users, :controllers => { :registrations => "users/registrations" }
 
   resources :sku_mappings

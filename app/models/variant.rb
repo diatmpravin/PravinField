@@ -5,11 +5,19 @@ class Variant < ActiveRecord::Base
 	has_many :sub_variants, :dependent => :destroy
 	has_many :mws_order_items#, :foreign_key => 'parent_variant_id'
 	
+	###
+	has_many :sku_mappings, :as=>:sku_mapable
+	###
+	
 	validates_uniqueness_of :sku
 	after_create :set_default_master
 	after_save :save_sku_mappings
 	around_destroy :product_master_succession
 	#before_update :register_changes
+
+  def brand
+    self.product.brand
+  end
 
 	#def register_changes
 		
@@ -50,6 +58,17 @@ class Variant < ActiveRecord::Base
 		self.is_master = true
 		self.save
 	end
+
+  # Flatten variables and send to SkuMapping for evaluation
+  def generate_skus
+    SkuMapping.evaluate(self, { 
+      'brand'=>self.brand.name, 
+      'sku'=>self.sku, 
+      'base_sku'=>self.product.base_sku, 
+      'color1_code'=>self.color1_code, 
+      'size'=>self.size 
+    })
+  end
 
 	def get_clean_sku
 		p = self.product		
@@ -122,17 +141,7 @@ class Variant < ActiveRecord::Base
 
 	protected
 	def save_sku_mappings
-	  SkuMapping.clear_auto('variant', self.id)
-		p = self.product
-		if !p.base_sku.nil? && !self.color1_code.nil?
-			if !self.size.nil? && self.size.length>=2
-				SkuMapping.create(:sku=>"#{p.base_sku}-#{self.color1_code}-#{self.size[0,2]}",:granularity=>'variant',:foreign_id=>self.id,:source=>'auto')
-				SkuMapping.create(:sku=>"#{p.base_sku}-#{self.color1_code.gsub(/\//,'')}-#{self.size[0,2]}",:granularity=>'variant',:foreign_id=>self.id,:source=>'auto')
-				SkuMapping.create(:sku=>"#{p.base_sku}-#{self.color1_code}-#{self.size[0,2]}",:granularity=>'variant',:foreign_id=>self.id,:source=>'auto')
-			end
-			SkuMapping.create(:sku=>"#{p.base_sku}-#{self.color1_code}",:granularity=>'variant',:foreign_id=>self.id,:source=>'auto')
-			SkuMapping.create(:sku=>"#{p.base_sku}-#{self.color1_code.gsub(/\//,'-')}",:granularity=>'variant',:foreign_id=>self.id,:source=>'auto')
-		end
+	  SkuMapping.auto_generate(self)
 	end
 	
 end

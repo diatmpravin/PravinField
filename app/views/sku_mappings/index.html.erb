@@ -13,8 +13,8 @@
 <% @sku_mappings.each do |sku_mapping| %>
   <tr>
     <td><%= sku_mapping.sku %></td>
-    <td><%= sku_mapping.granularity %></td>
-    <td><%= sku_mapping.foreign_id %></td>
+    <td><%= sku_mapping.sku_mapable_type %></td>
+    <td><%= sku_mapping.sku_mapable_id %></td>
     <td><%= link_to 'Show', sku_mapping %></td>
     <td><%= link_to 'Edit', edit_sku_mapping_path(sku_mapping) %></td>
     <td><%= link_to 'Destroy', sku_mapping, confirm: 'Are you sure?', method: :delete %></td>

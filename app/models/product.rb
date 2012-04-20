@@ -6,6 +6,10 @@ class Product < ActiveRecord::Base
 	has_many :mws_order_items#, :foreign_key => 'parent_product_id'
 	validates_associated :brand
 	
+	###
+	has_many :sku_mappings, :as=>:sku_mapable
+  ###
+	
 	after_save :save_sku_mappings
 
   has_one :master, :class_name => 'Variant',
@@ -56,6 +60,7 @@ class Product < ActiveRecord::Base
 		end
 	end
 
+  #TODO replace this with a more elegant method
 	def self.refresh_all_sku_mappings
 		Product.all.each do |p|
 			p.variants.each do |v|
@@ -116,12 +121,14 @@ class Product < ActiveRecord::Base
     end
   end
 
+  #TODO rename base_sku to sku
+  def sku
+    self.base_sku
+  end
+
 	protected
 	def save_sku_mappings
-		#TODO is there an auto generate at the product level?
-		#SkuMapping.where(:granularity=>'product',:foreign_id=>self.id,:source=>'auto').each do |sm|
-		#	sm.destroy
-		#end
+	  SkuMapping.auto_generate(self)
 	end
-	
+		
 end

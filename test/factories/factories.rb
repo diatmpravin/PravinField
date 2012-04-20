@@ -92,8 +92,8 @@ FactoryGirl.define do
 
   factory :sku_mapping do
     sequence(:sku) { "sku-#{n}" }
-    granularity 'variant'
-    foreign_id 1
+    sku_mapable_type 'Variant'
+    sku_mapable_id 1
   end
 	
 end

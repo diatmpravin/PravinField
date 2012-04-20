@@ -1,0 +1,37 @@
+<%= form_for(@sku_pattern) do |f| %>
+  <% if @sku_pattern.errors.any? %>
+    <div id="error_explanation">
+      <h2><%= pluralize(@sku_pattern.errors.count, "error") %> prohibited this sku_pattern from being saved:</h2>
+
+      <ul>
+      <% @sku_pattern.errors.full_messages.each do |msg| %>
+        <li><%= msg %></li>
+      <% end %>
+      </ul>
+    </div>
+  <% end %>
+
+  <div class="field">
+    <%= f.label :brand_id %><br />
+    <%= f.number_field :brand_id %>
+  </div>
+  <div class="field">
+    <%= f.label :pattern %><br />
+    <%= f.text_field :pattern %>
+  </div>
+  <div class="field">
+    <%= f.label :condition %><br />
+    <%= f.text_field :condition %>
+  </div>
+  <div class="field">
+    <%= f.label :granularity %><br />
+    <%= f.text_field :granularity %>
+  </div>
+  <div class="field">
+    <%= f.label :priority %><br />
+    <%= f.text_field :priority %>
+  </div>
+  <div class="actions">
+    <%= f.submit %>
+  </div>
+<% end %>
