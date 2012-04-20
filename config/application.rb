@@ -65,5 +65,6 @@ module Fieldday
 		
 		config.assets.initialize_on_precompile = false    
     #config.assets.precompile += ['checkout.js']
+
   end
 end

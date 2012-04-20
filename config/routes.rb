@@ -1,4 +1,5 @@
 Fieldday::Application.routes.draw do
+
   devise_for :users, :controllers => { :registrations => "users/registrations" }
 
   resources :sku_mappings
@@ -16,7 +17,15 @@ Fieldday::Application.routes.draw do
   	end
   end
   resources :products do
-  	get 'by_base_sku_and_brand_id', :on => :collection
+  	collection do  		
+  		get 'by_base_sku_and_brand_id'
+  	end		  	
+  end
+  
+  resources :import_products do
+  	collection do
+  		post 'importProductFile'
+  	end
   end
   
   resources :variants, :variant_images do
