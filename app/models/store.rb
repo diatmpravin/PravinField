@@ -82,7 +82,6 @@ class Store < ActiveRecord::Base
 		request = MwsRequest.create!(:request_type => "ListOrders", :store => self)
 		response = self.mws_connection.get_orders_list(      
 			:last_updated_after => time_from.iso8601,
-      :last_updated_before => time_to.iso8601,
 			:results_per_page => self.order_results_per_page,
       :fulfillment_channel => ["MFN","AFN"],
 			:order_status => ["Unshipped", "PartiallyShipped", "Shipped", "Unfulfillable"],
