@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120420172926) do
+ActiveRecord::Schema.define(:version => 20120420225658) do
 
   create_table "brands", :force => true do |t|
     t.string   "name"
@@ -204,7 +204,7 @@ ActiveRecord::Schema.define(:version => 20120420172926) do
     t.integer  "brand_id"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.string   "base_sku"
+    t.string   "sku"
     t.string   "category",         :default => "Sunglasses"
     t.string   "product_type",     :default => "Accessory"
     t.string   "variation_theme",  :default => "Color"
@@ -216,9 +216,9 @@ ActiveRecord::Schema.define(:version => 20120420172926) do
     t.text     "keywords3"
   end
 
-  add_index "products", ["base_sku"], :name => "index_products_on_base_sku"
   add_index "products", ["brand_id"], :name => "index_products_on_brand_id"
   add_index "products", ["category"], :name => "index_products_on_category"
+  add_index "products", ["sku"], :name => "index_products_on_base_sku"
 
   create_table "sku_mappings", :force => true do |t|
     t.string   "sku"

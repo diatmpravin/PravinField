@@ -3,7 +3,7 @@ class Product < ActiveRecord::Base
 	has_many :listings, :dependent => :destroy
 	has_many :stores, :through => :listings
 	has_many :variants, :dependent => :destroy
-	has_many :mws_order_items#, :foreign_key => 'parent_product_id'
+	has_many :mws_order_items
 	has_many :sku_mappings, :as=>:sku_mapable
 
   has_one :master, :class_name => 'Variant',
@@ -28,7 +28,7 @@ class Product < ActiveRecord::Base
 	
 	validates_presence_of :brand_id, :name
 	validates_associated :brand
-	validates_uniqueness_of :base_sku, :scope => [:brand_id]
+	validates_uniqueness_of :sku, :scope => [:brand_id]
   
 	after_save :generate_skus
 
@@ -39,7 +39,7 @@ class Product < ActiveRecord::Base
 		
 		# get direct matches at order level
 		# TODO searching a brand won't work here
-		fields = [ 'name', 'description', 'meta_description', 'meta_keywords', 'base_sku', 'category' ]
+		fields = [ 'name', 'description', 'meta_description', 'meta_keywords', 'sku', 'category' ]
 		bind_vars = MwsHelper::search_helper(fields, search)
 		o2 = select('id').where(bind_vars).collect { |p| p.id }
 			
@@ -111,26 +111,25 @@ class Product < ActiveRecord::Base
     if feed_type==:product_data
       #TODO must be completed for product data and other feed types
       return {
-		    'sku' => self.base_sku,
+		    'sku' => self.sku,
 		    'brand' => self.brand.name,
 		    'product-name' => self.name
 		  }
     end
   end
 
-  #TODO rename base_sku to sku
-  def sku
-    self.base_sku
+	protected
+  # Flatten variables for sku evaluation
+  def to_sku_hash
+    { 
+      'brand'=>self.brand.name, 
+      'product_sku'=>self.sku, 
+      'sku'=>self.sku 
+    }    
   end
 
-	protected
-  # Flatten variables and send to SkuMapping for evaluation
   def generate_skus
-    SkuMapping.auto_generate(self, { 
-      'brand'=>self.brand.name, 
-      'sku'=>self.sku, 
-      'base_sku'=>self.sku 
-    })
+    SkuMapping.auto_generate(self, to_sku_hash)
   end	
 
 end

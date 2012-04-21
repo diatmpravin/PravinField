@@ -18,15 +18,21 @@ class SubVariant < ActiveRecord::Base
 	
 	protected	
   # Flatten variables and send to SkuMapping for evaluation
-  def generate_skus
-    SkuMapping.auto_generate(self, { 
+  def to_sku_hash
+    { 
       'brand'=>self.brand.name, 
-      'sku'=>self.sku, 
-      'base_sku'=>self.product.base_sku, 
+      'sku'=>self.sku,
+      'variant_sku'=> self.variant.sku,
+      'product_sku'=>self.product.sku,
+      'color1_code'=>self.variant.color1_code,
+      'color2_code'=>self.variant.color2_code, 
       'size'=>self.size,
       'size_code'=>self.size_code
-    })
-  end	
-
+    }    
+  end
+  
+  def generate_skus
+    SkuMapping.auto_generate(self, to_sku_hash)
+  end
 	
 end

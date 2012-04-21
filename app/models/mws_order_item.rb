@@ -135,7 +135,7 @@ class MwsOrderItem < ActiveRecord::Base
 		return x if !x.nil?
 		x = Variant.find_by_sku(self.clean_sku)
 		return x if !x.nil?
-		x = Product.find_by_base_sku(self.clean_sku)
+		x = Product.find_by_sku(self.clean_sku)
 		return x if !x.nil?
 		return SkuMapping.get_catalog_match(self.clean_sku)
 	end

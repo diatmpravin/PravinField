@@ -25,7 +25,7 @@ Fieldday::Application.routes.draw do
   end
   resources :products do
   	collection do  		
-  		get 'by_base_sku_and_brand_id'
+  		get 'by_sku_and_brand_id'
   	end		  	
   end
   

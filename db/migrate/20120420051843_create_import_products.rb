@@ -8,7 +8,7 @@ class CreateImportProducts < ActiveRecord::Migration
       t.text :meta_description
       t.string :meta_keywords
       t.integer :brand_id
-      t.string :base_sku
+      t.string :sku
       t.string :category
       t.string :product_type
       t.string :variation_theme

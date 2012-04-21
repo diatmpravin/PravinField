@@ -55,25 +55,25 @@ class ProductsControllerTest < ActionController::TestCase
     @brand.remove_listings(@store)
   end
 
-	test "should get specific product if base_sku and brand_id are passed" do
-		get :index, :base_sku => @product.base_sku, :brand_id => @product.brand_id
+	test "should get specific product if sku and brand_id are passed" do
+		get :index, :sku => @product.sku, :brand_id => @product.brand_id
 		assert_redirected_to @product
 	end
 
-	test "should get by_base_sku_and_brand_id" do
-		get :by_base_sku_and_brand_id, :base_sku => @product.base_sku, :brand_id => @product.brand_id
+	test "should get by_sku_and_brand_id" do
+		get :by_sku_and_brand_id, :sku => @product.sku, :brand_id => @product.brand_id
 		assert_redirected_to @product
 
-		get :by_base_sku_and_brand_id, { :base_sku => @product.base_sku, :brand_id => @product.brand_id, :format => :json }
+		get :by_sku_and_brand_id, { :sku => @product.sku, :brand_id => @product.brand_id, :format => :json }
 		p = JSON.parse(@response.body)
 		assert_equal @product.name, p['']['name']
 	end
 
-	test "by_base_sku_and_brand_id should revert to index if no match" do
-		get :by_base_sku_and_brand_id
+	test "by_sku_and_brand_id should revert to index if no match" do
+		get :by_sku_and_brand_id
 		assert_redirected_to products_url
 		
-		get :by_base_sku_and_brand_id, { :base_sku => 'different_sku', :brand_id => @product.brand_id, :format => :json }
+		get :by_sku_and_brand_id, { :sku => 'different_sku', :brand_id => @product.brand_id, :format => :json }
 		p = ActiveSupport::JSON.decode @response.body
 		assert_equal 'not found', p['error']
 	end

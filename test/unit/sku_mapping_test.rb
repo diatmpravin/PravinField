@@ -3,8 +3,8 @@ require 'test_helper'
 class SkuMappingTest < ActiveSupport::TestCase
 
 	test "self.get_catalog_match should work" do
-		p = FactoryGirl.create(:product, :base_sku=>'AAA')
-		assert_equal p, SkuMapping.get_catalog_match(p.base_sku)
+		p = FactoryGirl.create(:product, :sku=>'AAA')
+		assert_equal p, SkuMapping.get_catalog_match(p.sku)
 		assert_nil SkuMapping.get_catalog_match('unmatched_sku')
 		
     v = FactoryGirl.create(:variant, :product_id=>p.to_param, :sku=>'AAA-BBB')

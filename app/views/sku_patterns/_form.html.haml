@@ -11,21 +11,28 @@
 		= f.label :brand_id
 		= f.collection_select :brand_id, Brand.all, :id, :name
 
+	
+	%p= "For pattern and condition, build a standard ruby string, but enclose variables in {} for substitution"
+	%p= "Available variables: {brand}, {product_sku}, {variant_sku}, {sku}, {color1_code}, {color2_code}, {variant_size}, {size}"
+	%p= "Example: {product_sku}+'-'+{color1_code}.gsub('/','')+'-'+{size}[0,2]"
+
 	.field
 		= f.label :pattern
-		= f.text_field :pattern
+		= f.text_field :pattern, :size=>130
 	
 	.field
 		= f.label :condition
-		= f.text_field :condition
+		= f.text_field :condition, :size=>130
  
+	%p By default, granularity is Variant (most common).  Shared variables {sku} and {size} refer to the appropriate granularity
 	.field
 		= f.label :granularity
 		= f.select :granularity, ['Product', 'Variant', 'SubVariant']
 
+	%p Priority can be used to rank patterns from most important to least (i.e., primary pattern, then less detailed fallback pattern)
 	.field
 		= f.label :priority
-		= f.text_field :priority
+		= f.number_field :priority
 
 	.actions
 		= f.submit

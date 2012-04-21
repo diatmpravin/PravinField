@@ -18,12 +18,12 @@ class ProductTest < ActiveSupport::TestCase
 		assert p.invalid?
 	end
 	
-	test "base_sku should be unique" do
+	test "sku should be unique" do
 		b = FactoryGirl.create(:brand)
-		p = FactoryGirl.create(:product, :base_sku => 'NotUnique', :brand => b)
-		p2 = FactoryGirl.build(:product, :base_sku => 'NotUnique', :brand => b)
+		p = FactoryGirl.create(:product, :sku => 'NotUnique', :brand => b)
+		p2 = FactoryGirl.build(:product, :sku => 'NotUnique', :brand => b)
 		assert p2.invalid?
-		assert p2.errors[:base_sku].any?
+		assert p2.errors[:sku].any?
 	end
 			
 	test "search should work" do
@@ -64,11 +64,11 @@ class ProductTest < ActiveSupport::TestCase
 	
 	test "refresh all sku mappings should work" do
 	  b = FactoryGirl.create(:brand)
-	  p = FactoryGirl.create(:product, :brand_id=>b.id, :base_sku=>'xxxx')
+	  p = FactoryGirl.create(:product, :brand_id=>b.id, :sku=>'xxxx')
 	  v = FactoryGirl.create(:variant, :product_id=>p.id, :size=>'34', :color1_code=>'RCGS', :sku=>'abcd')
     sv = FactoryGirl.create(:sub_variant, :variant_id=>v.id, :sku=>'1234')
 
-	  assert_equal 'xxxx', p.reload.base_sku
+	  assert_equal 'xxxx', p.reload.sku
 	  assert_equal 'abcd', v.reload.sku
 	  assert_equal '1234', sv.reload.sku
 

@@ -12,7 +12,7 @@ FactoryGirl.define do
 	factory :product do
 		brand
 		name 'Carrera 127/S'
-		sequence(:base_sku) { |n| "23423341-12327859-#{n}" }
+		sequence(:sku) { |n| "23423341-12327859-#{n}" }
 	end
 
 	factory :store do

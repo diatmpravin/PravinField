@@ -4,22 +4,22 @@ class SkuPatternTest < ActiveSupport::TestCase
 
   test "self.evaluate should work" do
     b = FactoryGirl.create(:brand)
-    p = FactoryGirl.create(:product, :brand_id=>b.id, :base_sku=>'www')
+    p = FactoryGirl.create(:product, :brand_id=>b.id, :sku=>'www')
     v = FactoryGirl.create(:variant, :product_id=>p.id, :sku=>'xx/x', :color1_code=>'yy/y', :size=>'zz-z')
     sv = FactoryGirl.create(:sub_variant, :variant_id=>v.id, :sku=>'37.0')
     
-    sp1 = FactoryGirl.create(:sku_pattern, :pattern=>"{base_sku}+'-'+{color1_code}+'-'+{size}[0,2]", :brand_id=>b.id)
-    sp2 = FactoryGirl.create(:sku_pattern, :pattern=>"{base_sku}+'-'+{color1_code}.gsub('/','')+'-'+{size}[0,2]", :brand_id=>b.id)
+    sp1 = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size}[0,2]", :brand_id=>b.id)
+    sp2 = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}.gsub('/','')+'-'+{size}[0,2]", :brand_id=>b.id)
     sp3 = FactoryGirl.create(:sku_pattern, :pattern=>"{sku}[0..-3]", :brand_id=>b.id)
-    sp4 = FactoryGirl.create(:sku_pattern, :pattern=>"{base_sku}+'-'+{color1_code}", :brand_id=>b.id)
-    sp5 = FactoryGirl.create(:sku_pattern, :pattern=>"{base_sku}+'-'+{color1_code}.gsub('/','-')", :brand_id=>b.id)
+    sp4 = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}", :brand_id=>b.id)
+    sp5 = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}.gsub('/','-')", :brand_id=>b.id)
     sp6 = FactoryGirl.create(:sku_pattern, :pattern=>"{sku}", :brand_id=>b.id)
     sp7 = FactoryGirl.create(:sku_pattern, :pattern=>"{sku}[0..-3]", :condition=>"{sku}[-2,2]=='.0'", :brand_id=>b.id, :granularity=>'SubVariant')
   
     h = { 
       'brand'=>v.brand.name,
       'sku'=>v.sku,
-      'base_sku'=>v.product.base_sku, 
+      'product_sku'=>v.product.sku, 
       'color1_code'=>v.color1_code,
       'size'=>v.size
     }
