@@ -127,8 +127,7 @@ class MwsOrderItemTest < ActiveSupport::TestCase
 		assert arr.empty?
 	end
 
-	test "get_catalog_match should work" do
-		
+	test "get_catalog_match should work" do	
 		p = FactoryGirl.create(:product)
 		oi = FactoryGirl.create(:mws_order_item, :seller_sku=>p.sku)
 		assert_equal p, oi.product

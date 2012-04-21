@@ -118,15 +118,15 @@ class MwsOrderItem < ActiveRecord::Base
 	protected
 	def save_catalog_match
 		x = get_catalog_match
-		if x.class.name == 'Product'
+		if x.class.to_s == 'Product'
 			self.product_id = x.id
-		elsif x.class.name == 'Variant'
+		elsif x.class.to_s == 'Variant'
 			self.variant_id = x.id
 			self.product_id = x.product.id
-		elsif x.class.name == 'SubVariant'
+		elsif x.class.to_s == 'SubVariant'
 			self.sub_variant_id = x.id
 			self.variant_id = x.variant.id
-			self.product_id = x.variant.product.id
+			self.product_id = x.product.id
 		end
 	end
 
@@ -137,7 +137,7 @@ class MwsOrderItem < ActiveRecord::Base
 		return x if !x.nil?
 		x = Product.find_by_sku(self.clean_sku)
 		return x if !x.nil?
-		return SkuMapping.get_catalog_match(self.clean_sku)
+		#return SkuMapping.get_catalog_match(self.clean_sku)
 	end
 
 	def save_clean_sku
