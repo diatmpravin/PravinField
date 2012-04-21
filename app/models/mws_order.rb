@@ -136,22 +136,28 @@ class MwsOrder < ActiveRecord::Base
 
 	# Process XML order into ActiveRecord, and process items on order
 	def process_order(mws_connection)
+	  puts "in process_order for #{self.amazon_order_id}"
 		return_code = fetch_order_items(mws_connection)
 
 		#TODO if reprocessing, use the update OMX API call rather than append
 		if get_item_quantity_missing == 0 && self.fulfillment_channel == "MFN" && (self.order_status == 'Unshipped' || self.order_status == 'PartiallyShipped')
+		  puts "about to append to omx"
 			append_to_omx
 		end
+		puts "not appending to omx, return code #{return_code}"
 		return return_code
 	end
 	
 	# fetch items associated with this order
 	# calls the Amazon MWS API
 	def fetch_order_items(mws_connection)		
+	  puts "in fetch_order_items for #{self.amazon_order_id}, about to call MWS ListOrderItems"
 		parent_request = self.mws_response.mws_request
 		request = MwsRequest.create!(:request_type => "ListOrderItems", :store_id => parent_request.store_id, :mws_request_id => parent_request.id)
 		response = mws_connection.get_list_order_items(:amazon_order_id => self.amazon_order_id)
+		puts "in fetch_order_items, called MWS ListOrderItems, now about to process response"
 		next_token = request.process_response(mws_connection, response,0,0)
+		puts "back in fetch_order_items, finished process_response"
 		if next_token.is_a?(Numeric)
 			return next_token
 		end
@@ -159,8 +165,11 @@ class MwsOrder < ActiveRecord::Base
 		page_num = 1
 		failure_count = 0
 		while next_token.is_a?(String) && page_num<MAX_ORDER_ITEM_PAGES do
+		  puts "back in fetch_order_items, about to fetch by next token for #{self.amazon_order_id}"
 			response = mws_connection.get_list_order_items_by_next_token(:next_token => next_token)
+			puts "back in fetch_order_items, called MWS ListOrderItems, now about to process response for next token"
 			n = request.process_response(mws_connection,response,page_num,ORDER_ITEM_FAIL_WAIT)
+			puts "back in fetch_order_items, finished process_response for next token"
 			if n.is_a?(Numeric)
 				failure_count += 1
 				if failure_count >= MAX_FAILURE_COUNT
@@ -171,15 +180,18 @@ class MwsOrder < ActiveRecord::Base
 				next_token = n
 			end
 		end
+		puts "finishing fetch_order_items for #{self.amazon_order_id}"
 	end
 
 	def process_order_item(item, response_id)
 		h = item.as_hash
+	  puts "in process_order_item, order #{self.amazon_order_id}, item #{h[:amazon_order_item_id]}"
 		h[:mws_response_id] = response_id
 		h[:mws_order_id] = self.id
 		h[:amazon_order_id] = self.amazon_order_id		
 		amz_item = MwsOrderItem.find_or_create_by_amazon_order_item_id(h[:amazon_order_item_id])
 		amz_item.update_attributes(h)
+		puts "finished process_order_item"
 	end
 
 	def omx_first_name
