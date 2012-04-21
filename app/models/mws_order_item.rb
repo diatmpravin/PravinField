@@ -1,12 +1,9 @@
 class MwsOrderItem < ActiveRecord::Base
 	belongs_to :mws_order
 	belongs_to :mws_response
-	
 	belongs_to :product
 	belongs_to :variant
 	belongs_to :sub_variant
-	
-	before_validation :save_clean_sku, :zero_missing_numbers
 	
 	validates_uniqueness_of :amazon_order_item_id
 	validates_presence_of :mws_order_id
@@ -14,6 +11,7 @@ class MwsOrderItem < ActiveRecord::Base
 	validates :item_price, :item_tax, :promotion_discount, :shipping_price, :shipping_tax, :shipping_discount, :gift_price, :gift_tax, :numericality => { :only_integer => false, :greater_than_or_equal_to => 0 }
 	validates :quantity_ordered, :quantity_shipped, :numericality => { :only_integer => true, :greater_than_or_equal_to => 0 }
 
+	before_validation :save_clean_sku, :zero_missing_numbers
 	before_save :save_catalog_match
 
 	# searches order items BUT returns an ActiveRecord association of the mws_orders associated with the matched mws_order_items
