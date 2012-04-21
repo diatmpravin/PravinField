@@ -118,18 +118,18 @@ class Product < ActiveRecord::Base
     end
   end
 
-	protected
   # Flatten variables for sku evaluation
   def to_sku_hash
     { 
       'brand'=>self.brand.name, 
-      'product_sku'=>self.sku, 
-      'sku'=>self.sku 
+      'product_sku'=>self.sku,
+      'sku'=>self.sku
     }    
   end
 
+  protected
   def generate_skus
-    SkuMapping.auto_generate(self, to_sku_hash)
+    SkuMapping.auto_generate(self)
   end	
 
 end

@@ -10,14 +10,16 @@ describe "sku_patterns/index" do
         :pattern => "Pattern",
         :condition => "Condition",
         :granularity => "Granularity",
-        :priority => 1.0
+        :priority => 1.0,
+        :delimiter => '-'
       ),
       stub_model(SkuPattern,
         :brand_id => @b.to_param,
         :pattern => "Pattern",
         :condition => "Condition",
         :granularity => "Granularity",
-        :priority => 1.0
+        :priority => 1.0,
+        :delimiter => '-'
       )
     ])
   end
@@ -30,5 +32,6 @@ describe "sku_patterns/index" do
     assert_select "tr>td", :text => "Condition".to_s, :count => 2
     assert_select "tr>td", :text => "Granularity".to_s, :count => 2
     assert_select "tr>td", :text => "1.0".to_s, :count => 2
+    assert_select "tr>td", :text => "-".to_s, :count => 2
   end
 end

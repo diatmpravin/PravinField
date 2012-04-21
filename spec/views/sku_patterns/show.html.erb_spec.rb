@@ -8,7 +8,8 @@ describe "sku_patterns/show" do
       :pattern => "Pattern",
       :condition => "Condition",
       :granularity => "Granularity",
-      :priority => 1
+      :priority => 1,
+      :delimiter => '-'
     ))
   end
 
@@ -19,5 +20,6 @@ describe "sku_patterns/show" do
     rendered.should match(/Condition/)
     rendered.should match(/Granularity/)
     rendered.should match(/1/)
+    rendered.should match(/-/)
   end
 end

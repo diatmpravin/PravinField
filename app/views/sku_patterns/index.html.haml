@@ -7,6 +7,7 @@
 		%th Condition
 		%th Granularity
 		%th Priority
+		%th Delimiter
 		%th
 
 	- @sku_patterns.each do |sku_pattern|
@@ -16,6 +17,7 @@
 			%td= sku_pattern.condition
 			%td= sku_pattern.granularity
 			%td= sku_pattern.priority
+			%td= sku_pattern.delimiter
 			%td
 				=link_to 'Show', sku_pattern
 				=link_to 'Edit', edit_sku_pattern_path(sku_pattern)

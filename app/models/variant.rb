@@ -58,7 +58,7 @@ class Variant < ActiveRecord::Base
 	end
 
 	def get_clean_sku
-    SkuPattern.evaluate(self, to_sku_hash).first
+    SkuPattern.evaluate(self).first
 
 		#p = self.product		
 		#b = p.brand.name
@@ -128,21 +128,22 @@ class Variant < ActiveRecord::Base
 		end
 	end
 
-	protected
   # Flatten variables to sku evaluation
   def to_sku_hash
     { 
-      'brand'=>self.brand.name, 
-      'sku'=>self.sku, 
+      'brand'=>self.brand.name,
       'product_sku'=>self.product.sku, 
+      'variant_sku'=> self.sku,
+      'sku'=>self.sku,
       'color1_code'=>self.color1_code, 
       'color2_code'=>self.color2_code,
       'size'=>self.size 
     }    
   end
-  
+
+	protected  
   def generate_skus
-    SkuMapping.auto_generate(self, to_sku_hash)
+    SkuMapping.auto_generate(self)
   end	
 		
 end

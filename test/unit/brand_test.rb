@@ -37,7 +37,7 @@ class BrandTest < ActiveSupport::TestCase
     p = FactoryGirl.create(:product, :brand_id=>b.to_param, :sku=>'polo_base')
     v = FactoryGirl.create(:variant, :product_id=>p.to_param, :sku=>'nonsense', :color1_code=>'XX')
     b.revise_variant_skus
-    assert_equal 'polo_base-XX', v.reload.sku
+    assert_equal 'POLO_BASE-XX', v.reload.sku
   end
 
 	test "add_listings should work" do

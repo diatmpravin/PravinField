@@ -8,7 +8,7 @@ class SkuMapping < ActiveRecord::Base
 
 	# accepts a sku string and returns the product, variant, or sub_variant that it matches, or nil if no match
 	def self.get_catalog_match(sku)
-		sm = SkuMapping.find_by_sku(sku)
+		sm = SkuMapping.find_by_sku(sku.upcase)
 		if !sm.nil?
 		  return sm.sku_mapable
 		end
@@ -16,9 +16,9 @@ class SkuMapping < ActiveRecord::Base
 	end
 
   # delete old auto generated mappings and create new auto mappings for a given product / variant / sub_variant
-	def self.auto_generate(o,h)	  
+	def self.auto_generate(o)	  
     o.sku_mappings.where(:source=>'auto').destroy_all
-    SkuPattern.evaluate(o,h).each do |sku|
+    SkuPattern.evaluate(o).each do |sku|
 	    SkuMapping.create(:sku=>sku, :sku_mapable_type=>o.class.to_s, :sku_mapable_id=>o.id, :source=>'auto')  
     end
   end
