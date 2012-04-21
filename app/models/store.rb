@@ -1,5 +1,4 @@
 require 'amazon/mws'
-#require 'RubyOmx'
 
 class Store < ActiveRecord::Base	
 	has_many :mws_requests, :dependent => :destroy
@@ -73,15 +72,15 @@ class Store < ActiveRecord::Base
 
   # get recent orders (from last order downloaded to present)
 	def fetch_recent_orders
-	  puts "FETCH_RECENT_ORDERS: last date is #{get_last_date}"
+	  #puts "FETCH_RECENT_ORDERS: last date is #{get_last_date}"
 		fetch_orders(get_last_date, Time.now)
-		puts "FETCH_RECENT_ORDERS: finishing"
+		#puts "FETCH_RECENT_ORDERS: finishing"
 	end
 
 
   # get orders from time_from until time_to
 	def fetch_orders(time_from, time_to)
-	  puts "FETCH_ORDERS"
+	  #puts "FETCH_ORDERS"
 		request = MwsRequest.create!(:request_type => "ListOrders", :store => self)
 		response = self.mws_connection.get_orders_list(      
 			:last_updated_after => time_from.iso8601,
@@ -90,10 +89,10 @@ class Store < ActiveRecord::Base
 			:order_status => ["Unshipped", "PartiallyShipped", "Shipped", "Unfulfillable"],
 			:marketplace_id => [US_MKT]
 		)
-		puts "FETCH_ORDERS: sent ListOrders request, response type is #{response.class.to_s}"
+		#puts "FETCH_ORDERS: sent ListOrders request, response type is #{response.class.to_s}"
 		#TODO this handles a single US marketplace only
 		request.process_orders(self.mws_connection, response)
-		puts "FETCH_ORDERS: finishing fetch_orders"
+		#puts "FETCH_ORDERS: finishing fetch_orders"
 	end
 
 	# if there are orders, take 1 second after the most recent order was updated, otherwise shoot 3 hours back
