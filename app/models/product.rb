@@ -123,7 +123,8 @@ class Product < ActiveRecord::Base
     { 
       'brand'=>self.brand.name, 
       'product_sku'=>self.sku,
-      'sku'=>self.sku
+      'sku'=>self.sku,
+      'sku2'=>self.sku2
     }    
   end
 
