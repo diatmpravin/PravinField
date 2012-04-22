@@ -1,0 +1,72 @@
+!!! 5
+%html(lang="en")
+  %head
+    %meta(charset="utf-8")
+    %meta(name="viewport" content="width=device-width, initial-scale=1.0")
+    %title= content_for?(:title) ? yield(:title) : "HDO Group"
+    = csrf_meta_tags
+    / Le HTML5 shim, for IE6-8 support of HTML elements
+    /[if lt IE 9]
+      = javascript_include_tag "http://html5shim.googlecode.com/svn/trunk/html5.js"
+    = stylesheet_link_tag "application", :media => "all"
+    %link(href="images/favicon.ico" rel="shortcut icon")
+    %link(href="images/apple-touch-icon.png" rel="apple-touch-icon")
+    %link(href="images/apple-touch-icon-72x72.png" rel="apple-touch-icon" sizes="72x72")
+    %link(href="images/apple-touch-icon-114x114.png" rel="apple-touch-icon" sizes="114x114")
+
+  %body
+    .navbar.navbar-fixed-top
+      .navbar-inner
+        .container
+          %a.btn.btn-navbar(data-target=".nav-collapse" data-toggle="collapse")
+            %span.icon-bar
+            %span.icon-bar
+            %span.icon-bar
+          %a.brand(href="#")
+            =image_tag(asset_path('logo.png'), :width=>'50px')
+          .container.nav-collapse
+            %ul.nav
+              %li= link_to 'Home', '/home'
+              %li.dropdown
+                %a(href='#' class="dropdown-toggle" data-toggle="dropdown") Amazon
+                %ul.dropdown-menu
+                  %li= link_to 'Requests', mws_requests_path
+                  %li= link_to 'Orders', mws_orders_path
+              %li= link_to 'Stores', stores_path
+              %li= link_to 'Vendors', vendors_path
+              %li= link_to 'Brands', brands_path
+              %li= link_to 'Products', products_path
+              %li.dropdown
+                %a(href='#' class="dropdown-toggle" data-toggle="dropdown") Mappings
+                %ul.dropdown-menu
+                  %li= link_to 'States', products_path							
+                  %li= link_to 'SKU Patterns', sku_patterns_path
+                  %li= link_to 'SKU Mappings', sku_mappings_path
+              %li= link_to 'Analytics', analytics_path
+              %li= link_to 'Imports', imports_path
+              %li.dropdown
+                %a(href='#' class="dropdown-toggle" data-toggle="dropdown") Admin
+                %ul.dropdown-menu
+                  = render 'shared/navigation'
+      - if flash[:error]
+        #flasherrors= flash[:error]
+      - if flash[:notice]
+        #flashnotices= flash[:notice]
+      - if flash[:alert]
+        #flasherrors= flash[:alert]
+
+    .container
+
+      .content
+        .row
+          .span12
+            = yield
+    
+      %footer
+        %p &copy; HDO Group 2012
+    /
+      Javascripts
+      \==================================================
+    / Placed at the end of the document so the pages load faster
+    = javascript_include_tag "application"
+

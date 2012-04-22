@@ -49,8 +49,8 @@ ActiveRecord::Schema.define(:version => 20120422133158) do
     t.string   "handle"
     t.string   "foreign_id"
     t.integer  "mws_request_id"
-    t.datetime "created_at",         :null => false
-    t.datetime "updated_at",         :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.datetime "inactive_timestamp"
   end
 
@@ -252,17 +252,6 @@ ActiveRecord::Schema.define(:version => 20120422133158) do
 
   add_index "states", ["raw_state"], :name => "index_states_on_raw_state"
 
-  create_table "store_products", :force => true do |t|
-    t.integer  "store_id"
-    t.integer  "product_id"
-    t.string   "foreign_id"
-    t.string   "handle"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  add_index "store_products", ["product_id"], :name => "index_store_products_on_product_id"
-
   create_table "stores", :force => true do |t|
     t.string   "name"
     t.string   "store_type",             :default => "MWS"
@@ -272,11 +261,11 @@ ActiveRecord::Schema.define(:version => 20120422133158) do
     t.integer  "max_order_pages",        :default => 10
     t.string   "queue_flag",             :default => "False"
     t.string   "verify_flag",            :default => "True"
-    t.string   "authenticated_url"
     t.string   "icon_file_name"
     t.string   "icon_content_type"
     t.integer  "icon_file_size"
     t.datetime "icon_updated_at"
+    t.string   "authenticated_url"
   end
 
   create_table "sub_variants", :force => true do |t|
@@ -306,8 +295,8 @@ ActiveRecord::Schema.define(:version => 20120422133158) do
     t.datetime "confirmed_at"
     t.datetime "confirmation_sent_at"
     t.string   "unconfirmed_email"
-    t.datetime "created_at",                             :null => false
-    t.datetime "updated_at",                             :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.string   "role"
     t.string   "name"
   end

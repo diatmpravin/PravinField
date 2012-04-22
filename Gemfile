@@ -10,6 +10,8 @@ gem 'kaminari'	# pagination
 gem "devise", ">= 2.0.4" #AUTHENTICATION
 gem "cancan" # MODEL PERMISSION
 
+
+
 group :development, :test do
 	gem 'heroku'
 	gem 'mocha'
@@ -36,6 +38,7 @@ group :assets do
   gem 'coffee-rails'
   gem 'uglifier', '>= 1.0.3'
   gem 'therubyracer'
+  gem 'twitter-bootstrap-rails'
 end
 
 gem 'jquery-rails'
