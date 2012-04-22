@@ -2,9 +2,10 @@
 	%div.brand
 		= link_to(image_tag(brand.icon),products_path(:brand_id => brand.id))
 		%br
-		%b
-			= link_to "#{brand.products.count} products", products_path(:brand_id => brand.id)
-			= link_to "(#{brand.vendor.name})", brand.vendor
+		%b= link_to "#{brand.name}"
+		%br
+		%i= link_to "#{brand.products.count} products", products_path(:brand_id => brand.id)
+		%i= link_to "(#{brand.vendor.name})", brand.vendor
 		%br
 		= link_to 'Show', brand
 		= link_to 'Edit', edit_brand_path(brand)

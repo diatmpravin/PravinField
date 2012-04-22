@@ -22,6 +22,8 @@ class SubVariant < ActiveRecord::Base
       'brand'=>self.brand.name,
       'variant_sku'=> self.variant.sku,
       'product_sku'=>self.product.sku,
+      'product_sku2'=>self.product.sku2,
+      'sub_variant_sku'=>self.sku,
       'sku'=>self.sku,
       'color1_code'=>self.variant.color1_code,
       'color2_code'=>self.variant.color2_code, 

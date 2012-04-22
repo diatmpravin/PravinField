@@ -85,6 +85,7 @@ class SkuPattern < ActiveRecord::Base
   # accepts a sku and an array of delimiters
   # returns the sku split, but only up to the maximum number of delimeters seen in the pattern
   def split_sku(sku)
+    #TODO hanel the fixed width situations
     r = Regexp.new(eval("/[#{self.delimiter}]/"))  
     tokens_in_pattern = self.pattern.split(r).count # example when delimiters might not be the same as the number of variables, if two are smashed together
     return sku.split(r,tokens_in_pattern)

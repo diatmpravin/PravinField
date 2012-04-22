@@ -132,7 +132,8 @@ class Variant < ActiveRecord::Base
   def to_sku_hash
     { 
       'brand'=>self.brand.name,
-      'product_sku'=>self.product.sku, 
+      'product_sku'=>self.product.sku,
+      'product_sku2'=>self.product.sku2,
       'variant_sku'=> self.sku,
       'sku'=>self.sku,
       'color1_code'=>self.color1_code, 

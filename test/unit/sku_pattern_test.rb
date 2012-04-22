@@ -2,6 +2,50 @@ require 'test_helper'
 
 class SkuPatternTest < ActiveSupport::TestCase
 
+  test "brand specific parse examples" do
+    #TODO should split color field from excel into color1 and color2
+
+    # Emporio Armani (Safilo)
+    sp = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{color2_code}[0,2]")
+    sku = 'EA9752-0GLN-CC'
+    expected_hash = {:product_sku=>'EA9752', :color1_code=>'0GLN', :color2_code=>'CC'}
+    assert_equal expected_hash, SkuPattern.parse(sp.brand, sku)
+    
+    # Arnette is a problem, as the product_sku is text, it really maps to a numeric sku, but only numeric us used in variants
+    #TODO to generalize Arnette solution, if you get a sku2 back, ensure that the product is updated with sku2
+    # Arnette
+    sp = FactoryGirl.create(:sku_pattern, :pattern=>"{variant_sku}")
+    sku = 'AN3061-01'
+    #expected_hash = {:product_sku2=>'AN3061', :color1_code=>'02'}
+    expected_hash = {:variant_sku=>'AN3061-01'} #doesn't store color1_code, but what can we do
+    assert_equal expected_hash, SkuPattern.parse(sp.brand, sku)
+
+    sku = '800-0001'
+    expected_hash = {:variant_sku=>'800-0001'}
+    assert_equal expected_hash, SkuPattern.parse(sp.brand, sku)
+    #TODO how could we determine that this method doesn't work for this sku???
+    # Nope Arnette doesn't work, some skus are malformed, like '800-0001' row 5397
+    # Arnette is an example of "no formula", it either matches exactly or we can't help it
+    #TODO Need to handle a condition, but condition must have access to fields?  {product_sku}[0,3]=='AN-'
+
+    # Bell
+    sp = FactoryGirl.create(:sku_pattern, :granularity=>'SubVariant', :pattern=>"{sub_variant_sku}")
+    sku = 'Bell-2012382'
+    #expected_hash = {:product_sku2=>'AN3061', :color1_code=>'02'}
+    expected_hash = {:sub_variant_sku=>'Bell-2012382'} #doesn't store color1_code, but what can we do
+    assert_equal expected_hash, SkuPattern.parse(sp.brand, sku)    
+    
+    # Blackhawk - need to handle fixed length delimit
+
+    #sp = FactoryGirl.create(:sku_pattern, :granularity=>'SubVariant', :pattern=>"{product_sku}[0,6]+{color1_code}[0,1]+'-'+{size}")
+    #sku = '84BS04BK-SM'
+    #expected_hash = {:product_sku2=>'AN3061', :color1_code=>'02'}
+    #expected_hash = {:product_sku>'84BS04', :color1_code=>'BK', :size=>'SM'}
+    #assert_equal expected_hash, SkuPattern.parse(sp.brand, sku)    
+    
+  end
+
+
   test "split_sku should work" do
     sp = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}.gsub('/','')+'-'+{size}[0,2]", :delimiter=>'-')
     sku = 'ZZZ-A/AA-3456-ZZZZ'
@@ -21,9 +65,9 @@ class SkuPatternTest < ActiveSupport::TestCase
     # Test expected output with multiple SKU Patterns loaded, confirms priority is working
     sp2 = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}.gsub('/','')+'-'+{size}[0,2]", :priority=>1.0, :brand_id=>sp.brand_id)
     expected_hash = {:product_sku=>'zzz', :color1_code=>'AAA', :size=>'34' } 
-    assert_equal expected_hash, SkuPattern.parse(sp.brand, sku)
+    assert_equal expected_hash, SkuPattern.parse(sp.brand, sku)    
   end
-  
+    
   test "parse should work" do
     sp = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}.gsub('/','')+'-'+{size}[0,2]")    
     sku = 'ZZZ-AAA-34'
