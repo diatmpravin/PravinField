@@ -135,12 +135,12 @@ class MwsOrderItem < ActiveRecord::Base
 		return x if !x.nil?
 		x = Product.find_by_sku(self.clean_sku)
 		return x if !x.nil?
-		#return SkuMapping.get_catalog_match(self.clean_sku)
+		return SkuMapping.get_catalog_match(self.clean_sku)
 	end
 
 	def save_clean_sku
 		if !self.seller_sku.nil?
-			self.clean_sku = self.seller_sku.gsub(/-AZ.*$/,'')
+			self.clean_sku = SkuPattern.strip_amazon_suffix(self.seller_sku)
 		end
 	end
 

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120421233048) do
+ActiveRecord::Schema.define(:version => 20120422133158) do
 
   create_table "brands", :force => true do |t|
     t.string   "name"
@@ -194,70 +194,6 @@ ActiveRecord::Schema.define(:version => 20120421233048) do
 
   add_index "omx_responses", ["omx_request_id"], :name => "index_omx_responses_on_omx_request_id"
 
-  create_table "order_items", :force => true do |t|
-    t.string   "asin"
-    t.string   "amazon_order_item_id"
-    t.string   "seller_sku"
-    t.string   "title"
-    t.integer  "quantity_ordered"
-    t.integer  "quantity_shipped"
-    t.float    "item_price"
-    t.string   "item_price_currency"
-    t.float    "shipping_price"
-    t.string   "shipping_price_currency"
-    t.float    "gift_price"
-    t.string   "gift_price_currency"
-    t.float    "item_tax"
-    t.string   "item_tax_currency"
-    t.float    "shipping_tax"
-    t.string   "shipping_tax_currency"
-    t.float    "gift_tax"
-    t.string   "gift_tax_currency"
-    t.float    "shipping_discount"
-    t.string   "shipping_discount_currency"
-    t.float    "promotion_discount"
-    t.string   "promotion_discount_currency"
-    t.string   "gift_wrap_level"
-    t.string   "gift_message_text"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.integer  "order_id"
-    t.string   "amazon_order_id"
-  end
-
-  create_table "orders", :force => true do |t|
-    t.string   "amazon_order_id"
-    t.string   "seller_order_id"
-    t.datetime "purchase_date"
-    t.datetime "last_update_date"
-    t.string   "order_status"
-    t.string   "fulfillment_channel"
-    t.string   "sales_channel"
-    t.string   "order_channel"
-    t.string   "ship_service_level"
-    t.float    "amount"
-    t.string   "currency_code"
-    t.string   "address_line_1"
-    t.string   "address_line_2"
-    t.string   "address_line_3"
-    t.string   "city"
-    t.string   "county"
-    t.string   "district"
-    t.string   "state_or_region"
-    t.string   "postal_code"
-    t.string   "country_code"
-    t.string   "phone"
-    t.integer  "number_of_items_shipped"
-    t.integer  "number_of_items_unshipped"
-    t.string   "marketplace_id"
-    t.string   "buyer_name"
-    t.string   "buyer_email"
-    t.string   "ship_service_level_category"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.integer  "response_id"
-  end
-
   create_table "products", :force => true do |t|
     t.string   "name"
     t.text     "description"
@@ -284,37 +220,6 @@ ActiveRecord::Schema.define(:version => 20120421233048) do
   add_index "products", ["brand_id"], :name => "index_products_on_brand_id"
   add_index "products", ["category"], :name => "index_products_on_category"
   add_index "products", ["sku"], :name => "index_products_on_base_sku"
-
-  create_table "products_stores", :force => true do |t|
-    t.integer  "product_id"
-    t.integer  "store_id"
-    t.string   "handle"
-    t.string   "foreign_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  create_table "requests", :force => true do |t|
-    t.string   "amazon_request_id"
-    t.string   "request_type"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
-
-  create_table "responses", :force => true do |t|
-    t.integer  "request_id"
-    t.string   "amazon_request_id"
-    t.text     "next_token"
-    t.datetime "last_updated_before"
-    t.datetime "created_before"
-    t.string   "request_type"
-    t.integer  "page_num"
-    t.string   "error_code"
-    t.text     "error_message"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-    t.string   "amazon_order_id"
-  end
 
   create_table "sku_mappings", :force => true do |t|
     t.string   "sku"
@@ -466,6 +371,7 @@ ActiveRecord::Schema.define(:version => 20120421233048) do
     t.string   "currency"
     t.integer  "leadtime_to_ship"
     t.text     "asin"
+    t.string   "size_code"
   end
 
   add_index "variants", ["amazon_product_id"], :name => "index_variants_on_amazon_product_id"

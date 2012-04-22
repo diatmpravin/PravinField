@@ -8,7 +8,7 @@ class SkuMapping < ActiveRecord::Base
 
 	# accepts a sku string and returns the product, variant, or sub_variant that it matches, or nil if no match
 	def self.get_catalog_match(sku)
-		sm = SkuMapping.find_by_sku(sku.upcase)
+		sm = SkuMapping.find_by_sku(SkuPattern.strip_amazon_suffix(sku).upcase)
 		if !sm.nil?
 		  return sm.sku_mapable
 		end
