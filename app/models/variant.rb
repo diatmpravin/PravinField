@@ -3,15 +3,13 @@ class Variant < ActiveRecord::Base
 	has_many :variant_updates, :dependent => :destroy
 	has_many :variant_images, :dependent => :destroy
 	has_many :sub_variants, :dependent => :destroy
-	has_many :mws_order_items#, :foreign_key => 'parent_variant_id'
-	
-	###
+	has_many :mws_order_items
 	has_many :sku_mappings, :as=>:sku_mapable
-	###
 	
 	validates_uniqueness_of :sku
+
 	after_create :set_default_master
-	after_save :save_sku_mappings
+	after_save :generate_skus
 	around_destroy :product_master_succession
 	#before_update :register_changes
 
@@ -59,42 +57,33 @@ class Variant < ActiveRecord::Base
 		self.save
 	end
 
-  # Flatten variables and send to SkuMapping for evaluation
-  def generate_skus
-    SkuMapping.evaluate(self, { 
-      'brand'=>self.brand.name, 
-      'sku'=>self.sku, 
-      'base_sku'=>self.product.base_sku, 
-      'color1_code'=>self.color1_code, 
-      'size'=>self.size 
-    })
-  end
-
 	def get_clean_sku
-		p = self.product		
-		b = p.brand.name
-		if b == 'Vogue' 							#VO2648-1437-49
-			return "#{p.base_sku}-#{self.color1_code}-#{self.size[0,2]}"
-		elsif b == 'Polo'							#PH3042-900171, PH2053-5003-54
+    SkuPattern.evaluate(self).first
+
+		#p = self.product		
+		#b = p.brand.name
+		#if b == 'Vogue' 							#VO2648-1437-49
+		#	return "#{p.sku}-#{self.color1_code}-#{self.size[0,2]}"
+		#elsif b == 'Polo'							#PH3042-900171, PH2053-5003-54
 			# if there is only 1 size for the product, then leave it off, otherwise keep it on
-			return "#{p.base_sku}-#{self.color1_code}"
-		elsif b == 'Ralph'						#RA4004-10313-59
-			return "#{p.base_sku}-#{self.color1_code.gsub(/\//,'')}-#{self.size[0,2]}"
-		elsif b == 'Dolce & Gabbana' 	#DD8039-502-73 vs. 0DD8089-501/8G-5916
+		#	return "#{p.sku}-#{self.color1_code}"
+		#elsif b == 'Ralph'						#RA4004-10313-59
+		#	return "#{p.sku}-#{self.color1_code.gsub(/\//,'')}-#{self.size[0,2]}"
+		#elsif b == 'Dolce & Gabbana' 	#DD8039-502-73 vs. 0DD8089-501/8G-5916
 			# tricky as there are two versions
 			# 0DD1176-814-5217 > DD1176-675-52, DD2192-338 doesn't have size at all, DD3034-154413 same
 			# if there is a / in the color1_code, then don't include the size, otherwise do
 			# order 4694 has DD2192-338, no slash and yet no size
 			#if self.color1_code.include? '/'
-			return "#{p.base_sku}-#{self.color1_code.gsub(/\//,'-')}"
+		#	return "#{p.sku}-#{self.color1_code.gsub(/\//,'-')}"
 			#else
-			#	return "#{p.base_sku}-#{self.color1_code}-#{self.size[0,2]}"
+			#	return "#{p.sku}-#{self.color1_code}-#{self.size[0,2]}"
 			#end			
-		elsif b == 'Ray-Ban'
-			return "#{p.base_sku}-#{self.color1_code}-#{self.size[0,2]}"							#RB3025-13
-		else
-			return self.sku
-		end
+		#elsif b == 'Ray-Ban'
+		#	return "#{p.sku}-#{self.color1_code}-#{self.size[0,2]}"							#RB3025-13
+		#else
+		#	return self.sku
+		#end
 	end
 
 	# searches variants BUT returns an ActiveRecord association of the products associated with the matched variants
@@ -139,9 +128,22 @@ class Variant < ActiveRecord::Base
 		end
 	end
 
-	protected
-	def save_sku_mappings
-	  SkuMapping.auto_generate(self)
-	end
-	
+  # Flatten variables to sku evaluation
+  def to_sku_hash
+    { 
+      'brand'=>self.brand.name,
+      'product_sku'=>self.product.sku, 
+      'variant_sku'=> self.sku,
+      'sku'=>self.sku,
+      'color1_code'=>self.color1_code, 
+      'color2_code'=>self.color2_code,
+      'size'=>self.size 
+    }    
+  end
+
+	protected  
+  def generate_skus
+    SkuMapping.auto_generate(self)
+  end	
+		
 end

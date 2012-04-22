@@ -1,0 +1,28 @@
+#notice= notice
+
+%p
+	%b Brand:
+	= @sku_pattern.brand.name
+
+%p
+	%b Pattern:
+	= @sku_pattern.pattern
+
+%p
+	%b Condition:
+	= @sku_pattern.condition
+
+%p
+	%b Granularity:
+	= @sku_pattern.granularity
+
+%p
+	%b Priority:
+	= @sku_pattern.priority
+	
+%p
+	%b Delimiter:
+	= @sku_pattern.delimiter
+
+= link_to 'Edit', edit_sku_pattern_path(@sku_pattern)
+= link_to 'Back', sku_patterns_path

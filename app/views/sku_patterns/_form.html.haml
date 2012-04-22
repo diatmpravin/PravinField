@@ -1,0 +1,46 @@
+= form_for(@sku_pattern) do |f|
+	- if @sku_pattern.errors.any?
+		#error_explanation
+			%h2= pluralize(@sku_pattern.errors.count, "error") + " prohibited this sku pattern from being saved:"
+
+			%ul
+				- @sku_pattern.errors.full_messages.each do |msg|
+					%li= msg
+
+	.field
+		= f.label :brand_id
+		= f.collection_select :brand_id, Brand.all, :id, :name
+
+	
+	%p= "For pattern and condition, build a standard ruby string, but enclose variables in {} for substitution"
+	%p= "Available variables: {brand}, {product_sku}, {variant_sku}, {sku}, {color1_code}, {color2_code}, {variant_size}, {size}"
+	%p= "Example: {product_sku}+'-'+{color1_code}.gsub('/','')+'-'+{size}[0,2]"
+
+	.field
+		= f.label :pattern
+		= f.text_field :pattern, :size=>130
+	
+	.field
+		= f.label :condition
+		= f.text_field :condition, :size=>130
+ 
+	%p By default, granularity is Variant (most common).  Shared variables {sku} and {size} refer to the appropriate granularity
+	.field
+		= f.label :granularity
+		= f.select :granularity, ['Product', 'Variant', 'SubVariant']
+
+	%p Priority is a decimal used to prioritize patterns when there are multiple matches
+	%p Convention suggests using 1.x for SubVariant, 2.x for Variant, 3.x for Product, so most specific pattern matches first
+	.field
+		= f.label :priority
+		= f.text_field :priority
+
+	%p Delimiter is the character used to separate the variables in the SKU Pattern
+	%p Note that delimiter is interpreted as a regexp character class, i.e. [-], so a delimiter of -. will be [-.], meaning it will match either '-' or '.' characters when splitting the sku 
+	.field
+		= f.label :delimiter
+		= f.text_field :delimiter, :size=>2
+		
+	.actions
+		= f.submit
+		

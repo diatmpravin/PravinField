@@ -30,7 +30,7 @@ describe SkuPatternsController do
   # update the return value of this method accordingly.
   def valid_attributes
     b = FactoryGirl.create(:brand)
-    { :pattern => 'some pattern', :brand_id=>b.id }
+    { :pattern => 'some pattern', :brand_id=>b.id, :granularity=>'Variant', :delimiter=>'-' }
   end
 
   describe "GET index" do

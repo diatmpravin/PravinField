@@ -11,13 +11,15 @@ FactoryGirl.define do
 		
 	factory :product do
 		brand
-		name 'Carrera 127/S'
-		sequence(:base_sku) { |n| "23423341-12327859-#{n}" }
+  	sequence(:name) { |n| "Carrera 127/S-#{n}" }
+		sequence(:sku) { |n| "23423341-12327859-#{n}" }
 	end
 
 	factory :store do
 		sequence(:name) { |n| "FieldDay-#{n}" }
 		authenticated_url 'https://10631e6948f35b5f0e390c16c5b7c810:c9b2449f54de4b0ca0dbfb9ebd31ffc2@rippin-group7856.myshopify.com/admin'
+    queue_flag 'False'
+    verify_flag 'True'
 	end
 
 	factory :listing do

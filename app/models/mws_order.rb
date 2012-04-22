@@ -1,7 +1,6 @@
 # encoding: utf-8
 
 require 'amazon/mws'
-#require 'RubyOmx'
 
 class MwsOrder < ActiveRecord::Base
 	belongs_to :mws_response
@@ -42,7 +41,7 @@ class MwsOrder < ActiveRecord::Base
 		if order_count.is_a?(Numeric) && order_count>0
 			sleep_time = 0.0
 			request_buffer = 15.0
-			refresh_interval = 6.0
+			refresh_interval = 5.0
 			sleep_time = (([order_count - request_buffer, 0.0].max) / order_count)*refresh_interval
 			return sleep_time
 		else
@@ -136,11 +135,15 @@ class MwsOrder < ActiveRecord::Base
 
 	# Process XML order into ActiveRecord, and process items on order
 	def process_order(mws_connection)
+	  #puts "      PROCESS_ORDER: #{self.amazon_order_id}"
 		return_code = fetch_order_items(mws_connection)
 
 		#TODO if reprocessing, use the update OMX API call rather than append
 		if get_item_quantity_missing == 0 && self.fulfillment_channel == "MFN" && (self.order_status == 'Unshipped' || self.order_status == 'PartiallyShipped')
+		  #puts "      PROCESS_ORDER: about to append to omx"
 			append_to_omx
+		else
+		  #puts "      PROCESS_ORDER: not appending to omx, return code #{return_code}"		  
 		end
 		return return_code
 	end
@@ -148,10 +151,13 @@ class MwsOrder < ActiveRecord::Base
 	# fetch items associated with this order
 	# calls the Amazon MWS API
 	def fetch_order_items(mws_connection)		
+	  #puts "        FETCH_ORDER_ITEMS: for order #{self.amazon_order_id}, about to call MWS ListOrderItems"
 		parent_request = self.mws_response.mws_request
 		request = MwsRequest.create!(:request_type => "ListOrderItems", :store_id => parent_request.store_id, :mws_request_id => parent_request.id)
 		response = mws_connection.get_list_order_items(:amazon_order_id => self.amazon_order_id)
+		#puts "        FETCH_ORDER_ITEMS: called MWS ListOrderItems, about to process response"
 		next_token = request.process_response(mws_connection, response,0,0)
+		#puts "        FETCH_ORDER_ITEMS: back, finished process_response"
 		if next_token.is_a?(Numeric)
 			return next_token
 		end
@@ -159,7 +165,9 @@ class MwsOrder < ActiveRecord::Base
 		page_num = 1
 		failure_count = 0
 		while next_token.is_a?(String) && page_num<MAX_ORDER_ITEM_PAGES do
+		  #puts "        FETCH_ORDER_ITEMS: next_token is present, about to fetch by next token for #{self.amazon_order_id}"
 			response = mws_connection.get_list_order_items_by_next_token(:next_token => next_token)
+			#puts "        FETCH_ORDER_ITEMS: called MWS ListOrderItemsByNextToken, about to process response"
 			n = request.process_response(mws_connection,response,page_num,ORDER_ITEM_FAIL_WAIT)
 			if n.is_a?(Numeric)
 				failure_count += 1
@@ -170,16 +178,23 @@ class MwsOrder < ActiveRecord::Base
 				page_num += 1 # don't want to increment page if there is an error
 				next_token = n
 			end
+			#puts "        FETCH_ORDER_ITEMS: finished process_response for next token"
 		end
+		#puts "        FETCH_ORDER_ITEMS: finishing order #{self.amazon_order_id}"
 	end
 
 	def process_order_item(item, response_id)
-		h = item.as_hash
-		h[:mws_response_id] = response_id
-		h[:mws_order_id] = self.id
-		h[:amazon_order_id] = self.amazon_order_id		
-		amz_item = MwsOrderItem.find_or_create_by_amazon_order_item_id(h[:amazon_order_item_id])
-		amz_item.update_attributes(h)
+	  #puts "              PROCESS_ORDER_ITEM: order #{self.amazon_order_id}, item #{item.amazon_order_item_id}"
+	  
+		amz_item = MwsOrderItem.find_by_amazon_order_item_id(item.amazon_order_item_id)
+		if amz_item.nil?
+		  amz_item = MwsOrderItem.create(:amazon_order_item_id=>item.amazon_order_item_id, :seller_sku=>item.seller_sku, :mws_response_id=>response_id, :mws_order_id=>self.id, :amazon_order_id=>self.amazon_order_id)
+		  #puts "              PROCESS_ORDER_ITEM: new item #{amz_item.amazon_order_item_id} created, id: #{amz_item.id}" 
+		else
+		  #puts "              PROCESS_ORDER_ITEM: existing item #{amz_item.amazon_order_item_id} updated, id: #{amz_item.id}"		  
+		end
+		amz_item.update_attributes(item.as_hash)
+		#puts "              PROCESS_ORDER_ITEM: finished"
 	end
 
 	def omx_first_name

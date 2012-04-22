@@ -2,9 +2,9 @@ class ProductsController < ApplicationController
 
 	skip_around_filter :shopify_session
 
-	def by_base_sku_and_brand_id    
-    if params[:base_sku] && params[:brand_id]
-    	@product = Product.find_by_base_sku_and_brand_id(params[:base_sku], params[:brand_id])
+	def by_sku_and_brand_id    
+    if params[:sku] && params[:brand_id]
+    	@product = Product.find_by_sku_and_brand_id(params[:sku], params[:brand_id])
     end
     respond_to do |format|
     	if @product
@@ -23,10 +23,10 @@ class ProductsController < ApplicationController
   	prod_per_page = 400
 
 		if params[:search]
-    	@products = Product.search(params[:search]).order('base_sku').page(params[:page]).per(prod_per_page)
+    	@products = Product.search(params[:search]).order('sku').page(params[:page]).per(prod_per_page)
     	@search = params[:search]
-		elsif params[:base_sku] && params[:brand_id]
-			@product = Product.find_by_brand_id_and_base_sku(params[:brand_id], params[:base_sku])
+		elsif params[:sku] && params[:brand_id]
+			@product = Product.find_by_brand_id_and_sku(params[:brand_id], params[:sku])
     elsif params[:brand_id] && params[:store_id]    	
     	@brand = Brand.find(params[:brand_id])
     	@store = Store.find(params[:store_id])

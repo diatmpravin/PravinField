@@ -3,14 +3,8 @@ class Product < ActiveRecord::Base
 	has_many :listings, :dependent => :destroy
 	has_many :stores, :through => :listings
 	has_many :variants, :dependent => :destroy
-	has_many :mws_order_items#, :foreign_key => 'parent_product_id'
-	validates_associated :brand
-	
-	###
+	has_many :mws_order_items
 	has_many :sku_mappings, :as=>:sku_mapable
-  ###
-	
-	after_save :save_sku_mappings
 
   has_one :master, :class_name => 'Variant',
       		:conditions => ["variants.is_master = ? AND variants.deleted_at IS NULL", true]	
@@ -32,17 +26,20 @@ class Product < ActiveRecord::Base
       :conditions => ["variants.deleted_at IS NULL AND variants.is_master = ?", true],
       :dependent => :destroy
 	
-	validates :name, :presence => true
-	validates_presence_of :brand_id
-	validates_uniqueness_of :base_sku, :scope => [:brand_id]
+	validates_presence_of :brand_id, :name
+	validates_associated :brand
+	validates_uniqueness_of :sku, :scope => [:brand_id]
+  
+	after_save :generate_skus
 
+  # Search several text fields of the product for a search string and return products query
 	def self.search(search)
 		# get sub_matches from order_items
 		o1 = Variant.search(search).collect { |v| v.product_id }
 		
 		# get direct matches at order level
 		# TODO searching a brand won't work here
-		fields = [ 'name', 'description', 'meta_description', 'meta_keywords', 'base_sku', 'category' ]
+		fields = [ 'name', 'description', 'meta_description', 'meta_keywords', 'sku', 'category' ]
 		bind_vars = MwsHelper::search_helper(fields, search)
 		o2 = select('id').where(bind_vars).collect { |p| p.id }
 			
@@ -114,21 +111,25 @@ class Product < ActiveRecord::Base
     if feed_type==:product_data
       #TODO must be completed for product data and other feed types
       return {
-		    'sku' => self.base_sku,
+		    'sku' => self.sku,
 		    'brand' => self.brand.name,
 		    'product-name' => self.name
 		  }
     end
   end
 
-  #TODO rename base_sku to sku
-  def sku
-    self.base_sku
+  # Flatten variables for sku evaluation
+  def to_sku_hash
+    { 
+      'brand'=>self.brand.name, 
+      'product_sku'=>self.sku,
+      'sku'=>self.sku
+    }    
   end
 
-	protected
-	def save_sku_mappings
-	  SkuMapping.auto_generate(self)
-	end
-		
+  protected
+  def generate_skus
+    SkuMapping.auto_generate(self)
+  end	
+
 end

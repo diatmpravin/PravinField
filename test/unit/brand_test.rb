@@ -33,10 +33,11 @@ class BrandTest < ActiveSupport::TestCase
 
   test "revise_variant_skus should work" do
     b = FactoryGirl.create(:brand, :name=>'Polo')
-    p = FactoryGirl.create(:product, :brand_id=>b.to_param, :base_sku=>'polo_base')
+    sp = FactoryGirl.create(:sku_pattern, :brand_id=>b.id, :pattern=>"{product_sku}+'-'+{color1_code}")
+    p = FactoryGirl.create(:product, :brand_id=>b.to_param, :sku=>'polo_base')
     v = FactoryGirl.create(:variant, :product_id=>p.to_param, :sku=>'nonsense', :color1_code=>'XX')
     b.revise_variant_skus
-    assert_equal 'polo_base-XX', v.reload.sku
+    assert_equal 'POLO_BASE-XX', v.reload.sku
   end
 
 	test "add_listings should work" do

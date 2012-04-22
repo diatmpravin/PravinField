@@ -107,7 +107,7 @@ class Vendor < ActiveRecord::Base
 		sku = link['href'].split(/styleNumber=/)[1].strip
 						
 		# insert or update the base product into products
-		p = Product.find_or_create_by_brand_id_and_base_sku(brand.id, sku)
+		p = Product.find_or_create_by_brand_id_and_sku(brand.id, sku)
 		updated = p.updated_at
 		if (updated.nil? || updated <= self.scraped_at)
 			p.name = product	
@@ -133,7 +133,7 @@ class Vendor < ActiveRecord::Base
 	def process_item_variants(product, page)
 		rows = page.search("#orderGrid tr")
 		for j in 2..(rows.count-2)
-			sku = "#{product.base_sku}-#{rows[j]['colorcode']}-#{rows[j]['lenscode']}"
+			sku = "#{product.sku}-#{rows[j]['colorcode']}-#{rows[j]['lenscode']}"
 			variant = Variant.find_or_create_by_product_id_and_sku(product.id, sku)
 			process_variant(variant, rows[j])
 			j += 1
@@ -166,7 +166,7 @@ class Vendor < ActiveRecord::Base
 	def process_item_variant_images(product, page)
 		image_list = page.search("td.chipPicture")
 		image_list.each do |img|
-			sku = "#{product.base_sku}-#{img['colorcode']}-#{img['lenscode']}"
+			sku = "#{product.sku}-#{img['colorcode']}-#{img['lenscode']}"
 			variant = Variant.find_by_sku(sku)
 			process_item_variant_image(variant, img, BASE_WIDTH ,'colorfcpicture')
 			process_item_variant_image(variant, img, ZOOM_WIDTH ,'colorbigpicture')

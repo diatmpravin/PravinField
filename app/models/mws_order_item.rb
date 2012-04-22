@@ -1,12 +1,9 @@
 class MwsOrderItem < ActiveRecord::Base
 	belongs_to :mws_order
 	belongs_to :mws_response
-	
 	belongs_to :product
 	belongs_to :variant
 	belongs_to :sub_variant
-	
-	before_validation :save_clean_sku, :zero_missing_numbers
 	
 	validates_uniqueness_of :amazon_order_item_id
 	validates_presence_of :mws_order_id
@@ -14,6 +11,7 @@ class MwsOrderItem < ActiveRecord::Base
 	validates :item_price, :item_tax, :promotion_discount, :shipping_price, :shipping_tax, :shipping_discount, :gift_price, :gift_tax, :numericality => { :only_integer => false, :greater_than_or_equal_to => 0 }
 	validates :quantity_ordered, :quantity_shipped, :numericality => { :only_integer => true, :greater_than_or_equal_to => 0 }
 
+	before_validation :save_clean_sku, :zero_missing_numbers
 	before_save :save_catalog_match
 
 	# searches order items BUT returns an ActiveRecord association of the mws_orders associated with the matched mws_order_items
@@ -118,15 +116,15 @@ class MwsOrderItem < ActiveRecord::Base
 	protected
 	def save_catalog_match
 		x = get_catalog_match
-		if x.class.name == 'Product'
+		if x.class.to_s == 'Product'
 			self.product_id = x.id
-		elsif x.class.name == 'Variant'
+		elsif x.class.to_s == 'Variant'
 			self.variant_id = x.id
 			self.product_id = x.product.id
-		elsif x.class.name == 'SubVariant'
+		elsif x.class.to_s == 'SubVariant'
 			self.sub_variant_id = x.id
 			self.variant_id = x.variant.id
-			self.product_id = x.variant.product.id
+			self.product_id = x.product.id
 		end
 	end
 
@@ -135,9 +133,9 @@ class MwsOrderItem < ActiveRecord::Base
 		return x if !x.nil?
 		x = Variant.find_by_sku(self.clean_sku)
 		return x if !x.nil?
-		x = Product.find_by_base_sku(self.clean_sku)
+		x = Product.find_by_sku(self.clean_sku)
 		return x if !x.nil?
-		return SkuMapping.get_catalog_match(self.clean_sku)
+		#return SkuMapping.get_catalog_match(self.clean_sku)
 	end
 
 	def save_clean_sku

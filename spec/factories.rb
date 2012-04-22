@@ -16,6 +16,7 @@ FactoryGirl.define do
   factory :sku_pattern do
     pattern 'some pattern'
     granularity 'Variant'
+    delimiter '-'
     brand
   end
   

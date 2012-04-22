@@ -1,0 +1,28 @@
+%h1 SKU Patterns
+
+%table
+	%tr
+		%th Brand
+		%th Pattern
+		%th Condition
+		%th Granularity
+		%th Priority
+		%th Delimiter
+		%th
+
+	- @sku_patterns.each do |sku_pattern|
+		%tr
+			%td= sku_pattern.brand.name
+			%td= sku_pattern.pattern
+			%td= sku_pattern.condition
+			%td= sku_pattern.granularity
+			%td= sku_pattern.priority
+			%td= sku_pattern.delimiter
+			%td
+				=link_to 'Show', sku_pattern
+				=link_to 'Edit', edit_sku_pattern_path(sku_pattern)
+				=link_to 'Destroy', sku_pattern, confirm: 'Are you sure?', method: :delete
+
+%br
+
+= link_to 'Add SKU Pattern', new_sku_pattern_path

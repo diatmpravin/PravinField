@@ -240,7 +240,7 @@ class MwsOrderTest < ActiveSupport::TestCase
 		# search term matching back half of string only matching 1 order
 		arr = MwsOrder.search('ABC')
 		assert_instance_of ActiveRecord::Relation, arr
-		assert_equal 1, arr.size
+		assert_equal 1, arr.length
 		assert_equal o2, arr[0]
 		
 		# search term should not match any orders
