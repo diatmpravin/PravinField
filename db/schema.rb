@@ -49,8 +49,8 @@ ActiveRecord::Schema.define(:version => 20120421215108) do
     t.string   "handle"
     t.string   "foreign_id"
     t.integer  "mws_request_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",         :null => false
+    t.datetime "updated_at",         :null => false
     t.datetime "inactive_timestamp"
   end
 
@@ -194,6 +194,70 @@ ActiveRecord::Schema.define(:version => 20120421215108) do
 
   add_index "omx_responses", ["omx_request_id"], :name => "index_omx_responses_on_omx_request_id"
 
+  create_table "order_items", :force => true do |t|
+    t.string   "asin"
+    t.string   "amazon_order_item_id"
+    t.string   "seller_sku"
+    t.string   "title"
+    t.integer  "quantity_ordered"
+    t.integer  "quantity_shipped"
+    t.float    "item_price"
+    t.string   "item_price_currency"
+    t.float    "shipping_price"
+    t.string   "shipping_price_currency"
+    t.float    "gift_price"
+    t.string   "gift_price_currency"
+    t.float    "item_tax"
+    t.string   "item_tax_currency"
+    t.float    "shipping_tax"
+    t.string   "shipping_tax_currency"
+    t.float    "gift_tax"
+    t.string   "gift_tax_currency"
+    t.float    "shipping_discount"
+    t.string   "shipping_discount_currency"
+    t.float    "promotion_discount"
+    t.string   "promotion_discount_currency"
+    t.string   "gift_wrap_level"
+    t.string   "gift_message_text"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "order_id"
+    t.string   "amazon_order_id"
+  end
+
+  create_table "orders", :force => true do |t|
+    t.string   "amazon_order_id"
+    t.string   "seller_order_id"
+    t.datetime "purchase_date"
+    t.datetime "last_update_date"
+    t.string   "order_status"
+    t.string   "fulfillment_channel"
+    t.string   "sales_channel"
+    t.string   "order_channel"
+    t.string   "ship_service_level"
+    t.float    "amount"
+    t.string   "currency_code"
+    t.string   "address_line_1"
+    t.string   "address_line_2"
+    t.string   "address_line_3"
+    t.string   "city"
+    t.string   "county"
+    t.string   "district"
+    t.string   "state_or_region"
+    t.string   "postal_code"
+    t.string   "country_code"
+    t.string   "phone"
+    t.integer  "number_of_items_shipped"
+    t.integer  "number_of_items_unshipped"
+    t.string   "marketplace_id"
+    t.string   "buyer_name"
+    t.string   "buyer_email"
+    t.string   "ship_service_level_category"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.integer  "response_id"
+  end
+
   create_table "products", :force => true do |t|
     t.string   "name"
     t.text     "description"
@@ -229,6 +293,28 @@ ActiveRecord::Schema.define(:version => 20120421215108) do
     t.datetime "updated_at"
   end
 
+  create_table "requests", :force => true do |t|
+    t.string   "amazon_request_id"
+    t.string   "request_type"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  create_table "responses", :force => true do |t|
+    t.integer  "request_id"
+    t.string   "amazon_request_id"
+    t.text     "next_token"
+    t.datetime "last_updated_before"
+    t.datetime "created_before"
+    t.string   "request_type"
+    t.integer  "page_num"
+    t.string   "error_code"
+    t.text     "error_message"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+    t.string   "amazon_order_id"
+  end
+
   create_table "sku_mappings", :force => true do |t|
     t.string   "sku"
     t.string   "sku_mapable_type"
@@ -260,6 +346,17 @@ ActiveRecord::Schema.define(:version => 20120421215108) do
 
   add_index "states", ["raw_state"], :name => "index_states_on_raw_state"
 
+  create_table "store_products", :force => true do |t|
+    t.integer  "store_id"
+    t.integer  "product_id"
+    t.string   "foreign_id"
+    t.string   "handle"
+    t.datetime "created_at"
+    t.datetime "updated_at"
+  end
+
+  add_index "store_products", ["product_id"], :name => "index_store_products_on_product_id"
+
   create_table "stores", :force => true do |t|
     t.string   "name"
     t.string   "store_type",             :default => "MWS"
@@ -269,11 +366,11 @@ ActiveRecord::Schema.define(:version => 20120421215108) do
     t.integer  "max_order_pages",        :default => 10
     t.string   "queue_flag",             :default => "False"
     t.string   "verify_flag",            :default => "True"
+    t.string   "authenticated_url"
     t.string   "icon_file_name"
     t.string   "icon_content_type"
     t.integer  "icon_file_size"
     t.datetime "icon_updated_at"
-    t.string   "authenticated_url"
   end
 
   create_table "sub_variants", :force => true do |t|
@@ -303,8 +400,8 @@ ActiveRecord::Schema.define(:version => 20120421215108) do
     t.datetime "confirmed_at"
     t.datetime "confirmation_sent_at"
     t.string   "unconfirmed_email"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",                             :null => false
+    t.datetime "updated_at",                             :null => false
     t.string   "role"
     t.string   "name"
   end
