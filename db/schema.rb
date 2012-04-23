@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120421233048) do
+ActiveRecord::Schema.define(:version => 20120422133158) do
 
   create_table "brands", :force => true do |t|
     t.string   "name"
@@ -49,8 +49,8 @@ ActiveRecord::Schema.define(:version => 20120421233048) do
     t.string   "handle"
     t.string   "foreign_id"
     t.integer  "mws_request_id"
-    t.datetime "created_at",         :null => false
-    t.datetime "updated_at",         :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.datetime "inactive_timestamp"
   end
 
@@ -295,8 +295,8 @@ ActiveRecord::Schema.define(:version => 20120421233048) do
     t.datetime "confirmed_at"
     t.datetime "confirmation_sent_at"
     t.string   "unconfirmed_email"
-    t.datetime "created_at",                             :null => false
-    t.datetime "updated_at",                             :null => false
+    t.datetime "created_at"
+    t.datetime "updated_at"
     t.string   "role"
     t.string   "name"
   end
@@ -360,6 +360,7 @@ ActiveRecord::Schema.define(:version => 20120421233048) do
     t.string   "currency"
     t.integer  "leadtime_to_ship"
     t.text     "asin"
+    t.string   "size_code"
   end
 
   add_index "variants", ["amazon_product_id"], :name => "index_variants_on_amazon_product_id"

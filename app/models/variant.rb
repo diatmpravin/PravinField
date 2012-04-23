@@ -138,7 +138,8 @@ class Variant < ActiveRecord::Base
       'sku'=>self.sku,
       'color1_code'=>self.color1_code, 
       'color2_code'=>self.color2_code,
-      'size'=>self.size 
+      'size'=>self.size,
+      'size_code'=>self.size_code
     }    
   end
 
