@@ -98,11 +98,13 @@ class ImportsController < ApplicationController
         #raise header.inspect        	                                     
         next if n == 1 or row.join.blank? # SKIP: header i.e. first row OR blank row
         @importproduct = Import.build_from_csv(parentRows,row) # build_from_csv method will map customer attributes & build new customer record
+        raise @importproduct.inspect
         parentRows +=1   
         next if !@importproduct.blank?              
         if @importproduct.valid? # Save upon valid otherwise collect error records to export
-          raise "valid"
+          #raise "valid"
           @importproduct.save
+          raise "Maisa"
         else
         	raise "invalid"        	
         	row.push @importproduct.errors.full_messages.join(',')
