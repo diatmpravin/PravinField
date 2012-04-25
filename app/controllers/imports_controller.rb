@@ -83,32 +83,12 @@ class ImportsController < ApplicationController
         n += 1        
         header = Import.importHeader(row) if n == 1               	                                     
         next if n == 1 or row.join.blank? # SKIP: header i.e. first row OR blank row
-        @importproduct, @custError, @variant, @subvariant = Import.build_from_csv(parentRows,row) # build_from_csv method will map customer attributes & build new customer record
-        #next if !@importproduct.blank?
-        #raise @importproduct.errors.inspect
-        #if !@variant.blank?
-        #	raise @variant.valid?.inspect
-        #	raise "create varant"
-        #end
-        
-        #if !@subvariant.blank?
-        #	raise @subvariant.inspect
-        #	raise "create subvarant"
-        #end
-        
-        #if n == 3
-        #raise "Maisa"
-        #end
-        parentRows +=1   
-        #next if !@importproduct.blank?              
-        if @importproduct.valid? || (!@variant.blank? && @variant.valid?) || (!@subvariant.blank? && @subvariant.valid?) # Save upon valid otherwise collect error records to export
-          #raise "valid"
+        @importproduct, @custError, @variant, @subvariant = Import.build_from_csv(row) # build_from_csv method will map customer attributes & build new customer record                   
+        if @importproduct.valid? || (!@variant.blank? && @variant.valid?) || (!@subvariant.blank? && @subvariant.valid?) # Save upon valid otherwise collect error records to export          
           @importproduct.save                     
           @variant.save if !@variant.blank?          		
-          @subvariant.save if !@subvariant.blank?          
-          #raise "Maisa"      
-        else
-        	#raise "invalid"        	
+          @subvariant.save if !@subvariant.blank?                          
+        else        	        	
         	row.push @importproduct.errors.full_messages.join(',')
         	row.push @custError if !@custError.blank?
           errs << row
@@ -117,7 +97,7 @@ class ImportsController < ApplicationController
       
       #Export Error file for later upload upon correction
       if errs.any?      	
-        errFile ="errors_#{Date.today.strftime('%d%b%y')}.csv"
+        errFile ="Product_import_errors_#{Date.today.strftime('%d%b%y')}.csv"
         errs.insert(0, Import.csv_header)
         errCSV = CSV.generate do |csv|
           errs.each {|row| csv << row}

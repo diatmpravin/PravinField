@@ -117,7 +117,7 @@ class ImportsController < ApplicationController
       
       #Export Error file for later upload upon correction
       if errs.any?      	
-        errFile ="errors_#{Date.today.strftime('%d%b%y')}.csv"
+        errFile ="Product_import_errors_#{Date.today.strftime('%d%b%y')}.csv"
         errs.insert(0, Import.csv_header)
         errCSV = CSV.generate do |csv|
           errs.each {|row| csv << row}
