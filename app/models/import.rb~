@@ -29,7 +29,7 @@ class Import < ActiveRecord::Base
 				isSkuPattern = SkuPattern.new
 				isSkuPattern.errors[:pattern] << 'No entry for sku patters #{$brandId}.'
 				$custError = "No entry for sku patters #{$brandId}."
-    		return isSkuPattern, $custError		
+    		return isSkuPattern $custError		
 			end	
     else
     	isBrand = Brand.new
