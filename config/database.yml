@@ -6,7 +6,7 @@
 development:
     adapter: postgresql
     encoding: unicode
-    database: fieldday_p
+    database: fieldday_dev
     pool: 5
     username: aew
     password:
