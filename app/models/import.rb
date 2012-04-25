@@ -99,106 +99,92 @@ class Import < ActiveRecord::Base
   	sku = row[header.index('sku')].gsub(/-AZ.*$/,'')
 		sku_arr = sku.split(/-/)																	
 		parent_sku_arr = $parent_sku.split(/-/)					
-		variation_arr = sku_arr - parent_sku_arr
-		
-		if variation_arr.size == 2					
-			subVariantsp = variation_arr.pop						
-			variantsp = variation_arr[0]						
-			variantsku = [sku_arr[0],variantsp].join('-')						
-			if Variant.find_by_sku(variantsku).blank?				
-				product = Product.find_or_initialize_by_sku(sku_arr[0])														
-				product.attributes = { :name => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('product-name')]),
-					:description => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('product-description')]),
-					:available_on => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('release-date')]),
-					#:meta_description => row[header.index('meta_description')],
-					#:meta_keywords => row[header.index('meta_keywords')],
-					:brand_id => $brandId,
-					:sku => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('sku')]),
-					#:category => row[header.index('category')],
-					:product_type => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('clothing-type')]),
-					:variation_theme => $variation_theme,
-					:department => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('department1')]),
-					:file_date => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('date')]),
-					#:amazon_template => 'clothing',
-					:keywords => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('style-keyword1')]),
-					:keywords2 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", [row[header.index('occasion-lifestyle1')],row[header.index('occasion-lifestyle2')],row[header.index('occasion-lifestyle3')],row[header.index('occasion-lifestyle4')],row[header.index('occasion-lifestyle5')]].join("\t")),
-					:keywords3 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", [row[header.index('search-terms1')],row[header.index('search-terms2')],row[header.index('search-terms3')],row[header.index('search-terms4')],row[header.index('search-terms5')]].join("\t"))
-				}										
-				variant = Variant.find_or_initialize_by_sku(variantsku)				
-				variant.attributes = { :product_id => product.id,
-						:sku => variantsku,
-						:cost_price => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('item-price')]),
-						:size => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('size')]),
-						:color1 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('color')]),
-						:upc => $upc,						
-						:sale_price => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('sale-price')]),
-						:msrp => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('msrp')]),
-						:currency => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('currency')]),
-						:leadtime_to_ship => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('leadtime-to-ship')]),						
-						:asin => $asin
-				}				
-				subvariant = SubVariant.find_or_initialize_by_sku(sku)											
-				subvariant.attributes = { :variant_id => variant.id,
-						:sku => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('sku')]),
-						:size => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('size')]),
-						:upc => $upc,
-						:asin => $asin
-				}				
-				return product, $custError, variant, subvariant				
-			else				
-				createVariant row
-			end
-		else
-			raise "variant"
-			createVariant row															
-		end
+		variation_arr = sku_arr - parent_sku_arr						
+		subVariantsp = variation_arr.pop						
+		variantsp = variation_arr[0]						
+		variantsku = [sku_arr[0],variantsp].join('-')						
+						
+		product = Product.find_or_initialize_by_sku(sku_arr[0])														
+		product.attributes = { :name => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('product-name')]),
+			:description => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('product-description')]),
+			:available_on => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('release-date')]),
+			#:meta_description => row[header.index('meta_description')],
+			#:meta_keywords => row[header.index('meta_keywords')],
+			:brand_id => $brandId,
+			:sku => sku_arr[0],
+			#:category => row[header.index('category')],
+			:product_type => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('clothing-type')]),
+			:variation_theme => $variation_theme,
+			:department => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('department1')]),
+			:file_date => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('date')]),
+			#:amazon_template => 'clothing',
+			:keywords => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('style-keyword1')]),
+			:keywords2 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", [row[header.index('occasion-lifestyle1')],row[header.index('occasion-lifestyle2')],row[header.index('occasion-lifestyle3')],row[header.index('occasion-lifestyle4')],row[header.index('occasion-lifestyle5')]].join("\t")),
+			:keywords3 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", [row[header.index('search-terms1')],row[header.index('search-terms2')],row[header.index('search-terms3')],row[header.index('search-terms4')],row[header.index('search-terms5')]].join("\t"))
+		}										
+		variant = Variant.find_or_initialize_by_sku(variantsku)				
+		variant.attributes = { :product_id => product.id,
+				:sku => variantsku,
+				:cost_price => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('item-price')]),
+				:size => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('size')]),
+				:color1 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('color')]),
+				:upc => $upc,						
+				:sale_price => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('sale-price')]),
+				:msrp => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('msrp')]),
+				:currency => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('currency')]),
+				:leadtime_to_ship => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('leadtime-to-ship')]),						
+				:asin => $asin
+		}				
+		subvariant = SubVariant.find_or_initialize_by_sku(sku)											
+		subvariant.attributes = { :variant_id => variant.id,
+				:sku => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('sku')]),
+				:size => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('size')]),
+				:upc => $upc,
+				:asin => $asin
+		}				
+		return product, $custError, variant, subvariant
   end
   
   def self.createVariant(row)
   	sku = row[header.index('sku')].gsub(/-AZ.*$/,'')
 		sku_arr = sku.split(/-/)																	
 		parent_sku_arr = $parent_sku.split(/-/)					
-		variation_arr = sku_arr - parent_sku_arr
-	
+		variation_arr = sku_arr - parent_sku_arr		
 		subVariantsp = variation_arr.pop						
 		variantsp = variation_arr[0]						
 		variantsku = [sku_arr[0],variantsp].join('-')		
-		if Variant.find_by_sku(sku).blank?				 
-			product = Product.find_or_initialize_by_sku(sku_arr[0])				
-			product.attributes = { :name => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('product-name')]),
-				:description => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('product-description')]),
-				:available_on => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('release-date')]),
-				#:meta_description => row[header.index('meta_description')],
-				#:meta_keywords => row[header.index('meta_keywords')],
-				:brand_id => $brandId,
-				:sku => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('sku')]),
-				#:category => row[header.index('category')],
-				:product_type => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('clothing-type')]),
-				:variation_theme => $variation_theme,
-				:department => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('department1')]),
-				:file_date => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('date')]),
-				#:amazon_template => 'clothing',
-				:keywords => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('style-keyword1')]),
-				:keywords2 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", [row[header.index('occasion-lifestyle1')],row[header.index('occasion-lifestyle2')],row[header.index('occasion-lifestyle3')],row[header.index('occasion-lifestyle4')],row[header.index('occasion-lifestyle5')]].join("\t")),
-				:keywords3 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", [row[header.index('search-terms1')],row[header.index('search-terms2')],row[header.index('search-terms3')],row[header.index('search-terms4')],row[header.index('search-terms5')]].join("\t"))
-			}									
-			variant = Variant.find_or_initialize_by_sku(variantsku)			
-			variant.attributes = { :product_id => product.id,
-					:sku => variantsku,
-					:cost_price => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('item-price')]),
-					:size => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('size')]),
-					:color1 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('color')]),
-					:upc => $upc,						
-					:sale_price => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('sale-price')]),
-					:msrp => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('msrp')]),
-					:currency => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('currency')]),
-					:leadtime_to_ship => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('leadtime-to-ship')]),						
-					:asin => $asin
-			}			
-			return product, $custError , variant
-		else
-			raise "subvariant"
-			createSubVariant row
-		end	
+						 
+		product = Product.find_or_initialize_by_sku(sku_arr[0])				
+		product.attributes = { :name => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('product-name')]),
+			:description => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('product-description')]),
+			:available_on => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('release-date')]),
+			#:meta_description => row[header.index('meta_description')],
+			#:meta_keywords => row[header.index('meta_keywords')],
+			:brand_id => $brandId,
+			:sku => sku_arr[0],
+			#:category => row[header.index('category')],
+			:product_type => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('clothing-type')]),
+			:variation_theme => $variation_theme,
+			:department => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('department1')]),
+			:file_date => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('date')]),
+			#:amazon_template => 'clothing',
+			:keywords => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('style-keyword1')]),
+			:keywords2 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", [row[header.index('occasion-lifestyle1')],row[header.index('occasion-lifestyle2')],row[header.index('occasion-lifestyle3')],row[header.index('occasion-lifestyle4')],row[header.index('occasion-lifestyle5')]].join("\t")),
+			:keywords3 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", [row[header.index('search-terms1')],row[header.index('search-terms2')],row[header.index('search-terms3')],row[header.index('search-terms4')],row[header.index('search-terms5')]].join("\t"))
+		}									
+		variant = Variant.find_or_initialize_by_sku(variantsku)			
+		variant.attributes = { :product_id => product.id,
+				:sku => variantsku,
+				:cost_price => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('item-price')]),
+				:size => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('size')]),
+				:color1 => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('color')]),
+				:upc => $upc,						
+				:sale_price => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('sale-price')]),
+				:msrp => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('msrp')]),
+				:currency => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('currency')]),
+				:leadtime_to_ship => Iconv.conv("UTF-8//IGNORE", "US-ASCII", row[header.index('leadtime-to-ship')]),						
+				:asin => $asin
+		}			
+		return product, $custError , variant	
   end
 end
