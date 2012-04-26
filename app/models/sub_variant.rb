@@ -6,13 +6,13 @@ class SubVariant < ActiveRecord::Base
 	validates_uniqueness_of :sku
 	validates_uniqueness_of :upc, :allow_nil => true
 
-	after_save :generate_skus
+	#after_save :generate_skus
 	
 	def product
 	  self.variant.product
 	end
 	
-	def brand
+	def brand		
 	  self.variant.product.brand
 	end
 	

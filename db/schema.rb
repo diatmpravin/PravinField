@@ -49,8 +49,8 @@ ActiveRecord::Schema.define(:version => 20120422133158) do
     t.string   "handle"
     t.string   "foreign_id"
     t.integer  "mws_request_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",         :null => false
+    t.datetime "updated_at",         :null => false
     t.datetime "inactive_timestamp"
   end
 
@@ -295,8 +295,8 @@ ActiveRecord::Schema.define(:version => 20120422133158) do
     t.datetime "confirmed_at"
     t.datetime "confirmation_sent_at"
     t.string   "unconfirmed_email"
-    t.datetime "created_at"
-    t.datetime "updated_at"
+    t.datetime "created_at",                             :null => false
+    t.datetime "updated_at",                             :null => false
     t.string   "role"
     t.string   "name"
   end

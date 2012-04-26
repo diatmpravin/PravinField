@@ -20,8 +20,7 @@ class ProductsController < ApplicationController
   # GET /products
   # GET /products.json
   def index
-  	prod_per_page = 400
-
+  	prod_per_page = 400		
 		if params[:search]
     	@products = Product.search(params[:search]).order('sku').page(params[:page]).per(prod_per_page)
     	@search = params[:search]
