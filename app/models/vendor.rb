@@ -9,7 +9,7 @@
 class Vendor < ActiveRecord::Base
 	has_many :brands, :dependent => :destroy
 	has_many :products, :through => :brands
-	has_attached_file :icon, PAPERCLIP_STORAGE_OPTIONS.merge({:path => "/:class/:attachment/:id/:style/:filename"})
+	has_attached_file :icon, PAPERCLIP_STORAGE_OPTIONS
 	validates_uniqueness_of :name
 
 =begin

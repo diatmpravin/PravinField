@@ -1,119 +1,153 @@
 
 class Import < ActiveRecord::Base
-  has_attached_file :input_file
-  has_attached_file :error_file
-
+  attr_accessible :error_file, :format, :import_date, :input_file, :status
+  attr_accessor :header
+  has_attached_file :input_file, PAPERCLIP_STORAGE_OPTIONS
+  has_attached_file :error_file, PAPERCLIP_STORAGE_OPTIONS
+  
   has_many :variant_updates #TODO dependent destroy won't work, updates will not be undoable
 
-  attr_accessible :error_file, :format, :import_date, :input_file, :status
   validates_presence_of :import_date
   
-	def self.build_from_csv(parentRows,row)		
-    prev_brand_name = nil
-    prev_brand = nil    
-    #raise header.index('brand').inspect
-    brand_name = row[header.index('brand')] # lookup brandId then row brand    
-    #if brand_name == prev_brand_name
-    #	brand = prev_brand 
-    #else
-    #	prev_brand_name = brand_name
-    #end 
+  after_save :process_input_file
+  
+  H = %w(sku	product-id	product-id-type	product-name	brand	bullet-point1	bullet-point2	bullet-point3	bullet-point4	bullet-point5	product-description	clothing-type	size	size-modifier	color	color-map	material-fabric1	material-fabric2	material-fabric3	department1	department2	department3	department4	department5	style-keyword1	style-keyword2	style-keyword3	style-keyword4	style-keyword5	occasion-lifestyle1	occasion-lifestyle2	occasion-lifestyle3	occasion-lifestyle4	occasion-lifestyle5	search-terms1	search-terms2	search-terms3	search-terms4	search-terms5	size-map	waist-size-unit-of-measure	waist-size	inseam-length-unit-of-measure	inseam-length	sleeve-length-unit-of-measure	sleeve-length	neck-size-unit-of-measure	neck-size	chest-size-unit-of-measure	chest-size	cup-size	shoe-width	parent-child	parent-sku	relationship-type	variation-theme	main-image-url	swatch-image-url	other-image-url1	other-image-url2	other-image-url3	other-image-url4	other-image-url5	other-image-url6	other-image-url7	other-image-url8	shipping-weight-unit-measure	shipping-weight	product-tax-code	launch-date	release-date	msrp	item-price	sale-price	currency	fulfillment-center-id	sale-from-date	sale-through-date	quantity	leadtime-to-ship	restock-date	max-aggregate-ship-quantity	is-gift-message-available	is-gift-wrap-available	is-discontinued-by-manufacturer	registered-parameter	update-delete)
+  
+  def process_input_file 		  		
+    errs = []
+    i = 0
+    CSV.foreach(self.input_file.path, { :headers=>H, :col_sep => "\t", :skip_blanks => true }) do |row|
+      i+=1
+      if i>2
+        puts row.inspect
+        @importproduct = Import.build_from_csv(row) # build_from_csv method will map customer attributes & build new customer record
+        #raise @importproduct.inspect
+        next if !@importproduct.blank?              
+        if @importproduct.valid? # Save upon valid otherwise collect error records to export
+          #raise "valid"
+          @importproduct.save
+          raise "Maisa"
+        else
+      	  raise "invalid"        	
+      	  row.push @importproduct.errors.full_messages.join(',')
+          errs << row
+        end
+      end
+    end
     
-    unless Brand.find_by_name(brand_name).nil?    
-	 		$brandId = Brand.find_by_name(brand_name).id			 		  
-		  unless SkuPattern.find_by_brand_id($brandId).blank?   
-				if row[header.index('parent-child')] == 'parent'
-					sku = row[header.index('sku')]					
+     #Export Error file for later upload upon correction
+    if errs.any?      	
+      errFile ="errors_#{Date.today.strftime('%d%b%y')}.csv"
+      errs.insert(0, Import.csv_header)
+      errCSV = CSV.generate do |csv|
+        errs.each {|row| csv << row}
+      end
+      
+			file = Paperclip::Tempfile.new(errFile)
+			errCSV.write(file.path)
+			#vi.image_content_type = combo_img.mime_type
+			#vi.image_file_size = combo_img.filesize
+			#vi.image_width = combo_img.columns
+			self.error_file = file
+      #send_data errCSV, :type => 'text/csv; charset=iso-8859-1; header=present',:disposition => "attachment; filename=#{errFile}.csv"
+    end
+  end
+  
+	def self.build_from_csv(row)
+    b = Brand.find_by_name(row.field('brand')) 
+	 	unless b.nil?
+		  unless SkuPattern.find_by_brand_id(b.id).nil?
+				if row.field('parent-child') == 'parent'
+					sku = row.field('sku')					
 					#raise Product.find_or_initialize_by_sku(sku).blank?.inspect				
 					if Product.where(:sku => sku).blank?
-						product = Product.new						
-						product.attributes = { :name => row[header.index('product-name')],
-							:description => row[header.index('product-description')],    			
-							#:deleted_at => row[header.index('deleted_at')],
-							:available_on => row[header.index('release-date')],
-							#:meta_description => row[header.index('meta_description')],
-							#:meta_keywords => row[header.index('meta_keywords')],
-							:brand_id => $brandId,
-							:sku => row[header.index('sku')],
-							#:category => row[header.index('category')],
-							:product_type => row[header.index('clothing-type')],
-							:variation_theme => row[header.index('variation-theme')],
-							:department => row[header.index('department1')],
-							:file_date => row[header.index('date')],
+						return Product.new(						
+						  :name => row.field('product-name'),
+							:description => row.field('product-description'),
+							#:deleted_at => row.field('deleted_at'),
+							#:available_on => row.field('release-date'),
+							#:meta_description => row.field('meta_description'),
+							#:meta_keywords => row.field('meta_keywords'),
+							:brand_id => b.id,
+							:sku => sku,
+							#:category => row.field('category'),
+							:product_type => row.field('clothing-type'),
+							:variation_theme => row.field('variation-theme'),
+							:department => row.field('department1'),
+							#:file_date => )('date'),
 							:amazon_template => 'Clothing',
-							:keywords => row[header.index('style-keyword1')],
-							:keywords2 => [row[header.index('occasion-lifestyle1')],row[header.index('occasion-lifestyle2')],row[header.index('occasion-lifestyle3')],row[header.index('occasion-lifestyle4')],row[header.index('occasion-lifestyle5')]].join("\t"),
-							:keywords3 => [row[header.index('search-terms1')],row[header.index('search-terms2')],row[header.index('search-terms3')],row[header.index('search-terms4')],row[header.index('search-terms5')]].join("\t")
-						}						
-						return product			
+							:keywords => row.field('style-keyword1'),
+							:keywords2 => [row.field('occasion-lifestyle1'),row.field('occasion-lifestyle2'),row.field('occasion-lifestyle3'),row.field('occasion-lifestyle4'),row.field('occasion-lifestyle5')].join("\t"),
+							:keywords3 => [row.field('search-terms1'), row.field('search-terms2'),row.field('search-terms3'),row.field('search-terms4'),row.field('search-terms5')].join("\t")
+						)
 					else
 							
 					end
 					
 				else				
-					sku = row[header.index('sku')].gsub(/-AZ.*$/,'')
+					sku = row.field('sku').gsub(/-AZ.*$/,'')
 					sku_arr = sku.split(/-/)										
-					parent_sku = row[header.index('parent-sku')]					
+					parent_sku = row.field('parent-sku')					
 					parent_sku_arr = parent_sku.split(/-/)					
 					variation_arr = sku_arr - parent_sku_arr
 					
-					variation_theme = row[header.index('variation-theme')]
+					variation_theme = row.field('variation-theme')
 					
 					upc = nil
 					asin = nil
 					
-					if row[header.index('product-id-type')] == 'UPC'
-						upc = row[header.index('product-id')]
-					elsif row[header.index('product-id-type')] == 'ASIN'
-						asin = row[header.index('product-id')]
+					if row.field('product-id-type') == 'UPC'
+						upc = row.field('product-id')
+					elsif row.field('product-id-type') == 'ASIN'
+						asin = row.field('product-id')
 					end
 					
 					if variation_arr.size == 2						
-						subVarientsp = variation_arr.pop						
-						varientsp = variation_arr[0]						
-						varientsku = [sku_arr[0],varientsp].join('-')						
-						if Variant.find_by_sku(varientsku).blank?
+						subVariantsp = variation_arr.pop						
+						variantsp = variation_arr[0]						
+						variantsku = [sku_arr[0],variantsp].join('-')						
+						if Variant.find_by_sku(variantsku).blank?
 							if Product.find_by_sku(sku_arr[0]).nil?
 								product = Product.new	  						
-								product.attributes = { :name => row[header.index('product-name')],
-									:description => row[header.index('product-description')],    			
-									#:deleted_at => row[header.index('deleted_at')],
-									:available_on => row[header.index('release-date')],
-									#:meta_description => row[header.index('meta_description')],
-									#:meta_keywords => row[header.index('meta_keywords')],
+								product.attributes = { :name => row.field('product-name'),
+									:description => row.field('product-description'),    			
+									#:deleted_at => row.field('deleted_at'),
+									:available_on => row.field('release-date'),
+									#:meta_description => row.field('meta_description'),
+									#:meta_keywords => row.field('meta_keywords'),
 									:brand_id => $brandId,
-									:sku => row[header.index('sku')],
-									#:category => row[header.index('category')],
-									:product_type => row[header.index('clothing-type')],
-									:variation_theme => row[header.index('variation-theme')],
-									:department => row[header.index('department1')],
-									:file_date => row[header.index('date')],
+									:sku => row.field('sku'),
+									#:category => row.field('category'),
+									:product_type => row.field('clothing-type'),
+									:variation_theme => row.field('variation-theme'),
+									:department => row.field('department1'),
+									:file_date => row.field('date'),
 									:amazon_template => 'Clothing',
-									:keywords => row[header.index('style-keyword1')],
-									:keywords2 => [row[header.index('occasion-lifestyle1')],row[header.index('occasion-lifestyle2')],row[header.index('occasion-lifestyle3')],row[header.index('occasion-lifestyle4')],row[header.index('occasion-lifestyle5')]].join("\t"),
-									:keywords3 => [row[header.index('search-terms1')],row[header.index('search-terms2')],row[header.index('search-terms3')],row[header.index('search-terms4')],row[header.index('search-terms5')]].join("\t")
+									:keywords => row.field('style-keyword1'),
+									:keywords2 => [row.field('occasion-lifestyle1'),row.field('occasion-lifestyle2'),row.field('occasion-lifestyle3'),row.field('occasion-lifestyle4'),row.field('occasion-lifestyle5')].join("\t"),
+									:keywords3 => [row.field('search-terms1'),row.field('search-terms2'),row.field('search-terms3'),row.field('search-terms4'),row.field('search-terms5')].join("\t")
 								}						
 								#raise product.inspect								
 							end
 							#raise "about to crate variant"
 							variant = Variant.new
 							#raise variant.inspect
-							#raise row[header.index('product-id')].inspect
-							variant.attributes = { :product_id => row[header.index('product-id')],
-									:sku => varientsku,
-									:cost_price => row[header.index('item-price')],
-									:currency => row[header.index('currency')],
-									:msrp => row[header.index('msrp')],
-									:sale_price => row[header.index('sale-price')],
-									:leadtime_to_ship => row[header.index('leadtime-to-ship')],
+							#raise row.field('product-id').inspect
+							variant.attributes = { :product_id => row.field('product-id'),
+									:sku => variantsku,
+									:cost_price => row.field('item-price'),
+									:currency => row.field('currency'),
+									:msrp => row.field('msrp'),
+									:sale_price => row.field('sale-price'),
+									:leadtime_to_ship => row.field('leadtime-to-ship'),
 									:upc => upc,
 									:asin => asin
 							}
 							#raise variant.inspect
-							subvarient = SubVariant.new
-							#raise row[header.index('sku')].inspect							
-							subvarient.attributes = { #:variant_id => row[header.index('variant-id')],
-									:sku => row[header.index('sku')],
+							subvariant = SubVariant.new
+							#raise row.field('sku').inspect							
+							subvariant.attributes = { #:variant_id => row.field('variant-id'),
+									:sku => row.field('sku'),
 									:upc => upc,
 									:asin => asin
 							}
@@ -127,23 +161,23 @@ class Import < ActiveRecord::Base
 							#raise parent_sku.inspect
 							if Product.find_by_sku(parent_sku).nil?
 								product = Product.new	  						
-								product.attributes = { :name => row[header.index('product-name')],
-									:description => row[header.index('product-description')],    			
-									#:deleted_at => row[header.index('deleted_at')],
-									:available_on => row[header.index('release-date')],
-									#:meta_description => row[header.index('meta_description')],
-									#:meta_keywords => row[header.index('meta_keywords')],
+								product.attributes = { :name => row.field('product-name'),
+									:description => row.field('product-description'),    			
+									#:deleted_at => row.field('deleted_at'),
+									:available_on => row.field('release-date'),
+									#:meta_description => row.field('meta_description'),
+									#:meta_keywords => row.field('meta_keywords'),
 									:brand_id => $brandId,
 									:sku => parent_sku,
-									#:category => row[header.index('category')],
-									:product_type => row[header.index('clothing-type')],
-									:variation_theme => row[header.index('variation-theme')],
-									:department => row[header.index('department1')],
-									:file_date => row[header.index('date')],
+									#:category => row.field('category'),
+									:product_type => row.field('clothing-type'),
+									:variation_theme => row.field('variation-theme'),
+									:department => row.field('department1'),
+									:file_date => row.field('date'),
 									:amazon_template => 'Clothing',
-									:keywords => row[header.index('style-keyword1')],
-									:keywords2 => [row[header.index('occasion-lifestyle1')],row[header.index('occasion-lifestyle2')],row[header.index('occasion-lifestyle3')],row[header.index('occasion-lifestyle4')],row[header.index('occasion-lifestyle5')]].join("\t"),
-									:keywords3 => [row[header.index('search-terms1')],row[header.index('search-terms2')],row[header.index('search-terms3')],row[header.index('search-terms4')],row[header.index('search-terms5')]].join("\t")
+									:keywords => row.field('style-keyword1'),
+									:keywords2 => [row.field('occasion-lifestyle1'),row.field('occasion-lifestyle2'),row.field('occasion-lifestyle3'),row.field('occasion-lifestyle4'),row.field('occasion-lifestyle5')].join("\t"),
+									:keywords3 => [row.field('search-terms1'),row.field('search-terms2'),row.field('search-terms3'),row.field('search-terms4'),row.field('search-terms5')].join("\t")
 								}						
 								#raise product.inspect								
 							end
@@ -151,14 +185,14 @@ class Import < ActiveRecord::Base
 							#raise "about to crate variant"
 							variant = Variant.new
 							#raise variant.inspect
-							#raise row[header.index('product-id')].inspect
-							variant.attributes = { :product_id => row[header.index('product-id')],
+							#raise row.field('product-id').inspect
+							variant.attributes = { :product_id => row.field('product-id'),
 									:sku => sku,
-									:cost_price => row[header.index('item-price')],
-									:currency => row[header.index('currency')],
-									:msrp => row[header.index('msrp')],
-									:sale_price => row[header.index('sale-price')],
-									:leadtime_to_ship => row[header.index('leadtime-to-ship')],
+									:cost_price => row.field('item-price'),
+									:currency => row.field('currency'),
+									:msrp => row.field('msrp'),
+									:sale_price => row.field('sale-price'),
+									:leadtime_to_ship => row.field('leadtime-to-ship'),
 									:upc => upc,
 									:asin => asin
 							}
@@ -175,7 +209,7 @@ class Import < ActiveRecord::Base
 							if Product.where(:sku => sku).blank?
 								varientProduct = Product.new
 								if variation_theme == 'SizeColor' || variation_theme == 'color'
-									#raise row[header.index('color')].inspect
+									#raise row.field('color').inspect
 									if variation_theme == 'SizeColor'
 										size_code = variation_arr.pop
 										#raise size_code.inspect
@@ -217,8 +251,7 @@ class Import < ActiveRecord::Base
   end  
   
   def self.importHeader(row)  	
-  	$header = row  	
-  	header
+  	$header = row
   	return header
   end
   
