@@ -28,8 +28,8 @@ class ProductTest < ActiveSupport::TestCase
 			
 	test "search should work" do
 		p = FactoryGirl.create(:product, :name => 'Carmichel')
-		v = FactoryGirl.create(:variant, :product => p, :upc => 'Ray-Bans')
-		v2 = FactoryGirl.create(:variant, :product => p, :upc => 'Ray-Bans')
+		v = FactoryGirl.create(:variant, :product => p, :sku => 'Ray-Bans')
+		v2 = FactoryGirl.create(:variant, :product => p, :sku => 'Ray-Bans2')
 		p2 = FactoryGirl.create(:product, :name => 'Carmichel')
 		v3 = FactoryGirl.create(:variant, :product => p2, :sku => 'Ray-ABC345')
 		p3 = FactoryGirl.create(:product, :name => 'Nonsense')
@@ -44,10 +44,13 @@ class ProductTest < ActiveSupport::TestCase
 		arr = Product.search('Ray-')
 		assert_instance_of ActiveRecord::Relation, arr
 		assert_equal 2, arr.length
-		assert_equal [p, p2], arr
+		assert arr.include?(p)
+		assert arr.include?(p2)
 
 		arr = Product.search('Carmichel')
 		assert_equal 2, arr.length
+		assert arr.include?(p)
+		assert arr.include?(p2)		
 		
 		# search term matching back half of string only matching 1 order
 		arr = Product.search('ABC')
@@ -59,7 +62,6 @@ class ProductTest < ActiveSupport::TestCase
 		arr = Product.search('xxx')
 		assert_instance_of ActiveRecord::Relation, arr
 		assert arr.empty?
-	
 	end
 	
 	test "refresh all sku mappings should work" do
@@ -81,5 +83,5 @@ class ProductTest < ActiveSupport::TestCase
 	  # sku mapping count should have rebuilt, even with no patterns should at least take the skus
 	  assert SkuMapping.count > 0
 	end
-				
+			
 end

@@ -1,8 +1,8 @@
 require 'spec_helper'
 
 describe "sku_patterns/show" do
-  b = FactoryGirl.create(:brand, :name=>'Oakley')
   before(:each) do
+    b = FactoryGirl.create(:brand, :name=>'Oakley')    
     @sku_pattern = assign(:sku_pattern, stub_model(SkuPattern,
       :brand_id => b.id,
       :pattern => "Pattern",

@@ -161,6 +161,17 @@ class SkuPatternTest < ActiveSupport::TestCase
     assert_equal expected_hash, sp.parse(sku)
   end
   
+  test "self.parse_variant should work" do
+    b = FactoryGirl.create(:brand)
+    sp = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}", :granularity=>'Variant', :brand_id=>b.id)
+    sp2 = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size_code}", :granularity=>'SubVariant', :brand_id=>b.id)
+    product_sku = 'MT1599D'
+    h = SkuPattern.parse_variant(b, 'MT1599D-BLK-XS', product_sku)
+    h2 = SkuPattern.parse_variant(b, 'MT1599D-BLK-S', product_sku)
+    assert_equal 'MT1599D-BLK', h[:variant_sku]
+    assert_equal 'MT1599D-BLK', h2[:variant_sku]
+  end
+  
   test "extract_vars should work" do
     sp = FactoryGirl.create(:sku_pattern, :pattern=>"{product_sku}+'-'+{color1_code}.gsub('/','')+'-'+{size}[0,2]")
     assert_equal [:product_sku,:color1_code,:size], sp.extract_vars

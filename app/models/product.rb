@@ -45,8 +45,8 @@ class Product < ActiveRecord::Base
 
   # Search several text fields of the product for a search string and return products query
 	def self.search(search)
-		# get sub_matches from order_items
-		o1 = Variant.search(search).collect { |v| v.product_id }
+		# get sub_matches from variants
+		o1 = Variant.search(search)
 		
 		# get direct matches at order level
 		# TODO searching a brand won't work here

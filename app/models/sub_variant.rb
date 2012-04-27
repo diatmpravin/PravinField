@@ -16,6 +16,11 @@ class SubVariant < ActiveRecord::Base
 	  self.variant.product.brand
 	end
 	
+	def self.search(search)
+    fields = ['sku', 'size', 'size_code','UPC','ASIN']
+  	select('variant_id').where(MwsHelper::search_helper(fields, search)).group('variant_id').collect { |sv| sv.variant.product_id }.uniq
+	end
+	
   # Flatten variables and send to SkuMapping for evaluation
   def to_sku_hash
     { 
@@ -31,7 +36,7 @@ class SubVariant < ActiveRecord::Base
       'size_code'=>self.size_code
     }    
   end
-
+  
 	protected  
   def generate_skus
     SkuMapping.auto_generate(self)
