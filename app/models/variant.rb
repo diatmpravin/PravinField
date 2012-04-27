@@ -8,8 +8,8 @@ class Variant < ActiveRecord::Base
 	
 	validates_uniqueness_of :sku
 
-	#after_create :set_default_master
-	#after_save :generate_skus
+	after_create :set_default_master
+	after_save :generate_skus
 	around_destroy :product_master_succession
 	#before_update :register_changes
 

@@ -1,0 +1,19 @@
+= form_for(@import) do |f|
+	- if @import.errors.any?
+		#error_explanation
+			%h2= pluralize(@import.errors.count, "error") + " prohibited this import from being saved:"
+
+			%ul
+				- @import.errors.full_messages.each do |msg|
+					%li= msg
+
+	.control-group
+		= f.label :input_file, :class=>'control-label'
+		= f.file_field :input_file, :class=>'controls'
+
+	.control-group
+		= f.label :import_date, :class=>'control-label'
+		= f.text_field :import_date, :class=>'controls'
+
+	.actions
+		= f.submit

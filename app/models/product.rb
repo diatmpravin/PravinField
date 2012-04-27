@@ -32,6 +32,17 @@ class Product < ActiveRecord::Base
   
 	after_save :generate_skus
 
+  def self.require_subvariant
+    Product.all.each do |p|
+      p.variants.each do |v|
+        if v.subvariants.nil?
+          # create a single master subvariant
+          SubVariant.create!(:variant_id=>v.id, :sku=>v.sku, :upc=>v.upc, :asin=>v.asin, :size=>v.size, :availability=>v.availability, :size_code=>v.size_code)
+        end
+      end
+    end
+  end
+
   # Search several text fields of the product for a search string and return products query
 	def self.search(search)
 		# get sub_matches from order_items

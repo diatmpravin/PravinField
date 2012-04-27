@@ -1,14 +1,58 @@
 require 'iconv'
 
 class Import < ActiveRecord::Base
-	
-  has_attached_file :input_file
-  has_attached_file :error_file
-
+  attr_accessible :error_file, :format, :import_date, :input_file, :status
+  attr_accessor :header
+  has_attached_file :input_file, PAPERCLIP_STORAGE_OPTIONS
+  has_attached_file :error_file, PAPERCLIP_STORAGE_OPTIONS
+  
   has_many :variant_updates #TODO dependent destroy won't work, updates will not be undoable
 
-  attr_accessible :error_file, :format, :import_date, :input_file, :status
   validates_presence_of :import_date
+  
+  after_save :process_input_file
+  
+  H = %w(sku	product-id	product-id-type	product-name	brand	bullet-point1	bullet-point2	bullet-point3	bullet-point4	bullet-point5	product-description	clothing-type	size	size-modifier	color	color-map	material-fabric1	material-fabric2	material-fabric3	department1	department2	department3	department4	department5	style-keyword1	style-keyword2	style-keyword3	style-keyword4	style-keyword5	occasion-lifestyle1	occasion-lifestyle2	occasion-lifestyle3	occasion-lifestyle4	occasion-lifestyle5	search-terms1	search-terms2	search-terms3	search-terms4	search-terms5	size-map	waist-size-unit-of-measure	waist-size	inseam-length-unit-of-measure	inseam-length	sleeve-length-unit-of-measure	sleeve-length	neck-size-unit-of-measure	neck-size	chest-size-unit-of-measure	chest-size	cup-size	shoe-width	parent-child	parent-sku	relationship-type	variation-theme	main-image-url	swatch-image-url	other-image-url1	other-image-url2	other-image-url3	other-image-url4	other-image-url5	other-image-url6	other-image-url7	other-image-url8	shipping-weight-unit-measure	shipping-weight	product-tax-code	launch-date	release-date	msrp	item-price	sale-price	currency	fulfillment-center-id	sale-from-date	sale-through-date	quantity	leadtime-to-ship	restock-date	max-aggregate-ship-quantity	is-gift-message-available	is-gift-wrap-available	is-discontinued-by-manufacturer	registered-parameter	update-delete)
+  
+  def process_input_file 		  		
+    errs = []
+    i = 0
+    CSV.foreach(self.input_file.path, { :headers=>H, :col_sep => "\t", :skip_blanks => true }) do |row|
+      i+=1
+      if i>2
+        puts row.inspect
+        @importproduct = Import.build_from_csv(row) # build_from_csv method will map customer attributes & build new customer record
+        #raise @importproduct.inspect
+        next if !@importproduct.blank?              
+        if @importproduct.valid? # Save upon valid otherwise collect error records to export
+          #raise "valid"
+          @importproduct.save
+          raise "Maisa"
+        else
+      	  raise "invalid"        	
+      	  row.push @importproduct.errors.full_messages.join(',')
+          errs << row
+        end
+      end
+    end
+    
+     #Export Error file for later upload upon correction
+    if errs.any?      	
+      errFile ="errors_#{Date.today.strftime('%d%b%y')}.csv"
+      errs.insert(0, Import.csv_header)
+      errCSV = CSV.generate do |csv|
+        errs.each {|row| csv << row}
+      end
+      
+			file = Paperclip::Tempfile.new(errFile)
+			errCSV.write(file.path)
+			#vi.image_content_type = combo_img.mime_type
+			#vi.image_file_size = combo_img.filesize
+			#vi.image_width = combo_img.columns
+			self.error_file = file
+      #send_data errCSV, :type => 'text/csv; charset=iso-8859-1; header=present',:disposition => "attachment; filename=#{errFile}.csv"
+    end
+  end
   
 	def self.build_from_csv(row)
 		$custError = nil		     
@@ -52,8 +96,7 @@ class Import < ActiveRecord::Base
      	product.errors.add(:brand_id, "Not vaild")     	    	
     	$custError = "Brand #{brand_name} does not exist."
     	return product, $custError
-    end
-         
+    end         
   end	
   
   def self.csv_header
@@ -61,8 +104,7 @@ class Import < ActiveRecord::Base
   end  
   
   def self.importHeader(row)  	
-  	$header = row  	
-  	header
+  	$header = row
   	return header
   end
   
