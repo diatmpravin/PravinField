@@ -63,7 +63,7 @@ class SkuPattern < ActiveRecord::Base
       c.gsub!("{#{k.to_s}}", "'#{v}'") if !c.nil?
     }
     
-    if c.nil? || ((eval c))
+    if c.nil? || c=='' || (eval c)
       s = (eval s)
       s = s.upcase if !s.nil?
       return s

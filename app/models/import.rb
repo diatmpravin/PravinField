@@ -105,7 +105,6 @@ class Import < ActiveRecord::Base
   def find_or_create_variant_from_csv(r)
 		p = self.find_or_create_product_from_csv(r)	
 		h = SkuPattern.parse_variant(p.brand, r.field('sku'), r.field('parent-sku'))
-    
     variant = Variant.find_by_product_id_and_sku(p.id, h[:variant_sku])
     if variant.nil?
       variant = Variant.new(:product_id=>p.id, :sku=>h[:variant_sku])
