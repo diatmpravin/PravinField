@@ -22,9 +22,9 @@ group :development, :test do
 end
 
 gem 'amazon-mws', :git => 'git://github.com/aew/amazon-mws.git'
-#gem 'RubyOmx', :git => 'git://github.com/aew/RubyOmx.git'
+gem 'ruby_omx', :git => 'git://github.com/aew/ruby_omx.git'
 
-gem 'ruby_omx'
+#gem 'ruby_omx', ">=0.0.4"
 gem 'pg'
 gem 'ruby-hmac'
 gem 'roxml'
