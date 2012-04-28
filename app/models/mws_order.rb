@@ -25,8 +25,8 @@ class MwsOrder < ActiveRecord::Base
 
 	def self.search(search)
 		# get sub_matches from order_items
-		o1 = MwsOrderItem.search(search).collect { |o| o.mws_order_id }
-			
+		o1 = MwsOrderItem.search(search)
+
 		# get direct matches at order level
 		fields = [ 'amazon_order_id', 'seller_order_id', 'address_line_1', 'address_line_2', 'address_line_3', 'city', 'state_or_region', 'country_code', 'postal_code', 'buyer_name', 'buyer_email', 'shipment_service_level_category', 'name']
 		bind_vars = MwsHelper::search_helper(fields, search)

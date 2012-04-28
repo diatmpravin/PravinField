@@ -7,12 +7,16 @@
 
 <p>
   <b>Input file:</b>
-  <%= @import.input_file %>
+  <%= link_to 'Input File', @import.input_file.url %>
 </p>
 
 <p>
   <b>Error file:</b>
-  <%= @import.error_file %>
+  <% if @import.error_file.url.blank? %>
+		<%= "No errors" %>
+	<% else %>
+		<%= link_to 'Error File', @import.error_file.url %>
+	<% end %>
 </p>
 
 <p>

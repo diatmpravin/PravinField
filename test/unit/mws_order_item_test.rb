@@ -99,31 +99,21 @@ class MwsOrderItemTest < ActiveSupport::TestCase
 		# search term partially matching 2 orders
 		arr = MwsOrderItem.search('Ray-')
 		assert_equal 2, arr.length
-		assert_instance_of ActiveRecord::Relation, arr
-		assert_equal oi.mws_order_id, arr[0].mws_order_id
-		assert_equal oi3.mws_order_id, arr[1].mws_order_id
+		assert arr.include?(oi.mws_order_id)
+		assert arr.include?(oi3.mws_order_id)
 		
 		# search term matching a single order via two items
 		arr = MwsOrderItem.search('Ray-Ban')
-		assert_instance_of ActiveRecord::Relation, arr
-		assert_equal oi.mws_order_id, arr[0].mws_order_id
+		assert_equal oi.mws_order_id, arr[0]
 		assert_equal 1, arr.length
 		
 		# search term matching back half of string only matching 1 order
 		arr = MwsOrderItem.search('ABC')
-		assert_instance_of ActiveRecord::Relation, arr
-		assert_equal oi3.mws_order_id, arr[0].mws_order_id
+		assert_equal oi3.mws_order_id, arr[0]
 		assert_equal 1, arr.length
 		
-		# no search term should return all 3 orders
-		#arr = MwsOrderItem.search(nil)
-		#assert_instance_of ActiveRecord::Relation, arr
-		#assert_equal o.id, arr[0].mws_order_id
-		#assert_equal 3, arr.length
-
 		# search term should not match any orders
 		arr = MwsOrderItem.search('xxx')
-		assert_instance_of ActiveRecord::Relation, arr
 		assert arr.empty?
 	end
 

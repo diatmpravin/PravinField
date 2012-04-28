@@ -17,7 +17,7 @@ class MwsOrderItem < ActiveRecord::Base
 	# searches order items BUT returns an ActiveRecord association of the mws_orders associated with the matched mws_order_items
 	def self.search(search)
 		fields = [ 'asin', 'clean_sku', 'title'] 
-		select("mws_order_id").where(MwsHelper::search_helper(fields, search)).group('mws_order_id')
+		select("mws_order_id").where(MwsHelper::search_helper(fields, search)).group('mws_order_id').collect { |oi| oi.mws_order_id }
 	end
 		
 	def set_shipped

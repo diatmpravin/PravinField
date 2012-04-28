@@ -29,7 +29,7 @@ describe ImportsController do
   # Import. As you add validations to Import, be sure to
   # update the return value of this method accordingly.
   def valid_attributes
-    { :import_date => '2011-10-01' }
+    { :import_date => '2011-10-01', :input_file=>Rack::Test::UploadedFile.new('test/fixtures/csv/2XU.txt', 'text/csv') }
   end
   
   # This should return the minimal set of values that should be in the session
@@ -41,8 +41,7 @@ describe ImportsController do
 
   describe "GET index" do
     it "assigns all imports as @imports" do
-      import = Factory.create(:import)
-      #import = Import.create! valid_attributes
+      import = Import.create! valid_attributes
       get :index
       assigns(:imports).should eq([import])
     end
@@ -66,9 +65,19 @@ describe ImportsController do
   describe "POST create" do
     describe "with valid params" do
       it "creates a new Import" do
+        
+        # Add minimum brand and sku patterns to database to process test file
+        b = FactoryGirl.create(:brand, :name=>'2XU')
+        sp2 = FactoryGirl.create(:sku_pattern, :brand_id=>b.id, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size_code}", :granularity=>'SubVariant')
+        sp = FactoryGirl.create(:sku_pattern, :brand_id=>b.id, :pattern=>"{product_sku}+'-'+{color1_code}", :granularity=>'Variant')
+        
         expect {
-          post :create, {:import => valid_attributes}
-        }.to change(Import, :count).by(1)
+          expect {
+            expect {
+              post :create, {:import => valid_attributes}
+            }.to change(Import, :count).by(1)
+          }.to change(Product, :count).by(6) # 6 products in test file
+        }.to change(SubVariant, :count).by(58) # with 58 associated sub variants
       end
 
       it "assigns a newly created import as @import" do

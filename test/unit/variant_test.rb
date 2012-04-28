@@ -93,34 +93,30 @@ class VariantTest < ActiveSupport::TestCase
 
 	test "search should work" do
 		p = FactoryGirl.create(:product)
-		v = FactoryGirl.create(:variant, :product => p, :upc => 'Ray-Bans')
-		v2 = FactoryGirl.create(:variant, :product => p, :upc => 'Ray-Bans')
+		v = FactoryGirl.create(:variant, :product_id => p.id, :sku => 'Ray-Bans')
+		v2 = FactoryGirl.create(:variant, :product_id => p.id, :sku => 'Ray-Bans2')
 		p2 = FactoryGirl.create(:product)
-		v3 = FactoryGirl.create(:variant, :product => p2, :upc => 'Ray-ABC345')
+		v3 = FactoryGirl.create(:variant, :product_id => p2.id, :sku => 'Ray-ABC345')
 		p3 = FactoryGirl.create(:product)
 
-		# search term partially matching 2 orders
+		# search term partially matching 2 products
 		arr = Variant.search('Ray-')
 		assert_equal 2, arr.length
-		assert_instance_of ActiveRecord::Relation, arr
-		assert_equal v.product_id, arr[0].product_id
-		assert_equal v3.product_id, arr[1].product_id
+		assert arr.include?(v.product_id)
+		assert arr.include?(v3.product_id)
 		
-		# search term matching a single order via two items
+		# search term matching a product via two variants
 		arr = Variant.search('Ray-Ban')
-		assert_instance_of ActiveRecord::Relation, arr
-		assert_equal v.product_id, arr[0].product_id
 		assert_equal 1, arr.length
+		assert_equal v.product_id, arr[0]
 		
-		# search term matching back half of string only matching 1 order
+		# search term matching back half of string only matching 1 product
 		arr = Variant.search('ABC')
-		assert_instance_of ActiveRecord::Relation, arr
-		assert_equal v3.product_id, arr[0].product_id
 		assert_equal 1, arr.length
+		assert_equal v3.product_id, arr[0]
 		
-		# search term should not match any orders
+		# search term should not match any products
 		arr = Variant.search('xxx')
-		assert_instance_of ActiveRecord::Relation, arr
 		assert arr.empty?
 	end
 	

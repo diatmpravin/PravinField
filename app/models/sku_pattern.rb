@@ -2,8 +2,23 @@ class SkuPattern < ActiveRecord::Base
   attr_accessible :brand_id, :condition, :granularity, :pattern, :priority, :delimiter
   belongs_to :brand
   validates_presence_of :pattern, :delimiter, :granularity, :brand_id
+  before_save :assign_priority
   
   ACCEPT_VARS = ['brand', 'product_sku', 'product_sku2', 'variant_sku', 'sku', 'sub_variant_sku', 'color1_code', 'color1', 'color2_code', 'color2', 'size_code', 'size', 'variant_size']
+
+  # Parse a sku according to the SKU Patterns, but also add a variant_sku item to the hash
+  def self.parse_variant(brand, sku, product_sku=nil)
+    h = SkuPattern.parse(brand, sku, product_sku)
+    if h.nil?
+      return nil
+    end
+    sp = brand.sku_patterns.where(:granularity=>'Variant').order('priority').first
+    if !sp.nil?
+      variant_sku = sp.evaluate(h.merge({:product_sku=>product_sku}))
+      return h.merge({:variant_sku=>variant_sku})
+    end
+    return h
+  end
   
   # Work through each of the SKU Patterns associated with this brand
   # For the highest priority pattern where the variable count matches the token count for the split sku, return a key-value hash
@@ -18,11 +33,11 @@ class SkuPattern < ActiveRecord::Base
   # evaluate all sku patterns for a given brand and granularity
   # accepts an object
   # 1) object is used to get to a brand
-  # 2) iterate over sku_patterns associated with that brand
+  # 2) iterate over sku_patterns associated with that brand of the same granularity as the object given
   # 3) for each pattern and condition, for each hash key, globally substitute the hash value
   # 4) eval the resulting string to get a rendered sku, and add this to the array of skus
   # 5) if a hash key 'sku' was given, add this to the array of skus
-  # 6) return the unique elements from the array of skues
+  # 6) return the unique elements from the array of skus
   def self.evaluate(o)
     skus = []
     
@@ -44,11 +59,11 @@ class SkuPattern < ActiveRecord::Base
     c = self.condition
     
     h.each { |k,v| 
-      s.gsub!("{#{k}}", "'#{v}'") if !s.nil?
-      c.gsub!("{#{k}}", "'#{v}'") if !c.nil?
+      s.gsub!("{#{k.to_s}}", "'#{v}'") if !s.nil?
+      c.gsub!("{#{k.to_s}}", "'#{v}'") if !c.nil?
     }
-      
-    if c.nil? || ((eval c))
+    
+    if c.nil? || c=='' || (eval c)
       s = (eval s)
       s = s.upcase if !s.nil?
       return s
@@ -100,7 +115,7 @@ class SkuPattern < ActiveRecord::Base
       product_sku_rendered = eval(pattern_pieces.slice!(product_sku_index).sub(/{product_sku}/,"'#{product_sku}'"))
       #puts "product_sku_rendered: #{product_sku_rendered}"
 
-      replace_str = "#{product_sku_rendered}"
+      replace_str = product_sku_rendered
       replace_str += pattern_pieces.slice!(product_sku_index).match(d).to_s if (pattern_pieces[product_sku_index] =~ d && product_sku_index==0)
       sku.gsub!(Regexp.new(eval('/'+replace_str+'/')), '') # remove this rendered product sku from the list
       #puts "revised sku: #{sku}"
@@ -114,8 +129,7 @@ class SkuPattern < ActiveRecord::Base
     #puts "token in pattern: " + tokens_in_pattern.to_s
     
     vals = sku.split(d,tokens_in_pattern)
-    #puts "split sku vals: " + vals.to_s
-    
+    #puts "split sku vals: " + vals.to_s    
     return Hash[*keys.zip(vals).flatten] if (keys.length == vals.length) # return a hash of these values
     return nil    
   end
@@ -123,5 +137,21 @@ class SkuPattern < ActiveRecord::Base
   def self.strip_amazon_suffix(sku)
     sku.sub(/-AZ.*$/,'')
   end
+ 
+  protected
   
+  # In the absence of an explicitly assigned priority, auto generate a priority based on granularity and creation order
+  def assign_priority
+    if self.priority.nil?
+      if self.granularity=='SubVariant'
+        self.priority = 1.0
+      elsif self.granularity== 'Variant'
+        self.priority = 2.0
+      elsif self.granularity=='Product'
+        self.priority = 3.0
+      end
+      self.priority += SkuPattern.where(:brand_id=>self.brand_id, :granularity=>self.granularity).count / 10.0
+    end
+  end
+    
 end

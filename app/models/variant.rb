@@ -86,10 +86,12 @@ class Variant < ActiveRecord::Base
 		#end
 	end
 
-	# searches variants BUT returns an ActiveRecord association of the products associated with the matched variants
+	# searches variants, but returns an ActiveRecord association of the *products* associated with the matched variants
 	def self.search(search)
-		fields = [ 'sku', 'upc', 'size', 'color1', 'color2','color1_code','color2_code','availability', 'amazon_product_name', 'amazon_product_id', 'amazon_product_description' ] 
-		select('product_id').where(MwsHelper::search_helper(fields, search)).group('product_id')
+		product_ids_1 = SubVariant.search(search)
+		fields = [ 'sku', 'color1', 'color2','color1_code','color2_code', 'amazon_product_name', 'amazon_product_id', 'amazon_product_description' ] 
+		product_ids_2 = select('product_id').where(MwsHelper::search_helper(fields, search)).group('product_id').collect { |v| v.product_id }
+	  return (product_ids_1 | product_ids_2)
 	end
 	
 	def get_style
