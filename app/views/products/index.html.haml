@@ -5,7 +5,7 @@
 	= form_tag products_path, :method => 'get' do
 		%p
 			= text_field_tag :search, @search
-			= submit_tag :search, :name => nil
+			= submit_tag :search, :name => nil, :class => "btn btn-primary btn-medium"
 	%p= link_to 'New Product', new_product_path
 
 %br

@@ -19,7 +19,7 @@ class Import < ActiveRecord::Base
   CSV_DELIMITER = "\t"
   KEYWORD_DELIMITER = "±"
   
-  def process_input_file 		  		
+  def process_input_file  	  	  			  		
     errs = []
     self.format = 'csv'
     if self.import_date.nil?
@@ -28,7 +28,7 @@ class Import < ActiveRecord::Base
 
     i=0
     CSV.foreach(self.input_file.path, { :headers=>H, :col_sep => CSV_DELIMITER, :skip_blanks => true }) do |row|
-      i+=1
+      i+=1      
       begin
     	  if row.field('parent-child') == 'parent'  
           self.find_or_create_product_from_csv(row)

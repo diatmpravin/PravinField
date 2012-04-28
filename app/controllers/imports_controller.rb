@@ -2,7 +2,7 @@ require 'csv'
 
 class ImportsController < ApplicationController
 
-  def index
+  def index  	
     @imports = Import.order('import_date')
 
     respond_to do |format|

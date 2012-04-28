@@ -4,8 +4,8 @@
 .right
 	= form_tag mws_orders_path, :method => 'get' do
 		%p
-			= text_field_tag :search, @search
-			= submit_tag :search, :name => nil
+			= text_field_tag :search, @search, :class => "controls input-large"
+			= submit_tag :search, :name => nil, :class => "btn btn-primary btn-medium"
 		%p
 			= link_to 'Orders With Unmatched SKUs', mws_orders_path(:unmatched=>1)
 		%p
@@ -17,10 +17,10 @@
 	= form_tag export_to_csv_mws_orders_path, :autocomplete => 'off' ,:method => 'get' do
 		%p
 			Start date:
-			= text_field_tag :startDate, '' , :size => 10, :class => "exportOrdersDate", :required => "required"
+			= text_field_tag :startDate, '' , :size => 10, :class => "exportOrdersDate controls input-medium", :required => "required"
 			End date:			 
-			= text_field_tag :endDate, '' , :size => 10, :class => "exportOrdersDate", :required => "required"
-			= submit_tag "Download order"
+			= text_field_tag :endDate, '' , :size => 10, :class => "exportOrdersDate controls input-medium", :required => "required"
+			= submit_tag "Download order", :class => "btn btn-primary btn-large"
 %table
 	%tr
 		%th="Store"
