@@ -77,7 +77,6 @@ class Store < ActiveRecord::Base
 		#puts "FETCH_RECENT_ORDERS: finishing"
 	end
 
-
   # get orders from time_from until time_to
 	def fetch_orders(time_from, time_to)
 	  #puts "FETCH_ORDERS"
@@ -104,6 +103,17 @@ class Store < ActiveRecord::Base
 			return Time.now.ago(60*60*3)
 		end
 	end
+
+  #######
+
+  # TODO
+  def synchronize_listings
+    # get the unsynced listings
+    # build them into a feed
+    # submit the feed for processing, store feed ID
+    # schedule follow up process for background execution
+  end
+
 
   # takes an array of products, lists them on the appropriate storefront
 	def add_listings(products=[])
@@ -147,7 +157,7 @@ class Store < ActiveRecord::Base
 	def add_listings_amazon(products)
 	  messages = []
 		products.each do |p|
-		  messages << p.attributes_for_amazon(:product_data)
+		  messages += p.attributes_for_amazon(:product_data)
       Listing.create(:product_id=>p.to_param, :store_id=>self.id)
       # listing needs to be qualified as pending, incomplete, etc
 		end

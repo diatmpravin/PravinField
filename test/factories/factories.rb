@@ -12,7 +12,7 @@ FactoryGirl.define do
 	factory :product do
 		brand
   	sequence(:name) { |n| "Carrera 127/S-#{n}" }
-		sequence(:sku) { |n| "23423341-12327859-#{n}" }
+		sequence(:sku) { |n| "23423341#{n}" }
 	end
 
 	factory :store do
@@ -33,8 +33,8 @@ FactoryGirl.define do
 		product
 		#color1 'Brown'
 		#color2 'Metallic Green'
-		sequence(:sku) { |n| "23423341-12327859-V045C-#{n}" }
-		sequence(:color1_code) { "V045C-#{n}" }
+		sequence(:sku) { |n| "234233411-V045C#{n}" }
+		sequence(:color1_code) { "V045C#{n}" }
 		#cost_price 129.99
 	end
 	
@@ -89,12 +89,12 @@ FactoryGirl.define do
 
   factory :sub_variant do
     variant
-    sequence(:sku) { |n| "sku-#{n}" } 
+    sequence(:sku) { |n| "234233411-V045C1-XL#{n}" } 
   end
 
   factory :sku_mapping do
-    sequence(:sku) { "sku-#{n}" }
-    sku_mapable_type 'Variant'
+    sequence(:sku) { "234233411-V045C1-XL#{n}" }
+    sku_mapable_type 'SubVariant'
     sku_mapable_id 1
   end
 	

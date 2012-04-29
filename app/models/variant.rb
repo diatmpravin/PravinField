@@ -130,6 +130,15 @@ class Variant < ActiveRecord::Base
 		end
 	end
 
+  #TODO can skip this if there is no possible processing necessary at the Variant granularity
+  def attributes_for_amazon(feed_type)
+    rows = []
+    self.sub_variants.each do |sv| 
+      rows += sv.attributes_for_amazon(feed_type)
+    end
+    return rows
+  end
+
   # Flatten variables to sku evaluation
   def to_sku_hash
     { 

@@ -17,7 +17,7 @@ class Import < ActiveRecord::Base
   VARIATION_THEMES = %w(Size Color SizeColor)
   PARENT_CHILD = %w(parent child)
   CSV_DELIMITER = "\t"
-  KEYWORD_DELIMITER = "±"
+  KEYWORD_DELIMITER = "\r"
   
   def process_input_file  	  	  			  		
     errs = []
@@ -80,24 +80,28 @@ class Import < ActiveRecord::Base
 			#:meta_description => r.field('meta_description'),
 			#:meta_keywords => r.field('meta_keywords'),
 			:brand_id => brand.id,
-			#:category => r.field('category'),
 			:product_type => r.field('clothing-type'),
 			:variation_theme => r.field('variation-theme'),
-			:department => r.field('department1'),
-			#:file_date => r.field('date'),
-			#:amazon_template => 'clothing',
-			:keywords =>
+			:department => [r.field('department1'),r.field('department2'),
+			                r.field('department3'),r.field('department4'),
+			                r.field('department5')].compact.join(KEYWORD_DELIMITER),
+			:amazon_template => 'Clothing',
+			:style_keywords =>
 			  [r.field('style-keyword1'), r.field('style-keyword2'), 
 			  r.field('style-keyword3'), r.field('style-keyword4'), 
-			  r.field('style-keyword5')].join(KEYWORD_DELIMITER),
-			:keywords2 => 
+			  r.field('style-keyword5')].compact.join(KEYWORD_DELIMITER),
+			:occasion_lifestyle_keywords => 
 			  [r.field('occasion-lifestyle1'), r.field('occasion-lifestyle2'),
 			  r.field('occasion-lifestyle3'), r.field('occasion-lifestyle4'),
-			  r.field('occasion-lifestyle5')].join(KEYWORD_DELIMITER),
-			:keywords3 => 
+			  r.field('occasion-lifestyle5')].compact.join(KEYWORD_DELIMITER),
+			:search_keywords => 
 			  [r.field('search-terms1'), r.field('search-terms2'),
 			  r.field('search-terms3'), r.field('search-terms4'),
-			  r.field('search-terms5')].join(KEYWORD_DELIMITER)
+			  r.field('search-terms5')].compact.join(KEYWORD_DELIMITER),
+			:bullet_points =>
+		    [r.field('bullet_point1'), r.field('bullet_point2'),
+		    r.field('bullet_point3'), r.field('bullet_point4'),
+		    r.field('bullet_point5')].compact.join(KEYWORD_DELIMITER)
 		)
 		return p
   end
@@ -111,6 +115,7 @@ class Import < ActiveRecord::Base
 		  self.variant_count += 1      
     end
     		
+    #TODO what to do about update-delete field
 		#TODO variant image
 		#TODO check if data is newer or older
 		variant.update_attributes(
@@ -120,6 +125,7 @@ class Import < ActiveRecord::Base
 			:color1 => r.field('color'),
 			:color1_code => h[:color1_code],
 			:color2_code => h[:color2_code],
+			:price => r.field('item-price'),
 			:sale_price => r.field('sale-price'), #TODO save item-price
 			:msrp => r.field('msrp'),
 			:currency => r.field('currency')
@@ -142,6 +148,8 @@ class Import < ActiveRecord::Base
 			:size => r.field('size'),
 			:upc => r.field('product-id-type')=='UPC' ? r.field('product-id') : nil,
 			:asin => r.field('product-id-type')=='ASIN' ? r.field('product-id') : nil,
+			:quantity => r.field('quantity'),
+			:fulfillment_latency => r.field('leadtime-to-ship'),
 			:size_code => sku_hash[:size_code]
 		)
 		return sub_variant

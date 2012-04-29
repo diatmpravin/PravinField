@@ -116,17 +116,75 @@ class Product < ActiveRecord::Base
 		} 
   end
 
-	#sku	product-id	product-id-type	product-name	brand	bullet-point1	bullet-point2	bullet-point3	bullet-point4	bullet-point5	product-description	clothing-type	size	size-modifier	color	color-map	material-fabric1	material-fabric2	material-fabric3	department1	department2	department3	department4	department5	style-keyword1	style-keyword2	style-keyword3	style-keyword4	style-keyword5	occasion-lifestyle1	occasion-lifestyle2	occasion-lifestyle3	occasion-lifestyle4	occasion-lifestyle5	search-terms1	search-terms2	search-terms3	search-terms4	search-terms5	size-map	waist-size-unit-of-measure	waist-size	inseam-length-unit-of-measure	inseam-length	sleeve-length-unit-of-measure	sleeve-length	neck-size-unit-of-measure	neck-size	chest-size-unit-of-measure	chest-size	cup-size	shoe-width	parent-child	parent-sku	relationship-type	variation-theme	main-image-url	swatch-image-url	other-image-url1	other-image-url2	other-image-url3	other-image-url4	other-image-url5	other-image-url6	other-image-url7	other-image-url8	shipping-weight-unit-measure	shipping-weight	product-tax-code	launch-date	release-date	msrp	item-price	sale-price	currency	fulfillment-center-id	sale-from-date	sale-through-date	quantity	leadtime-to-ship	restock-date	max-aggregate-ship-quantity	is-gift-message-available	is-gift-wrap-available	is-discontinued-by-manufacturer	registered-parameter	update-delete	
-  #TODO rename to as_mws
-  def attributes_for_amazon(feed_type)
-    if feed_type==:product_data
-      #TODO must be completed for product data and other feed types
-      return {
-		    'sku' => self.sku,
-		    'brand' => self.brand.name,
-		    'product-name' => self.name
-		  }
+  def self.unpack_keywords(keywords, max)
+    if keywords.nil? || keywords.blank?
+      return nil
     end
+    keywords.split(Import::KEYWORD_DELIMITER, max)
+  end
+  
+  #TODO make this specific to a store
+  def attributes_for_amazon(feed_type)
+    rows = []
+    self.variants.each do |v| 
+      rows += v.attributes_for_amazon(feed_type)
+    end
+    
+    if feed_type==:product_data
+      return rows.unshift({
+        'Product'=> {
+          'SKU'=>self.sku,
+          'ItemPackageQuantity'=>'1',
+          'NumberOfItems'=>'1',
+          #'StandardProductID'=>{'Type'=>'UPC', 'Value'=>'814digitstring'},
+          'DescriptionData'=>{
+            'Title'=>self.name,
+            'Brand'=>self.brand.name,
+            #'Designer'=>'designer',
+            'Description'=>self.description.nil? ? nil : self.description[0,2000], # max length 2000
+            'BulletPoint'=>Product.unpack_keywords(self.bullet_points,5), # max 5
+            'ShippingWeight'=>{'unitOfMeasure'=>'LB', 'Value'=>'1'}, #TODO value is probably not the right term
+            #'MSRP'=>'5.43',
+            'SearchTerms'=>Product.unpack_keywords(self.search_keywords,5), # max 5
+            #'IsGiftWrapAvailable'=>'True',
+            #'IsGiftMessageAvailable'=>'True'
+            #'RecommendedBrowseNode'=>'60583031', # only for Europe
+          },#DescriptionData
+          'ProductData' => {
+            'Clothing'=>{
+              "VariationData"=> {
+                "Parentage"=>"parent", 
+                #"Size"=>"size", 
+                #"Color"=>"color", 
+                "VariationTheme"=>self.variation_theme,
+              },#VariationData
+              'ClassificationData'=>{
+                'ClothingType'=>self.product_type,
+                'Department'=>Product.unpack_keywords(self.department, 10), # max 10
+                'StyleKeywords'=>Product.unpack_keywords(self.style_keywords,10),  # max 10
+                'OccasionAndLifestyle'=>Product.unpack_keywords(self.occasion_lifestyle_keywords,10) # max 10
+              }
+            }#Clothing
+          }#ProductData
+        }#Product
+      })
+
+    elsif feed_type==:product_relationship_data
+      return [{
+        'Relationship'=>{
+          'ParentSKU'=>self.sku,
+          'Relation'=>rows
+        }#Relationship
+      }]
+      
+    elsif feed_type==:product_image_data
+      return rows
+    elsif feed_type==:product_pricing
+      return rows
+    elsif feed_type==:inventory_availability
+      
+    end
+      
   end
 
   # Flatten variables for sku evaluation
