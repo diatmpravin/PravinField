@@ -145,6 +145,7 @@ class StoreTest < ActiveSupport::TestCase
   # tests for listings
 
 	test "add and remove listings should work for Shopify" do
+	  pending
     # add shopify store
 		s = FactoryGirl.create(:store, :store_type => 'Shopify')		
 		assert_equal 0, s.products.count
@@ -168,6 +169,7 @@ class StoreTest < ActiveSupport::TestCase
 	end
 
   test "only active listings should be returned" do
+    pending
     s = FactoryGirl.create(:store, :store_type => 'Shopify')
     p = FactoryGirl.create(:product)
     l = FactoryGirl.create(:listing, :product_id=>p.to_param, :store_id=>s.to_param)
@@ -180,8 +182,9 @@ class StoreTest < ActiveSupport::TestCase
     assert_equal 0, s.reload.products.count
   end
 
-  test "add and remove listings should work for mws" do
+  test "sync_mws_listings should work" do
     pending
+
 		s = FactoryGirl.create(:store, :store_type => 'MWS', :name => 'Dummy')		
 		assert_equal 0, s.products.count
 

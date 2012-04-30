@@ -83,56 +83,5 @@ class ProductTest < ActiveSupport::TestCase
 	  # sku mapping count should have rebuilt, even with no patterns should at least take the skus
 	  assert SkuMapping.count > 0
 	end
-		
-		
-	test "attributes_for_amazon should work" do
-	  p = FactoryGirl.create(:product, :search_keywords=>"term1\rterm2\rterm3")
-	  v1 = FactoryGirl.create(:variant, :product_id=>p.id, :msrp=>10.00, :price=>10.00, :sale_price=>9.00)
-	  v2 = FactoryGirl.create(:variant, :product_id=>p.id, :msrp=>10.00, :price=>10.00, :sale_price=>9.00)
-	  sv1 = FactoryGirl.create(:sub_variant, :variant_id=>v1.id, :upc=>'23432343432')
-	  sv2 = FactoryGirl.create(:sub_variant, :variant_id=>v1.id, :upc=>'23432343433')
-	  sv3 = FactoryGirl.create(:sub_variant, :variant_id=>v2.id, :upc=>'23432343434')
-	  sv4 = FactoryGirl.create(:sub_variant, :variant_id=>v2.id, :upc=>'23432343435')
-	  vi1 = FactoryGirl.create(:variant_image, :variant_id=>v1.id)
-	  vi2 = FactoryGirl.create(:variant_image, :variant_id=>v1.id)
-	  vi3 = FactoryGirl.create(:variant_image, :variant_id=>v2.id)
-	  vi4 = FactoryGirl.create(:variant_image, :variant_id=>v2.id)	  
-	  
-	  a = p.attributes_for_amazon(:product_data)
-	  assert_kind_of Array, a
-	  assert_kind_of Hash, a[0]
-	  
-	  a = p.attributes_for_amazon(:product_relationship_data)
-	  assert_kind_of Array, a
-	  assert_kind_of Hash, a[0]
-	  
-	  a = p.attributes_for_amazon(:product_image_data)
-	  assert_kind_of Array, a
-	  assert_kind_of Hash, a[0]
-
-    a = p.attributes_for_amazon(:product_pricing)
-    assert_kind_of Array, a
-    assert_kind_of Hash, a[0]
-	  #puts a
-    
-    big picture
-    
-    - select one or more products and add these to the sync queue
-    - can select another product and add it to the queue
-    - can review the queue
-    - queue consists of listings with a certain state
-    - when a sync is run for a given store, every incomplete listing for that store is taken
-    - these listings are converted to XML format appropriately using FeedBuilder
-    - the XML is stored in the appropriate field of the listing table?  Or is it simply stored in the request
-    - we can search for products, variant, or subvariants that have been updated post their last listing
-    
-    - A GetFeedSubmissionList is sent periodically
-    - Amazon returns if processing is complete or not
-    - if not complete, another GetFeedSubmissionList
-    
-    
-    
-    
-	  
-	end	
+	
 end

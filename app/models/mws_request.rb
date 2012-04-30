@@ -1,13 +1,23 @@
+require 'amazon/mws'
 class MwsRequest < ActiveRecord::Base
 	belongs_to :store
-	has_many :mws_responses, :dependent => :destroy
 	has_many :mws_orders, :through => :mws_responses
-	has_many :sub_requests, :class_name => "MwsRequest"
   belongs_to :parent_request, :class_name => "MwsRequest", :foreign_key => "mws_request_id"
+	has_many :sub_requests, :class_name => "MwsRequest"
+	has_many :mws_responses, :dependent => :destroy
+	has_many :listings, :dependent => :destroy, :order => 'listings.id ASC'
+  serialize :message
 
 	MAX_FAILURE_COUNT = 2
-	ORDER_FAIL_WAIT = 60  
+	ORDER_FAIL_WAIT = 60
 
+  FEED_STEPS = [Amazon::MWS::Feed::Enumerations::FEED_TYPES[:product_data], 
+                Amazon::MWS::Feed::Enumerations::FEED_TYPES[:product_relationship_data], 
+                Amazon::MWS::Feed::Enumerations::FEED_TYPES[:product_pricing],
+                Amazon::MWS::Feed::Enumerations::FEED_TYPES[:product_image_data],
+                Amazon::MWS::Feed::Enumerations::FEED_TYPES[:inventory_availability] ]
+  FEED_MSGS = ['Product', 'Relationship', 'Price', 'ProductImage', 'Inventory']
+  
 	def get_request_summary_string
 		error_count = get_responses_with_errors.count
 		order_count = self.mws_orders.count
@@ -158,7 +168,7 @@ class MwsRequest < ActiveRecord::Base
 	#end
 
   #TODO
-  def validate_feed
+  #def validate_feed
     #document_path, schema_path,root_element
     #schema = Nokogiri::XML::Schema(File.open('test/fixtures/xsd/Product.xsd'))
     #document = Nokogiri::XML(File.read(document_path))
@@ -167,22 +177,111 @@ class MwsRequest < ActiveRecord::Base
     #validate('input.xml', 'schema.xdf', 'container').each do |error|
     #  puts error.message
     #end
+  #end
+
+  
+  def handle_error_response(response)
+    if !response.is_a? ResponseError
+      raise "Unknown MWS Response"
+    end
+    MwsResponse.create(
+      :request_type => self.request_type,
+      :mws_request_id => self.id,
+      :error_code => response.code,
+      :error_message => [response.type, response.message, response.detail].join(Import::KEYWORD_DELIMITER))
   end
-	
-	private
-	
-	def send_request
-    if self.request_type=='SubmitFeed'
-      response = self.store.mws_connection.submit_feed(self.feed_type,'Product',self.message)
-      MwsResponse.create(
-			  :request_type => self.request_type,
-			  :mws_request_id => self.id, 
-			  :amazon_request_id => response.request_id,
-			  :feed_submission_id => response.feed_submission.id,
-			  :processing_status => response.feed_submission.feed_processing_status
-		  )
-	    #TODO begin process to poll status periodically, creating a sub request each time, and a response each time
-		end
-	end
-	
+
+  # Parent request
+  def submit_mws_feed(store, async=true, chain=true)
+    response = store.mws_connection.submit_feed(self.feed_type,self.message_type,self.message)    
+    if !response.is_a? SubmitFeedResponse
+      return self.handle_error_response(response)
+    end
+
+    r = MwsResponse.create(
+      :request_type => self.request_type,
+      :mws_request_id => self.id, 
+      :amazon_request_id => response.request_id, 
+      :feed_submission_id => response.feed_submission.id,
+      :processing_status => response.feed_submission.feed_processing_status)
+      
+    # But also save it in the request for easy access to current information
+    self.update_attributes(:feed_submission_id => r.feed_submission_id, :processing_status => r.processing_status)
+      
+    # Schedule job for get_mws_feed_status in x.minutes
+    self.get_mws_feed_status(store, async) if chain #TODO in x.minutes
+    return r
+  end
+
+  
+  # Child request
+  def get_mws_feed_status(store, async=true, chain=true) 
+    child_request = MwsRequest.create(:store=>store, :request_type=>'GetFeedSubmissionList', 
+      :mws_request_id=>self.id, :feed_submission_id=>self.feed_submission_id)
+    response = store.mws_connection.get_feed_submission_list('FeedSubmissionIdList'=>[self.feed_submission_id])
+    if !response.is_a? GetFeedSubmissionListResponse
+      return self.handle_error_response(response)  
+    end
+    #assert_equal 1, response.feed_submissions.count
+    #assert_equal self.feed_submission_id, response.feed_submissions.first.id
+        
+    fs = response.feed_submissions.first
+        
+    r = MwsResponse.create(
+      :request_type => child_request.request_type,
+      :mws_request_id => child_request.id, 
+      :amazon_request_id => response.request_id,
+      :processing_status => fs.feed_processing_status)
+        
+    self.update_attributes(
+      :processing_status => fs.feed_processing_status,
+      :submitted_at => fs.submitted_date,
+      :started_at => fs.started_processing_date,
+      :completed_at => fs.completed_processing_date)
+        
+    if r.processing_status == Feed::Enumerations::PROCESSING_STATUSES[:done]
+      # If complete: schedule get_mws_feed_result in x.minutes
+      return self.get_mws_feed_result(store, async) if chain #TODO in x.minutes
+    else
+      # If not complete: schedule get_mws_feed_status in x.minutes
+      return self.get_mws_feed_status(store, async) if chain #TODO in x.minutes
+    end
+    return r # not chaining
+  end
+
+  # Child request
+  def get_mws_feed_result(store, async=true, chain=true)     
+    child_request = MwsRequest.create(:store=>store, :request_type=>'GetFeedSubmissionResult', 
+      :mws_request_id=>self.id, :feed_submission_id=>self.feed_submission_id)
+    response = store.mws_connection.get_feed_submission_result(self.feed_submission_id)
+    if !response.is_a? GetFeedSubmissionResultResponse
+      return self.handle_error_response(response)
+    end
+
+    r = MwsResponse.create(
+      :request_type => child_request.request_type,
+      :mws_request_id => child_request.id,
+      :processing_status => response.message.status_code)
+
+    self.update_attributes(:processing_status => response.message.status_code)
+
+    response.message.results.each do |mr|
+      m = MwsMessage.find(mr.message_id)
+      m.update_attributes(:result_code => mr.result_code, :message_code => mr.message_code, :result_description => mr.description)
+      #assert_equal m.matchable.sku, mr.sku
+    end
+
+    # Increment step
+    step = FEED_STEPS.index(self.feed_type) + 1      
+    if step<FEED_STEPS.length
+      p = self.mws_request_id.nil? ? self : self.parent_request        
+      child_request = MwsRequest.create(:store=>store, :request_type=>'SubmitFeed', :mws_request_id=>p.id,
+        :feed_type=>FEED_STEPS[step], :message_type=>FEED_MSGS[step])
+        
+      child_request.update_attributes(:message => p.listings.collect { |l| l.build_mws_messages(child_request) }.flatten)
+      return child_request.submit_mws_feed(store, async) if chain #TODO in x minutes
+    end
+    return r
+  end
+  
 end

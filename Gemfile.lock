@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/aew/amazon-mws.git
-  revision: fa0958e0bf9b1b0f792de2af7fbe066beac96835
+  revision: 514428393d41aebb3262fc51fdd408677774b88d
   specs:
     amazon-mws (0.1.1)
       builder (~> 3.0.0)
@@ -150,7 +150,7 @@ GEM
     mime-types (1.18)
     mocha (0.11.3)
       metaclass (~> 0.0.1)
-    multi_json (1.3.2)
+    multi_json (1.3.4)
     multi_xml (0.4.4)
     netrc (0.7.1)
     nokogiri (1.5.2)

@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120429132816) do
+ActiveRecord::Schema.define(:version => 20120430030144) do
 
   create_table "brands", :force => true do |t|
     t.string   "name"
@@ -68,7 +68,24 @@ ActiveRecord::Schema.define(:version => 20120429132816) do
     t.integer  "mws_request_id"
     t.datetime "created_at"
     t.datetime "updated_at"
-    t.datetime "inactive_timestamp"
+    t.string   "status"
+    t.string   "operation_type"
+    t.datetime "built_at"
+    t.integer  "parent_listing_id"
+  end
+
+  create_table "mws_messages", :force => true do |t|
+    t.integer  "listing_id"
+    t.text     "message"
+    t.integer  "matchable_id"
+    t.string   "matchable_type"
+    t.datetime "created_at",         :null => false
+    t.datetime "updated_at",         :null => false
+    t.integer  "variant_image_id"
+    t.string   "result_code"
+    t.string   "message_code"
+    t.text     "result_description"
+    t.string   "feed_type"
   end
 
   create_table "mws_order_items", :force => true do |t|
@@ -161,6 +178,12 @@ ActiveRecord::Schema.define(:version => 20120429132816) do
     t.integer  "mws_request_id"
     t.string   "feed_type"
     t.text     "message"
+    t.string   "message_type"
+    t.string   "feed_submission_id"
+    t.string   "processing_status"
+    t.datetime "submitted_at"
+    t.datetime "started_at"
+    t.datetime "completed_at"
   end
 
   add_index "mws_requests", ["mws_request_id"], :name => "index_mws_requests_on_mws_request_id"

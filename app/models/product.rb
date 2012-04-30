@@ -1,8 +1,12 @@
+require 'amazon/mws'
 class Product < ActiveRecord::Base
 	belongs_to :brand
 	has_many :listings, :dependent => :destroy
+	#has_one :current_listing # TODO we need to restrict this to only a certain type of listing - product listings
+
+	has_many :mws_messages, :as => :matchable # polymorphic association to link an amazon message to either a product or subvariant
 	has_many :stores, :through => :listings
-	has_many :variants, :dependent => :destroy
+	has_many :variants, :dependent => :destroy, :order => "variants.id ASC"
 	has_many :mws_order_items
 	has_many :sku_mappings, :as=>:sku_mapable
 
@@ -81,9 +85,9 @@ class Product < ActiveRecord::Base
 		end
 	end
 
-  def get_last_update
+  #def get_last_update
     #TODO return datetime of most recent value for get_last_update for each variant of this product
-  end
+  #end
 
   # return a hash structured to list this product on Shopify
   #TODO rename to as_shopify
@@ -124,19 +128,19 @@ class Product < ActiveRecord::Base
   end
   
   #TODO make this specific to a store
-  def attributes_for_amazon(feed_type)
-    rows = []
-    self.variants.each do |v| 
-      rows += v.attributes_for_amazon(feed_type)
-    end
+  def build_mws_messages(listing, feed_type)
     
-    if feed_type==:product_data
-      return rows.unshift({
+    if feed_type==Feed::Enumerations::FEED_TYPES[:product_data]
+      m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'Product', :feed_type=>feed_type)
+      rows = self.variants.collect { |v| v.build_mws_messages(listing, feed_type) }.flatten
+
+      rows.unshift({
+        'MessageID'=>m.id,
+        'OperationType'=>listing.operation_type,
         'Product'=> {
           'SKU'=>self.sku,
           'ItemPackageQuantity'=>'1',
           'NumberOfItems'=>'1',
-          #'StandardProductID'=>{'Type'=>'UPC', 'Value'=>'814digitstring'},
           'DescriptionData'=>{
             'Title'=>self.name,
             'Brand'=>self.brand.name,
@@ -144,18 +148,15 @@ class Product < ActiveRecord::Base
             'Description'=>self.description.nil? ? nil : self.description[0,2000], # max length 2000
             'BulletPoint'=>Product.unpack_keywords(self.bullet_points,5), # max 5
             'ShippingWeight'=>{'unitOfMeasure'=>'LB', 'Value'=>'1'}, #TODO value is probably not the right term
-            #'MSRP'=>'5.43',
             'SearchTerms'=>Product.unpack_keywords(self.search_keywords,5), # max 5
-            #'IsGiftWrapAvailable'=>'True',
-            #'IsGiftMessageAvailable'=>'True'
+            'IsGiftWrapAvailable'=>'True',
+            'IsGiftMessageAvailable'=>'True'
             #'RecommendedBrowseNode'=>'60583031', # only for Europe
           },#DescriptionData
           'ProductData' => {
             'Clothing'=>{
               "VariationData"=> {
-                "Parentage"=>"parent", 
-                #"Size"=>"size", 
-                #"Color"=>"color", 
+                "Parentage"=>"parent",
                 "VariationTheme"=>self.variation_theme,
               },#VariationData
               'ClassificationData'=>{
@@ -168,21 +169,27 @@ class Product < ActiveRecord::Base
           }#ProductData
         }#Product
       })
+      m.update_attributes!(:message => rows[0])
+      return rows
 
-    elsif feed_type==:product_relationship_data
-      return [{
+    elsif feed_type==Feed::Enumerations::FEED_TYPES[:product_relationship_data]
+      m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'Product', :feed_type=>feed_type)
+      rows = self.variants.collect { |v| v.build_mws_messages(listing, feed_type) }.flatten
+      
+      row = [{
+        'MessageID'=>m.id,
+        'OperationType'=>listing.operation_type,        
         'Relationship'=>{
           'ParentSKU'=>self.sku,
           'Relation'=>rows
         }#Relationship
       }]
+      m.update_attributes!(:message => row[0])
+      return row
       
-    elsif feed_type==:product_image_data
+    else
+      rows = self.variants.collect { |v| v.build_mws_messages(listing, feed_type) }.flatten      
       return rows
-    elsif feed_type==:product_pricing
-      return rows
-    elsif feed_type==:inventory_availability
-      
     end
       
   end

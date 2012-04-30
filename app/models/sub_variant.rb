@@ -1,8 +1,9 @@
+require 'amazon/mws'
 class SubVariant < ActiveRecord::Base
 	belongs_to :variant
 	has_many :mws_order_items
 	has_many :sku_mappings, :as=>:sku_mapable
-	
+	has_many :mws_messages, :as => :matchable # polymorphic association to link an amazon message to either a product or subvariant	
 	validates_uniqueness_of :sku
 	validates_uniqueness_of :upc, :allow_nil => true
 
@@ -14,6 +15,10 @@ class SubVariant < ActiveRecord::Base
 	
 	def brand		
 	  self.variant.product.brand
+	end
+	
+	def variant_images
+	  self.variant.variant_images
 	end
 	
 	def self.search(search)
@@ -33,10 +38,14 @@ class SubVariant < ActiveRecord::Base
 	end
 
   #TODO make this unique for a store
-  def attributes_for_amazon(feed_type)
-    if feed_type==:product_data
+  def build_mws_messages(listing, feed_type)
+    
+    if feed_type==Feed::Enumerations::FEED_TYPES[:product_data]
+      m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'SubVariant', :feed_type=>feed_type)
       p = self.product
-      return [{
+      row = {
+        'MessageID'=>m.id,
+        'OperationType'=>listing.operation_type,
         'Product'=> {
           'SKU'=>self.sku,
           'ItemPackageQuantity'=>'1',
@@ -51,8 +60,8 @@ class SubVariant < ActiveRecord::Base
             'ShippingWeight'=>{'unitOfMeasure'=>'LB', 'Value'=>'1'}, #TODO value is probably not the right term
             'MSRP'=>self.variant.msrp.to_s,
             'SearchTerms'=>Product.unpack_keywords(p.search_keywords,5), # max 5
-            #'IsGiftWrapAvailable'=>'True',
-            #'IsGiftMessageAvailable'=>'True'
+            'IsGiftWrapAvailable'=>'True',
+            'IsGiftMessageAvailable'=>'True'
             #'RecommendedBrowseNode'=>'60583031', # only for Europe
           },#DescriptionData
           'ProductData' => {
@@ -72,33 +81,51 @@ class SubVariant < ActiveRecord::Base
             }#Clothing
           }#ProductData
         }#Product
-      }] 
-    elsif feed_type==:product_relationship_data
+      }
+      m.update_attributes!(:message => row)
+      return row
+    elsif feed_type==Feed::Enumerations::FEED_TYPES[:product_relationship_data]
+      # This one is not a separate message, but just a repeated element within the relationship message
       return [{ 'SKU'=>self.sku, 'Type'=>'Variation' }]
-    elsif feed_type==:product_image_data
-      rows = []
-      self.variant.variant_images.each_with_index do |vi,i|
-        rows << {'ProductImage' => {
-            'SKU' => self.sku,
-            'ImageType' => i==0 ? 'Main' : "PT#{i}",
-            'ImageLocation' => vi.image.url
-          }}
-      end
-      return rows
-    elsif feed_type==:product_pricing
-      return [{ 
+    elsif feed_type==Feed::Enumerations::FEED_TYPES[:product_pricing]
+      m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'SubVariant', :feed_type=>feed_type)
+      row = {
+        'MessageID' => m.id,
+        'OperationType' => listing.operation_type,
         'Price' => {
           'SKU'=>self.sku,
           'StandardPrice' => self.variant.price.to_s, #TODO currency, should be of type OverrideCurrencyAmount
           'Sale' => {
-            'StartDate' => '2004-03-03T00:00:00Z',
-            'EndDate' => '2020-03-03T00:00:00Z',
-            'SalePrice' => self.variant.sale_price.to_s #TODO format
+            'StartDate' => '2004-03-03T00:00:00Z', #TODO
+            'EndDate' => '2020-03-03T00:00:00Z', #TODO
+            'SalePrice' => self.variant.sale_price.to_s
           }#Sale
         }#Price
-      }]
-    elsif feed_type==:inventory_availability
-      return [{
+      }
+      m.update_attributes(:message => row)
+      return row
+    elsif feed_type==Feed::Enumerations::FEED_TYPES[:product_image_data]
+      rows = []
+      self.variant_images.each_with_index do |vi,i|
+        m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'SubVariant', :variant_image_id=>vi.id, :feed_type=>feed_type)
+        row = {
+            'MessageID' => m.id,
+            'OperationType' => listing.operation_type,
+            'ProductImage' => {
+              'SKU' => self.sku,
+              'ImageType' => i==0 ? 'Main' : "PT#{i}",
+              'ImageLocation' => vi.image.url
+            }
+        }
+        m.update_attributes(:message => row)
+        rows << row
+      end
+      return rows
+    elsif feed_type==Feed::Enumerations::FEED_TYPES[:inventory_availability]
+      m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'SubVariant', :feed_type=>feed_type)
+      row = {
+        'MessageID' => m.id,
+        'OperationType' => listing.operation_type,
         'Inventory' => {
           'SKU' => self.sku,
           #'FulfillmentCenterID' => 'Boston', #Option seller defined fulfillment center
@@ -106,7 +133,9 @@ class SubVariant < ActiveRecord::Base
           'FulfillmentLatency' => self.fulfillment_latency.nil? ? self.brand.fulfillment_latency : self.fulfillment_latency
           #'SwitchFulfillmentTo' => 'AFN' # Used only when switching fulfillment from AFN to MFN or back
         }#Inventory
-      }]
+      }
+      m.update_attributes(:message => row)
+      return row
     end    
   end
 	

@@ -1,10 +1,12 @@
 require 'amazon/mws'
-
 class Store < ActiveRecord::Base	
 	has_many :mws_requests, :dependent => :destroy
 	has_many :mws_orders, :dependent => :destroy
 	has_many :mws_order_items, :through => :mws_orders
 	has_many :listings, :dependent => :destroy
+	
+  has_many :queued_listings, :class_name => 'Listing', :conditions => ["listings.mws_request_id IS NULL"], :order => 'listings.id ASC'
+
 	has_many :products, :through => :listings
 	has_attached_file :icon, PAPERCLIP_STORAGE_OPTIONS.merge({:path => "/:class/:attachment/:id/:style/:filename"})
 	after_initialize :init_mws_connection
@@ -104,23 +106,12 @@ class Store < ActiveRecord::Base
 		end
 	end
 
-  #######
-
-  # TODO
-  def synchronize_listings
-    # get the unsynced listings
-    # build them into a feed
-    # submit the feed for processing, store feed ID
-    # schedule follow up process for background execution
-  end
-
-
   # takes an array of products, lists them on the appropriate storefront
 	def add_listings(products=[])
 		if self.store_type == 'Shopify'
 			add_listings_shopify(products)
-		elsif self.store_type == 'MWS'
-			add_listings_amazon(products)
+		#elsif self.store_type == 'MWS'
+		#	add_listings_amazon(products)
 		end
 	end
 
@@ -128,10 +119,31 @@ class Store < ActiveRecord::Base
 	def remove_listings(products)
 		if self.store_type == 'Shopify'
 			remove_listings_shopify(products)
-		elsif self.store_type == 'MWS'
-			remove_listings_amazon(products)
+		#elsif self.store_type == 'MWS'
+		#	remove_listings_amazon(products)
 		end
 	end
+
+  # Create an mws_request for an update operation type
+  # Add queued listings to this request and prepare messages
+  # Submit request (feed) to Amazon
+  def sync_mws_listings(async=true)
+    raise "Attempted Non MWS Store Sync To MWS" if self.store_type!='MWS'
+    
+    # create a new mws_request, with request_type SubmitFeed
+    request = MwsRequest.create!(:store=>self, :request_type=>'SubmitFeed', :feed_type=>MwsRequest::FEED_STEPS[0], :message_type=>MwsRequest::FEED_MSGS[0])
+
+    # Take all listings that are unsynchronized (queued for synchronization, have now mws_request_id), by order of listing creation
+    m = []
+    self.queued_listings.each do |l|
+      l.update_attributes!(:mws_request_id => request.id)
+      m += l.build_mws_messages(request)
+    end
+    request.update_attributes!(:message => m)    
+    
+    # submit the feed to Amazon for processing, store feed ID
+    request.submit_mws_feed(self,async)
+  end
 
 	private
 	def add_listings_shopify(products)
@@ -150,26 +162,26 @@ class Store < ActiveRecord::Base
 		  l = Listing.find_by_store_id_and_product_id(self.id, p.id)
 		  shopify_product = ShopifyAPI::Product.find(l.foreign_id)
 		  shopify_product.destroy
-		  l.inactivate
+		  Listing.create(:store_id=>self.id, :product_id=>p.id, :operation_type=>'Delete')
 		end
 	end
 
-	def add_listings_amazon(products)
-	  messages = []
-		products.each do |p|
-		  messages += p.attributes_for_amazon(:product_data)
-      Listing.create(:product_id=>p.to_param, :store_id=>self.id)
+	#def add_listings_amazon(products)
+	#  messages = []
+	#	products.each do |p|
+	#	  messages += p.attributes_for_amazon(:product_data)
+  #    Listing.create(:product_id=>p.to_param, :store_id=>self.id)
       # listing needs to be qualified as pending, incomplete, etc
-		end
-    request = MwsRequest.create(:store=>self, :request_type=>'SubmitFeed', :feed_type=>:product_data, :message=>messages)    
-	end
+	#	end
+  #  request = MwsRequest.create(:store=>self, :request_type=>'SubmitFeed', :feed_type=>:product_data, :message=>messages)    
+	#end
 	
-	def remove_listings_amazon(products)
-	  products.each do |p|
-		  l = Listing.find_by_store_id_and_product_id(self.id, p.id)
+	#def remove_listings_amazon(products)
+	#  products.each do |p|
+	#	  l = Listing.find_by_store_id_and_product_id(self.id, p.id)
   		#TODO code for remove from mws
-		  l.inactivate
-	  end
-	end
+	#	  l.inactivate
+	#  end
+	#end
 	
 end
