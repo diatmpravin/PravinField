@@ -37,7 +37,7 @@ Fieldday::Application.configure do
   # Use a different logger for distributed setups
   # config.logger = SyslogLogger.new
 
-  # Use a different cache store in production
+  # Use a different cache store in staging
   # config.cache_store = :mem_cache_store
 
   # Enable serving of images, stylesheets, and JavaScripts from an asset server
@@ -52,7 +52,11 @@ Fieldday::Application.configure do
   # Enable threaded mode
   # config.threadsafe!
 
-	PAPERCLIP_STORAGE_OPTIONS = { :storage => :s3, :s3_credentials => { :access_key_id => ENV['S3_KEY'], :secret_access_key => ENV['S3_SECRET'], :bucket => 'hdostaging' }, :path => "/:class/:attachment/:id/:style/:filename" }
+  # FieldDay, access_key_id: AKIAJZVPUALBMYJNEKUA, secret_access_key: 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, bucketis fdstaging
+	PAPERCLIP_STORAGE_OPTIONS = { :storage => :s3, :s3_credentials => { :access_key_id => ENV['S3_KEY'], :secret_access_key => ENV['S3_SECRET'], :bucket => 'fdstaging' }, :path => "/:class/:attachment/:id/:style/:filename" }
+
+  # HDO
+  PAPERCLIP_STORAGE_OPTIONS2 = { :storage => :s3, :s3_credentials => { :access_key_id => ENV['S3_KEY2'], :secret_access_key => ENV['S3_SECRET2'], :bucket => 'hdostaging' }, :path => "/:class/:attachment/:id/:style/:filename" }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation can not be found)
@@ -60,4 +64,24 @@ Fieldday::Application.configure do
 
   # Send deprecation notices to registered listeners
   config.active_support.deprecation = :notify
+
+  #default url for mailer
+  config.action_mailer.default_url_options = { :host => 'hdogroup.herokuapp.com' }  
+	# ActionMailer Config
+	# Setup for production - deliveries, no errors raised
+	config.action_mailer.delivery_method = :smtp
+	config.action_mailer.perform_deliveries = true
+	config.action_mailer.raise_delivery_errors = false
+	config.action_mailer.default :charset => "utf-8"
+	
+	# mail server settings
+  config.action_mailer.smtp_settings = {
+    :enable_starttls_auto => true,
+    :address => "smtp.gmail.com",
+    :port => 587,
+    :domain => "gmail.com",
+    :authentication => :login,
+    :user_name => 'hdo.whiteblt@gmail.com',
+    :password => 'hdotesting',
+  }  
 end

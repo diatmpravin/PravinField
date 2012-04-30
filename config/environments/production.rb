@@ -51,7 +51,11 @@ Fieldday::Application.configure do
   # Enable threaded mode
   # config.threadsafe!
 
-	PAPERCLIP_STORAGE_OPTIONS = { :storage => :s3, :s3_credentials => { :access_key_id => ENV['S3_KEY'], :secret_access_key => ENV['S3_SECRET'], :bucket => 'hdogroup' }, :path => "/:class/:attachment/:id/:style/:filename" }
+  # FieldDay, access_key_id: AKIAJZVPUALBMYJNEKUA, secret_access_key: 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, bucketis fdstaging
+	PAPERCLIP_STORAGE_OPTIONS = { :storage => :s3, :s3_credentials => { :access_key_id => ENV['S3_KEY'], :secret_access_key => ENV['S3_SECRET'], :bucket => 'fdproduction' }, :path => "/:class/:attachment/:id/:style/:filename" }
+
+  # HDO
+  PAPERCLIP_STORAGE_OPTIONS2 = { :storage => :s3, :s3_credentials => { :access_key_id => ENV['S3_KEY2'], :secret_access_key => ENV['S3_SECRET2'], :bucket => 'hdoproduction' }, :path => "/:class/:attachment/:id/:style/:filename" }
 
   # Enable locale fallbacks for I18n (makes lookups for any locale fall back to
   # the I18n.default_locale when a translation can not be found)
@@ -78,6 +82,5 @@ Fieldday::Application.configure do
     :authentication => :login,
     :user_name => 'hdo.whiteblt@gmail.com',
     :password => 'hdotesting',
-  }
-  
+  } 
 end

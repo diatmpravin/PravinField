@@ -53,6 +53,7 @@ Fieldday::Application.configure do
   config.action_dispatch.best_standards_support = :builtin
 
 	PAPERCLIP_STORAGE_OPTIONS = {}
+	PAPERCLIP_STORAGE_OPTIONS2 = {}
 
   # Do not compress assets
   config.assets.compress = false
