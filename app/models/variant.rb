@@ -2,7 +2,7 @@ class Variant < ActiveRecord::Base
 	belongs_to :product
 	has_many :variant_updates, :dependent => :destroy
 	has_many :variant_images, :dependent => :destroy
-	has_many :sub_variants, :dependent => :destroy
+	has_many :sub_variants, :dependent => :destroy, :order => 'sub_variants.id ASC'
 	has_many :mws_order_items
 	has_many :sku_mappings, :as=>:sku_mapable
 	
@@ -129,6 +129,10 @@ class Variant < ActiveRecord::Base
 			return nil
 		end
 	end
+
+  def build_mws_messages(listing, feed_type)
+    self.sub_variants.collect{ |sv| sv.build_mws_messages(listing,feed_type) }
+  end
 
   # Flatten variables to sku evaluation
   def to_sku_hash

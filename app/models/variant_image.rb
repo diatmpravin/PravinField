@@ -2,6 +2,7 @@ require 'open-uri'
 
 class VariantImage < ActiveRecord::Base
 	belongs_to :variant
+	has_many :mws_messages
 	has_attached_file :image, PAPERCLIP_STORAGE_OPTIONS.merge({:styles => { :thumb => "x30" }})
 	validates_uniqueness_of :unique_image_file_name, :scope => [:variant_id]
 	before_validation :download_remote_image

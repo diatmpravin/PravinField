@@ -22,14 +22,16 @@ group :development, :test do
 end
 
 gem 'amazon-mws', :git => 'git://github.com/aew/amazon-mws.git'
-#gem 'RubyOmx', :git => 'git://github.com/aew/RubyOmx.git'
+gem 'ruby_omx', :git => 'git://github.com/aew/ruby_omx.git'
+#gem 'ruby_omx', ">=0.0.6"
 
-gem 'ruby_omx'
 gem 'pg'
 gem 'ruby-hmac'
 gem 'roxml'
 gem 'haml'
 gem 'shopify_app'
+gem 'delayed_job_active_record'
+gem 'daemons'
 
 # Gems used only for assets and not required
 # in production environments by default.

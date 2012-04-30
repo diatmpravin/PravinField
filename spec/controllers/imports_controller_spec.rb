@@ -24,6 +24,12 @@ describe ImportsController do
     @user = FactoryGirl.create(:user)
     sign_in :user, @user
   end
+  
+  after(:each) do
+    Import.all.each do |i|
+      i.destroy
+    end
+  end
 
   # This should return the minimal set of attributes required to create a valid
   # Import. As you add validations to Import, be sure to

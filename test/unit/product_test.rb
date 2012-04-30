@@ -83,5 +83,5 @@ class ProductTest < ActiveSupport::TestCase
 	  # sku mapping count should have rebuilt, even with no patterns should at least take the skus
 	  assert SkuMapping.count > 0
 	end
-			
+	
 end

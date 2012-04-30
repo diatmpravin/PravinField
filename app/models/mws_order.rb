@@ -346,26 +346,29 @@ class MwsOrder < ActiveRecord::Base
 			address2 = "#{self.address_line_2} #{self.address_line_3}"
 		end
 		
-		result = omx_connection.append_order(
+		result = omx_connection.send_udoa_request(
 			:keycode => request.keycode,
 			:order_id => self.amazon_order_id,
 			:order_date => self.purchase_date.to_s(:db),
 			:queue_flag => request.queue_flag,
 			:verify_flag => request.verify_flag,
-			:first_name => self.omx_first_name,
-			:last_name => self.omx_last_name,
-			:address1 => address1,
-			:address2 => address2,
-			:city => self.city,
-			:state => omx_state,
-			:zip => self.postal_code,
-			:tld => omx_country,
+			:bill_to => {
+			  :address_type => 'BillTo',
+			  :title_code => '0',
+			  :firstname => self.omx_first_name,
+			  :lastname => self.omx_last_name,
+			  :address1 => address1,
+			  :address2 => address2,
+			  :city => self.city,
+			  :state => omx_state,
+			  :zip => self.postal_code,
+			  :tld => omx_country,
+  			:phone_number => self.phone,
+  			:email => self.buyer_email},
 			:method_code => self.omx_shipping_method,
 			:shipping_amount => omx_shipping_amount,
 			:gift_wrapping => omx_gift_wrapping, 
 			:gift_message => omx_gift_message,
-			:phone => self.phone,
-			:email => self.buyer_email,
 			:line_items => omx_line_items,
 			:total_amount => (omx_shipping_amount + omx_product_amount),
 			:store_code => request.store_code,
@@ -378,11 +381,11 @@ class MwsOrder < ActiveRecord::Base
 		omx_response = OmxResponse.create!(:omx_request_id => request.id, :success => result.success)		
 		if omx_response.success != 1
 			omx_response.error_data = result.error_data.strip
-			logger.debug "Order push was unsuccessful #{omx_response.error_data}"
+			#logger.debug "Order push was unsuccessful #{omx_response.error_data}"
 		else
 			omx_response.ordermotion_response_id = result.OMX
 			omx_response.ordermotion_order_number = result.order_number
-			logger.debug "Success:#{result.success}, omx:#{result.OMX}, order number:#{result.order_number}"	
+			#logger.debug "Success:#{result.success}, omx:#{result.OMX}, order number:#{result.order_number}"	
 		end
 		omx_response.save! 
 		return omx_response
