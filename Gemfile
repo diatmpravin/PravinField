@@ -22,8 +22,8 @@ group :development, :test do
 end
 
 gem 'amazon-mws', :git => 'git://github.com/aew/amazon-mws.git'
-#gem 'ruby_omx', :git => 'git://github.com/aew/ruby_omx.git'
-gem 'ruby_omx', ">=0.0.6"
+gem 'ruby_omx', :git => 'git://github.com/aew/ruby_omx.git'
+#gem 'ruby_omx', ">=0.0.6"
 
 gem 'pg'
 gem 'ruby-hmac'

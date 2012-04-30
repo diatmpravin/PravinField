@@ -8,6 +8,15 @@ GIT
       ruby-hmac (~> 0.4.0)
       xml-simple (~> 1.1.1)
 
+GIT
+  remote: git://github.com/aew/ruby_omx.git
+  revision: b45a66ec35018acb7cd68c7c90d7efbf9a25d47d
+  specs:
+    ruby_omx (0.0.6)
+      builder (~> 3.0.0)
+      roxml (~> 3.3.1)
+      xml-simple (~> 1.1.1)
+
 GEM
   remote: http://rubygems.org/
   specs:
@@ -209,10 +218,6 @@ GEM
       railties (>= 3.0)
       rspec (~> 2.9.0)
     ruby-hmac (0.4.0)
-    ruby_omx (0.0.6)
-      builder (~> 3.0.0)
-      roxml (~> 3.3.1)
-      xml-simple (~> 1.1.1)
     rubyzip (0.9.8)
     sass (3.1.16)
     sass-rails (3.2.5)
@@ -296,7 +301,7 @@ DEPENDENCIES
   roxml
   rspec-rails (>= 2.8.1)
   ruby-hmac
-  ruby_omx (>= 0.0.6)
+  ruby_omx!
   sass-rails
   shopify_app
   simplecov
