@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120430030144) do
+ActiveRecord::Schema.define(:version => 20120430121033) do
 
   create_table "brands", :force => true do |t|
     t.string   "name"
@@ -358,6 +358,10 @@ ActiveRecord::Schema.define(:version => 20120430030144) do
     t.string   "unique_image_file_name"
     t.integer  "image_width"
     t.integer  "image_height"
+    t.string   "image2_file_name"
+    t.string   "image2_content_type"
+    t.integer  "image2_file_size"
+    t.datetime "image2_updated_at"
   end
 
   add_index "variant_images", ["unique_image_file_name"], :name => "index_variant_images_on_unique_image_file_name"

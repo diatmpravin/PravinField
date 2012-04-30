@@ -30,6 +30,7 @@ Fieldday::Application.configure do
   config.action_mailer.delivery_method = :test
 
 	PAPERCLIP_STORAGE_OPTIONS = {}
+	PAPERCLIP_STORAGE_OPTIONS2 = {}
 
   # Use SQL instead of Active Record's schema dumper when creating the test database.
   # This is necessary if your schema can't be completely dumped by the schema dumper,

@@ -4,9 +4,15 @@ class VariantImage < ActiveRecord::Base
 	belongs_to :variant
 	has_many :mws_messages
 	has_attached_file :image, PAPERCLIP_STORAGE_OPTIONS.merge({:styles => { :thumb => "x30" }})
+	has_attached_file :image2, PAPERCLIP_STORAGE_OPTIONS2.merge({:styles => { :thumb => "x30" }})
 	validates_uniqueness_of :unique_image_file_name, :scope => [:variant_id]
 	before_validation :download_remote_image
 	after_post_process :set_image_dimensions
+	
+	#after_create :replicate_s3
+  #def replicate_s3
+    #TODO create an identical copy of this image on the other S3 account
+  #end
 
 	def self.reprocess_all
 		VariantImage.all.each do |vi|
