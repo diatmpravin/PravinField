@@ -1,7 +1,10 @@
 require 'spec_helper'
 
 describe Import do
-
+	
+	TEST_FILENAME = 'test/fixtures/csv/2XU.txt'
+	ERROR_FILENAME = 'test/fixtures/csv/2XU_errors.txt'
+		
 	before :all do
 		HEADER_ROWS = 2
 		VARIATION_THEMES = %w(Size Color SizeColor)
@@ -122,10 +125,8 @@ describe Import do
   end
   
   describe "Process input file" do
-  
+  	
   	before :each do
-			TEST_FILENAME = 'test/fixtures/csv/2XU.txt'
-			ERROR_FILENAME = 'test/fixtures/csv/2XU_errors.txt'
 			header_rows = 2
   		product_rows = 6
   		variant_rows = 10
@@ -139,11 +140,46 @@ describe Import do
   			aRead.should == 68
   		end
   		
-  		it "should get a brand error on every row" do   		   		
+  		it "should get a brand error missing on every row" do   		   		
   			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
   			aProduct.process_input_file
-  			#aErrorFile = File.open(aProduct.error_file.path).readlines
-  			#raise aErrorFile[1].index('Error').inspect
+  			aErrorFile = File.open(aProduct.error_file.path).readlines
+  			aProduct.status.should == "0 products, 0 variants, 0 sub_variants, 66 errors"
+  		end
+  		
+  		it "should get a sub_sku patterns missing error on every row" do   		   		
+  			aBrand = FactoryGirl.create(:brand, :name =>'2XU')
+  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
+  			aProduct.process_input_file
+  			aErrorFile = File.open(aProduct.error_file.path).readlines  			
+  			aProduct.status.should == "0 products, 0 variants, 0 sub_variants, 66 errors"
+  		end
+  		
+  		it "should get a sku patterns error on every row" do   		   		
+  			aBrand = FactoryGirl.create(:brand, :name =>'2XU')
+  			aSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size_code}", :granularity=>'SubVariant')
+  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
+  			aProduct.process_input_file
+  			aErrorFile = File.open(aProduct.error_file.path).readlines  			
+  			aProduct.status.should == "0 products, 0 variants, 0 sub_variants, 66 errors"
+  		end
+  		
+  		it "should create product,variant and subvariant row" do   		   		
+  			aBrand = FactoryGirl.create(:brand, :name =>'2XU')
+  			aSubSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size_code}", :granularity=>'SubVariant')
+  			aSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}", :granularity=>'Variant')
+  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
+  			aProduct.process_input_file
+  			aErrorFile = File.open(aProduct.error_file.path).readlines  			
+  			aProduct.status.should == "6 products, 10 variants, 58 sub_variants, 2 errors"
+  		end
+  		
+  		it "should create 2 subvariant row" do  			
+  			aProduct = FactoryGirl.create(:import, :input_file => File.new(ERROR_FILENAME))  			
+  			aProduct.process_input_file  			
+  			aErrorFile = File.open(aProduct.error_file.path).readlines
+  			raise aProduct.status.inspect		
+  			aProduct.status.should == "0 products, 0 variants, 2 sub_variants, 0 errors"
   		end
   		
   	end
@@ -153,6 +189,41 @@ describe Import do
   			aRead = File.open(TEST_FILENAME).readlines.size
   			aRead.should_not == 100
   		end
+  		
+  		it "should get a brand error on every row" do   		   		
+  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
+  			aProduct.process_input_file
+  			aErrorFile = File.open(aProduct.error_file.path).readlines
+  			aProduct.status.should_not == "10 products, 10 variants, 10 sub_variants, 36 errors"
+  		end
+  		
+  		it "should get a sub_sku patterns missing error on every row" do   		   		
+  			aBrand = FactoryGirl.create(:brand, :name =>'2XU')
+  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
+  			aProduct.process_input_file
+  			aErrorFile = File.open(aProduct.error_file.path).readlines  			
+  			aProduct.status.should_not == "10 products, 10 variants, 10 sub_variants, 36 errors"
+  		end
+  		
+  		it "should get a sku patterns missing error on every row" do   		   		
+  			aBrand = FactoryGirl.create(:brand, :name =>'2XU')
+  			aSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size_code}", :granularity=>'SubVariant')
+  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
+  			aProduct.process_input_file
+  			aErrorFile = File.open(aProduct.error_file.path).readlines  			
+  			aProduct.status.should_not == "10 products, 10 variants, 10 sub_variants, 36 errors"
+  		end
+			
+			it "should create product,variant and subvariant row" do   		   		
+  			aBrand = FactoryGirl.create(:brand, :name =>'2XU')
+  			aSubSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size_code}", :granularity=>'SubVariant')
+  			aSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}", :granularity=>'Variant')
+  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
+  			aProduct.process_input_file
+  			aErrorFile = File.open(aProduct.error_file.path).readlines  			
+  			aProduct.status.should_not == "6 products, 10 variants, 59 sub_variants, 1 errors"
+  		end
+  		
   	end
   end	
   
