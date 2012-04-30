@@ -29,7 +29,7 @@ class Import < ActiveRecord::Base
     i=0
     CSV.foreach(self.input_file.path, { :headers=>H, :col_sep => CSV_DELIMITER, :skip_blanks => true }) do |row|
       i+=1      
-      #begin
+      begin
     	  if row.field('parent-child') == 'parent'  
           self.find_or_create_product_from_csv(row)
   		  elsif row.field('parent-child') == 'child'	
@@ -37,10 +37,10 @@ class Import < ActiveRecord::Base
         elsif i>HEADER_ROWS
           raise "Missing Parent-Child Designation"      
   		  end
-      #rescue Exception
+      rescue Exception
     	  row.push $!
         errs << row
-      #end
+      end
     end
     
     self.status = "#{self.product_count} products, #{self.variant_count} variants, #{self.sub_variant_count} sub_variants, #{errs.length} errors"
@@ -157,8 +157,8 @@ class Import < ActiveRecord::Base
   end
   
   def find_or_create_variant_image(variantId,r)  	
-  	vImage = VariantImage.find_by_variant_id(variantId)  	
-  	if vImage.nil?
+  	variant_image = VariantImage.find_by_variant_id(variantId)  	
+  	if variant_image.nil?
   		variant_image = VariantImage.new(:variant_id => variantId) 
   	end  	
   	variant_image.update_attributes(
