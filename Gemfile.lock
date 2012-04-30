@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/aew/amazon-mws.git
-  revision: 514428393d41aebb3262fc51fdd408677774b88d
+  revision: 47bc5b44f3019262ad633c5fec340c54a133fe65
   specs:
     amazon-mws (0.1.1)
       builder (~> 3.0.0)
@@ -209,7 +209,7 @@ GEM
       railties (>= 3.0)
       rspec (~> 2.9.0)
     ruby-hmac (0.4.0)
-    ruby_omx (0.0.5)
+    ruby_omx (0.0.6)
       builder (~> 3.0.0)
       roxml (~> 3.3.1)
       xml-simple (~> 1.1.1)
@@ -296,7 +296,7 @@ DEPENDENCIES
   roxml
   rspec-rails (>= 2.8.1)
   ruby-hmac
-  ruby_omx (>= 0.0.5)
+  ruby_omx (>= 0.0.6)
   sass-rails
   shopify_app
   simplecov
