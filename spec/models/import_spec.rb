@@ -227,4 +227,17 @@ describe Import do
   	end
   end	
   
+  describe "Create Product" do 
+  	context "successful" do 
+  		
+  		end	
+  	end
+  	
+  	context "unsuccessful" do 
+  		
+  	end
+  	
+  end
+
+  
 end

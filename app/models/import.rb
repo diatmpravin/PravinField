@@ -29,7 +29,7 @@ class Import < ActiveRecord::Base
     i=0
     CSV.foreach(self.input_file.path, { :headers=>H, :col_sep => CSV_DELIMITER, :skip_blanks => true }) do |row|
       i+=1      
-      begin
+      #begin
     	  if row.field('parent-child') == 'parent'  
           self.find_or_create_product_from_csv(row)
   		  elsif row.field('parent-child') == 'child'	
@@ -37,10 +37,10 @@ class Import < ActiveRecord::Base
         elsif i>HEADER_ROWS
           raise "Missing Parent-Child Designation"      
   		  end
-      rescue Exception
+      #rescue Exception
     	  row.push $!
         errs << row
-      end
+      #end
     end
     
     self.status = "#{self.product_count} products, #{self.variant_count} variants, #{self.sub_variant_count} sub_variants, #{errs.length} errors"
@@ -106,7 +106,7 @@ class Import < ActiveRecord::Base
 		return p
   end
 
-  def find_or_create_variant_from_csv(r)
+  def find_or_create_variant_from_csv(r)  	
 		p = self.find_or_create_product_from_csv(r)	
 		h = SkuPattern.parse_variant(p.brand, r.field('sku'), r.field('parent-sku'))
     variant = Variant.find_by_product_id_and_sku(p.id, h[:variant_sku])
@@ -131,6 +131,7 @@ class Import < ActiveRecord::Base
 			:currency => r.field('currency')
 			#:leadtime_to_ship => r.field('leadtime-to-ship')
 		)
+		vI = self.find_or_create_variant_image(variant.id,r)		
 		return variant
   end
 
@@ -153,6 +154,18 @@ class Import < ActiveRecord::Base
 			:size_code => sku_hash[:size_code]
 		)
 		return sub_variant
+  end
+  
+  def find_or_create_variant_image(variantId,r)  	
+  	vImage = VariantImage.find_by_variant_id(variantId)  	
+  	if vImage.nil?
+  		variant_image = VariantImage.new(:variant_id => variantId) 
+  	end  	
+  	variant_image.update_attributes(
+  		:variant_id => variantId,
+  		:unique_image_file_name => r.field('main-image-url')
+  	)
+  	return variant_image
   end
 
   protected
