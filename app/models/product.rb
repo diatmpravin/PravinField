@@ -25,7 +25,7 @@ class Product < ActiveRecord::Base
       :dependent => :destroy,
       :order => "variants.position ASC, variants.id ASC"
 
-  has_many :variants_with_only_master,
+  has_one :master_variant,
       :class_name => 'Variant',
       :conditions => ["variants.deleted_at IS NULL AND variants.is_master = ?", true],
       :dependent => :destroy

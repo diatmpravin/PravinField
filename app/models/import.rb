@@ -131,7 +131,10 @@ class Import < ActiveRecord::Base
 			:currency => r.field('currency')
 			#:leadtime_to_ship => r.field('leadtime-to-ship')
 		)
-		vI = self.find_or_create_variant_image(variant.id,r)		
+		#vI = self.find_or_create_variant_image(variant.id,r)
+    #VariantImage.find_or_create_by_variant_id_and_unique_image_file_name(variant.id, r.field('main-image-url'))
+    self.find_or_create_variant_images_from_csv(variant.id, r)
+    
 		return variant
   end
 
@@ -156,7 +159,7 @@ class Import < ActiveRecord::Base
 		return sub_variant
   end
   
-  def find_or_create_variant_image(variantId,r)  	
+  def find_or_create_variant_image(variantId,r)
   	variant_image = VariantImage.find_by_variant_id(variantId)  	
   	if variant_image.nil?
   		variant_image = VariantImage.new(:variant_id => variantId) 
@@ -167,7 +170,15 @@ class Import < ActiveRecord::Base
   	)
   	return variant_image
   end
-
+  
+  
+  def find_or_create_variant_images_from_csv(variant_id, r)
+    image_fields = %w(main-image-url swatch-image-url other-image-url1 other-image-url2 other-image-url3 other-image-url4 other-image-url5 other-image-url6 other-image-url7 other-image-url8)
+    image_fields.each do |f|
+      VariantImage.find_or_create_by_variant_id_and_unique_image_file_name(variant_id, r.field(f))
+    end
+  end
+  
   protected
 
   def init_counters

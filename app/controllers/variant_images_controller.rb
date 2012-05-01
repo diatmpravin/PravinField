@@ -48,6 +48,7 @@ class VariantImagesController < ApplicationController
   # POST /variant_images
   # POST /variant_images.json
   def create
+    params[:variant_image][:image2] = params[:variant_image][:image] # For image replication across two s3 accounts
     @variant_image = VariantImage.new(params[:variant_image])
 		@variant = @variant_image.variant
     @product = @variant.product    

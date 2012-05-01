@@ -174,7 +174,8 @@ describe Import do
   			aProduct.status.should == "6 products, 10 variants, 58 sub_variants, 2 errors"
   		end
   		
-  		it "should create 2 subvariant row" do  			
+  		it "should create 2 subvariant row" do
+  			pending
   			aProduct = FactoryGirl.create(:import, :input_file => File.new(ERROR_FILENAME))  			
   			aProduct.process_input_file  			
   			aErrorFile = File.open(aProduct.error_file.path).readlines
@@ -226,18 +227,5 @@ describe Import do
   		
   	end
   end	
-  
-  describe "Create Product" do 
-  	context "successful" do 
-  		
-  		end	
-  	end
-  	
-  	context "unsuccessful" do 
-  		
-  	end
-  	
-  end
-
-  
+    
 end
