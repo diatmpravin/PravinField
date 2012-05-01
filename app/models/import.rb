@@ -157,7 +157,7 @@ class Import < ActiveRecord::Base
   end
   
   def find_or_create_variant_image(variantId,r)  	
-  	variant_image = VariantImage.find_by_variant_id(variantId)  	
+  	variant_image = VariantImage.find_by_variant_id_and_unique_image_file_name(variantId,r.field('main-image-url'))  	
   	if variant_image.nil?
   		variant_image = VariantImage.new(:variant_id => variantId) 
   	end  	

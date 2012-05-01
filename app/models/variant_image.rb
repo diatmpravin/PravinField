@@ -23,6 +23,7 @@ class VariantImage < ActiveRecord::Base
   protected
   def download_remote_image
     if self.image_file_name.nil? && !self.unique_image_file_name.nil?
+    	raise "Maisa"
       io = open(URI.parse(self.unique_image_file_name))
       def io.original_filename; base_uri.path.split('/').last; end
       self.image = io.original_filename.blank? ? nil : io

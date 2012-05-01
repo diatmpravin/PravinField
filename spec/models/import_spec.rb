@@ -13,8 +13,8 @@ describe Import do
   	AMZ_H = %w(TemplateType=Clothing	Version=1.4	This row for Amazon.com use only.  Do not modify or delete.							Macros:																																																																													)
   	H = %w(sku	product-id	product-id-type	product-name	brand	bullet-point1	bullet-point2	bullet-point3	bullet-point4	bullet-point5	product-description	clothing-type	size	size-modifier	color	color-map	material-fabric1	material-fabric2	material-fabric3	department1	department2	department3	department4	department5	style-keyword1	style-keyword2	style-keyword3	style-keyword4	style-keyword5	occasion-lifestyle1	occasion-lifestyle2	occasion-lifestyle3	occasion-lifestyle4	occasion-lifestyle5	search-terms1	search-terms2	search-terms3	search-terms4	search-terms5	size-map	waist-size-unit-of-measure	waist-size	inseam-length-unit-of-measure	inseam-length	sleeve-length-unit-of-measure	sleeve-length	neck-size-unit-of-measure	neck-size	chest-size-unit-of-measure	chest-size	cup-size	shoe-width	parent-child	parent-sku	relationship-type	variation-theme	main-image-url	swatch-image-url	other-image-url1	other-image-url2	other-image-url3	other-image-url4	other-image-url5	other-image-url6	other-image-url7	other-image-url8	shipping-weight-unit-measure	shipping-weight	product-tax-code	launch-date	release-date	msrp	item-price	sale-price	currency	fulfillment-center-id	sale-from-date	sale-through-date	quantity	leadtime-to-ship	restock-date	max-aggregate-ship-quantity	is-gift-message-available	is-gift-wrap-available	is-discontinued-by-manufacturer	registered-parameter	update-delete)  	
 	end
-  
-  describe "validation" do
+ 	
+ 	describe "validation" do
   	it "should not be valid without a import_date" do
   		aImport = Import.create(:import_date => "")
   		aImport.should_not be_valid
@@ -177,8 +177,7 @@ describe Import do
   		it "should create 2 subvariant row" do  			
   			aProduct = FactoryGirl.create(:import, :input_file => File.new(ERROR_FILENAME))  			
   			aProduct.process_input_file  			
-  			aErrorFile = File.open(aProduct.error_file.path).readlines
-  			raise aProduct.status.inspect		
+  			aErrorFile = File.open(aProduct.error_file.path).readlines  				
   			aProduct.status.should == "0 products, 0 variants, 2 sub_variants, 0 errors"
   		end
   		
@@ -227,16 +226,28 @@ describe Import do
   	end
   end	
   
-  describe "Create Product" do 
-  	context "successful" do 
-  		
-  		end	
-  	end
-  	
+  describe "Create variant image" do 
+  	context "successful" do
+  		it "should create new variant image" do 
+				aBrand = FactoryGirl.create(:brand, :name=>'2XU')
+				aSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}", :granularity=>'Variant')
+				aSubSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size_code}", :granularity=>'SubVariant')
+				aImport = FactoryGirl.create(:import)
+				rows = CSV.read(TEST_FILENAME, { :headers=>Import::H, :col_sep => "\t", :skip_blanks => true })
+				
+				row = rows[3]
+				if row.field('parent-child') == "child"
+					aVariant = aImport.find_or_create_variant_from_csv(row)					
+					aVariantImage = aImport.find_or_create_variant_image(aVariant.id,row)
+					aVariantImage.unique_image_file_name.should == row.field('main-image-url')
+					aVariantImage.variant_id.should == aVariant.id
+					#aVI = FactoryGirl.create(:variant_image, :variant_id => aVariant.id, :unique_image_file_name => row.field('main-image-url') )
+				end
+			end
+	  end
   	context "unsuccessful" do 
   		
   	end
-  	
   end
 
   
