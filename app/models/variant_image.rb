@@ -5,8 +5,8 @@ class VariantImage < ActiveRecord::Base
 	has_many :mws_messages
 	has_attached_file :image, PAPERCLIP_STORAGE_OPTIONS.merge({:styles => { :thumb => "x30" }})
 	has_attached_file :image2, PAPERCLIP_STORAGE_OPTIONS2.merge({:styles => { :thumb => "x30" }})
-  #TODO before_validation :ignore_duplicate_images
-	before_validation :download_remote_image
+  before_validation :ignore_blanks_and_duplicates, :on => :create
+	before_validation :upload_image_from_uri
 	validates_uniqueness_of :unique_image_file_name, :scope => [:variant_id]
 	after_post_process :set_image_dimensions
 	
@@ -18,36 +18,56 @@ class VariantImage < ActiveRecord::Base
 
   protected
   
-  def ignore_duplicate_images
-    if !self.unique_image_file_name.nil? && !self.unique_image_file_name.blank?
-      master_variant = self.variant.product.master_variant
-      self.variant.product.master_variant.variant_images.each do |i|
-        if i.unique_image_file_name==self.unique_image_file_name
-          self.unique_image_file_name = nil
-        end 
+  # Happening before validation to avoid pulling invalid/duplicate URLs for no reason
+  def ignore_blanks_and_duplicates
+    if (self.image_file_name.nil? || self.image_file_name.blank?) && (self.unique_image_file_name.nil? || self.unique_image_file_name.blank?)
+      self.errors[:unique_image_file_name].push 'cannot be blank unless uploading from a browser'
+      return false
+    end
+    
+    master = self.variant.product.master
+    if !master.nil?
+      master.variant_images.each do |i|
+        if i.unique_image_file_name==self.unique_image_file_name      
+          self.errors[:unique_image_file_name].push 'is a duplicate with a master image'
+          return false
+        end
       end
     end
   end
   
-  def open_io(url)
+  # Open an io stream from a remote URL, and confirm the original file name is not blank
+  def open_io_uri(url)
     io = open(url)
     def io.original_filename; base_uri.path.split('/').last; end
-    if io.original_filename.blank?
-      return nil
-    end
-    return io
+    return io unless io.original_filename.blank?
+    self.errors[:unique_image_file_name].push 'does not link to a file'
+    return nil
   end
   
-  def download_remote_image
+  # Open an io stream from a local file, and confirm the original file name is not blank
+  def open_io_file(path)
+    io = open(path)
+    def io.original_filename; path.split('/').last; end
+    return io unless io.original_filename.blank?
+    return nil
+  end
+  
+  # Upload an image from either a remote URI or a local file
+  def upload_image_from_uri
     if self.image_file_name.nil? && !self.unique_image_file_name.nil?
-      url = URI.parse(self.unique_image_file_name)
-      self.image = open_io(url)
-      self.image2 = open_io(url)
+      uri = URI.parse(self.unique_image_file_name)
+      self.image = open_io_uri(uri)
+      self.image2 = open_io_uri(uri)
     end
+  rescue TypeError
+    self.image = open_io_file(self.unique_image_file_name)
+    self.image2 = open_io_file(self.unique_image_file_name)
   rescue # catch url errors with validations instead of exceptions (Errno::ENOENT, OpenURI::HTTPError, etc...) 
-    puts $!
+    self.errors[:unique_image_file_name].push "returned #{$!.inspect}"
   end
   
+  # Paperclip post processing callback to set the width and height of the image after it is loaded
 	def set_image_dimensions
 		if !self.image_width.is_a?(Numeric) || !self.image_file_name.nil?	  
 		  if !image.queued_for_write[:original].nil?

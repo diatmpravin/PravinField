@@ -8,10 +8,11 @@ class ImportTest < ActiveSupport::TestCase
   test "process_input_file should work" do
     
     header_rows = 2
-    product_rows = 6
-    variant_rows = 10
-    valid_sub_variant_rows = 58
+    product_rows = 3
+    variant_rows = 4
+    valid_sub_variant_rows = 22
     error_sub_variant_rows = 2
+    total_rows = product_rows + valid_sub_variant_rows + error_sub_variant_rows
     
     # should get a brand error on every row
     assert_difference('Product.count', 0) do
@@ -20,7 +21,7 @@ class ImportTest < ActiveSupport::TestCase
           i = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))
           i.process_input_file
           assert_equal (header_rows+product_rows+valid_sub_variant_rows+error_sub_variant_rows), File.open(i.error_file.path).readlines.size          
-          assert_equal "0 products, 0 variants, 0 sub_variants, 66 errors", i.status
+          assert_equal "0 products, 0 variants, 0 sub_variants, #{total_rows} errors", i.status
           i.destroy
         end
       end
@@ -36,7 +37,7 @@ class ImportTest < ActiveSupport::TestCase
           i2 = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))
           i2.process_input_file
           assert_equal (header_rows+product_rows+valid_sub_variant_rows+error_sub_variant_rows), File.open(i2.error_file.path).readlines.size          
-          assert_equal "0 products, 0 variants, 0 sub_variants, 66 errors", i2.status
+          assert_equal "0 products, 0 variants, 0 sub_variants, #{total_rows} errors", i2.status
           i2.destroy
         end
       end
@@ -52,7 +53,7 @@ class ImportTest < ActiveSupport::TestCase
           i3 = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))
           i3.process_input_file
           assert_equal (header_rows+product_rows+valid_sub_variant_rows+error_sub_variant_rows), File.open(i3.error_file.path).readlines.size
-          assert_equal "0 products, 0 variants, 0 sub_variants, 66 errors", i3.status
+          assert_equal "0 products, 0 variants, 0 sub_variants, #{total_rows} errors", i3.status
           i3.destroy
         end
       end
@@ -81,7 +82,7 @@ class ImportTest < ActiveSupport::TestCase
           i5 = FactoryGirl.create(:import, :input_file => File.new(ERROR_FILENAME))
           i5.process_input_file
           assert i5.error_file.to_s.blank?
-          assert_equal "0 products, 0 variants, 2 sub_variants, 0 errors", i5.status          
+          assert_equal "0 products, 0 variants, #{error_sub_variant_rows} sub_variants, 0 errors", i5.status          
           i5.destroy
         end
       end

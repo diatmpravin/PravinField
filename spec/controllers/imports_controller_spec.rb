@@ -82,8 +82,8 @@ describe ImportsController do
             expect {
               post :create, {:import => valid_attributes}
             }.to change(Import, :count).by(1)
-          }.to change(Product, :count).by(6) # 6 products in test file
-        }.to change(SubVariant, :count).by(58) # with 58 associated sub variants
+          }.to change(Product, :count).by(3) # 3 products in test file
+        }.to change(SubVariant, :count).by(22) # with 22 associated sub variants
       end
 
       it "assigns a newly created import as @import" do

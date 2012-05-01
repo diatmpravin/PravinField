@@ -13,6 +13,7 @@ class Import < ActiveRecord::Base
   
   AMZ_H = %w(TemplateType=Clothing	Version=1.4	This row for Amazon.com use only.  Do not modify or delete.							Macros:																																																																													)
   H = %w(sku	product-id	product-id-type	product-name	brand	bullet-point1	bullet-point2	bullet-point3	bullet-point4	bullet-point5	product-description	clothing-type	size	size-modifier	color	color-map	material-fabric1	material-fabric2	material-fabric3	department1	department2	department3	department4	department5	style-keyword1	style-keyword2	style-keyword3	style-keyword4	style-keyword5	occasion-lifestyle1	occasion-lifestyle2	occasion-lifestyle3	occasion-lifestyle4	occasion-lifestyle5	search-terms1	search-terms2	search-terms3	search-terms4	search-terms5	size-map	waist-size-unit-of-measure	waist-size	inseam-length-unit-of-measure	inseam-length	sleeve-length-unit-of-measure	sleeve-length	neck-size-unit-of-measure	neck-size	chest-size-unit-of-measure	chest-size	cup-size	shoe-width	parent-child	parent-sku	relationship-type	variation-theme	main-image-url	swatch-image-url	other-image-url1	other-image-url2	other-image-url3	other-image-url4	other-image-url5	other-image-url6	other-image-url7	other-image-url8	shipping-weight-unit-measure	shipping-weight	product-tax-code	launch-date	release-date	msrp	item-price	sale-price	currency	fulfillment-center-id	sale-from-date	sale-through-date	quantity	leadtime-to-ship	restock-date	max-aggregate-ship-quantity	is-gift-message-available	is-gift-wrap-available	is-discontinued-by-manufacturer	registered-parameter	update-delete)
+  IMAGE_FIELDS = %w(main-image-url swatch-image-url other-image-url1 other-image-url2 other-image-url3 other-image-url4 other-image-url5 other-image-url6 other-image-url7 other-image-url8)
   HEADER_ROWS = 2
   VARIATION_THEMES = %w(Size Color SizeColor)
   PARENT_CHILD = %w(parent child)
@@ -156,12 +157,9 @@ class Import < ActiveRecord::Base
 		)
 		return sub_variant
   end
-    
+
   def find_or_create_variant_images_from_csv(variant_id, r)
-    image_fields = %w(main-image-url swatch-image-url other-image-url1 other-image-url2 other-image-url3 other-image-url4 other-image-url5 other-image-url6 other-image-url7 other-image-url8)
-    image_fields.each do |f|
-      VariantImage.find_or_create_by_variant_id_and_unique_image_file_name(variant_id, r.field(f))
-    end
+    IMAGE_FIELDS.collect { |f| VariantImage.find_or_create_by_variant_id_and_unique_image_file_name(variant_id, r.field(f)) }
   end
   
   protected

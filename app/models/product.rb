@@ -24,11 +24,6 @@ class Product < ActiveRecord::Base
       :conditions => ["variants.deleted_at IS NULL"],
       :dependent => :destroy,
       :order => "variants.position ASC, variants.id ASC"
-
-  has_one :master_variant,
-      :class_name => 'Variant',
-      :conditions => ["variants.deleted_at IS NULL AND variants.is_master = ?", true],
-      :dependent => :destroy
 	
 	validates_presence_of :brand_id, :name
 	validates_associated :brand

@@ -62,8 +62,9 @@ FactoryGirl.define do
 	
 	factory :variant_image do
 		variant
-		image_width 400
-		sequence(:unique_image_file_name) { |n| "/test/fixtures/gift-#{n}.png" }
+		#image_width 400
+		#sequence(:unique_image_file_name) { |n| "test/fixtures/images/logo.png" }
+	  unique_image_file_name 'test/fixtures/images/logo.png'
 	end
 	
 	factory :mws_order do

@@ -8,6 +8,14 @@ require 'mocha'
 
 include Amazon::MWS
 
+IMAGE_FILE_NAME = 'logo.png'
+LOCAL_IMAGE_PATH = 'test/fixtures/images/'
+LOCAL_IMAGE = LOCAL_IMAGE_PATH+IMAGE_FILE_NAME
+LOCAL_IMAGE2 = LOCAL_IMAGE_PATH+'logo2.png'
+LOCAL_IMAGE3 = LOCAL_IMAGE_PATH+'logo3.png'
+LOCAL_IMAGE4 = LOCAL_IMAGE_PATH+'logo4.png'
+REMOTE_IMAGE = 'http://cdn.shopify.com/s/files/1/0109/9112/t/4/assets/'+IMAGE_FILE_NAME
+
 class ActiveSupport::TestCase
   # Setup all fixtures in test/fixtures/*.(yml|csv) for all tests in alphabetical order.
   #

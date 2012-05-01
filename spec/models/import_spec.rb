@@ -62,32 +62,7 @@ describe Import do
 				H.should == %w(sku	product-id	product-id-type	product-name	brand	bullet-point1	bullet-point2	bullet-point3	bullet-point4	bullet-point5	product-description	clothing-type	size	size-modifier	color	color-map	material-fabric1	material-fabric2	material-fabric3	department1	department2	department3	department4	department5	style-keyword1	style-keyword2	style-keyword3	style-keyword4	style-keyword5	occasion-lifestyle1	occasion-lifestyle2	occasion-lifestyle3	occasion-lifestyle4	occasion-lifestyle5	search-terms1	search-terms2	search-terms3	search-terms4	search-terms5	size-map	waist-size-unit-of-measure	waist-size	inseam-length-unit-of-measure	inseam-length	sleeve-length-unit-of-measure	sleeve-length	neck-size-unit-of-measure	neck-size	chest-size-unit-of-measure	chest-size	cup-size	shoe-width	parent-child	parent-sku	relationship-type	variation-theme	main-image-url	swatch-image-url	other-image-url1	other-image-url2	other-image-url3	other-image-url4	other-image-url5	other-image-url6	other-image-url7	other-image-url8	shipping-weight-unit-measure	shipping-weight	product-tax-code	launch-date	release-date	msrp	item-price	sale-price	currency	fulfillment-center-id	sale-from-date	sale-through-date	quantity	leadtime-to-ship	restock-date	max-aggregate-ship-quantity	is-gift-message-available	is-gift-wrap-available	is-discontinued-by-manufacturer	registered-parameter	update-delete)
 			end
 		end
-		
-		context "When invalid" do
-			it "should have HEADER_ROWS '5'" do
-				HEADER_ROWS.should_not == 5  		
-			end
-			
-			it "should have VARIATION_THEMES 'size color sizeColor'" do  		
-				VARIATION_THEMES.should_not == %w(size color sizeColor)  		  		
-			end
-			
-			it "should have parent_child 'parent_invalid child_invalid'" do  		  		
-				PARENT_CHILD.should_not == %w(parent_invalid child_invalid)
-			end
-			
-			it "should have valid CSV_DELIMITER new line" do  		  		
-				CSV_DELIMITER.should_not == "\n"  		
-			end
-			
-			it "should have valid AMAZOM_H" do
-				AMZ_H.should_not == %w(TemplateType=Clothing	Version=1.5	This row for Amazon.com use only.  Do not modify or delete.							Macros:																																																																													)	
-			end
-			
-			it "should have valid HEADER" do 
-				H.should_not == %w(sku	product-id	product-id-type	product-name	brand	bullet-point1	bullet-point2	bullet-point3	bullet-point4	bullet-point5	product-description	clothing-type	size	size-modifier	color	color-map	material-fabric1	material-fabric2	material-fabric3	department1	department2	department3	department4	department5	style-keyword1	style-keyword2	style-keyword3	style-keyword4	style-keyword5	occasion-lifestyle1	occasion-lifestyle2	occasion-lifestyle3	occasion-lifestyle4	occasion-lifestyle5	search-terms1	search-terms2	search-terms3	search-terms4	search-terms5	size-map	waist-size-unit-of-measure	waist-size	inseam-length-unit-of-measure	inseam-length	sleeve-length-unit-of-measure	sleeve-length	neck-size-unit-of-measure	neck-size	chest-size-unit-of-measure	chest-size	cup-size	shoe-width	parent-child	parent-sku	relationship-type	variation-theme	main-image-url	swatch-image-url	other-image-url1	other-image-url2	other-image-url3	other-image-url4	other-image-url5	other-image-url6	other-image-url7	other-image-url8	shipping-weight-unit-measure	shipping-weight	product-tax-code	launch-date	release-date	msrp	item-price	sale-price	currency	fulfillment-center-id	sale-from-date	sale-through-date	quantity	leadtime-to-ship	restock-date	max-aggregate-ship-quantity	is-gift-message-available	is-gift-wrap-available	is-discontinued-by-manufacturer	registered-parameter	update-delete Error)
-			end
-		end
+
   end
   
   describe "methods test" do
@@ -127,24 +102,25 @@ describe Import do
   describe "Process input file" do
   	
   	before :each do
-			header_rows = 2
-  		product_rows = 6
-  		variant_rows = 10
-  		valid_sub_variant_rows = 58
-  		error_sub_variant_rows = 2
+			@header_rows = 2
+  		@product_rows = 3
+  		@variant_rows = 4
+  		@valid_sub_variant_rows = 22
+  		@error_sub_variant_rows = 2
+      @total_rows = @product_rows + @valid_sub_variant_rows + @error_sub_variant_rows
 		end
   		
   	context "when sucessful" do
-  		it "should having 68 lines" do  			
+  		it "should have total lines" do  			
   			aRead = File.open(TEST_FILENAME).readlines.size
-  			aRead.should == 68
+  			aRead.should == @total_rows+@header_rows
   		end
   		
   		it "should get a brand error missing on every row" do   		   		
   			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
   			aProduct.process_input_file
   			aErrorFile = File.open(aProduct.error_file.path).readlines
-  			aProduct.status.should == "0 products, 0 variants, 0 sub_variants, 66 errors"
+  			aProduct.status.should == "0 products, 0 variants, 0 sub_variants, #{@total_rows} errors"
   		end
   		
   		it "should get a sub_sku patterns missing error on every row" do   		   		
@@ -152,7 +128,7 @@ describe Import do
   			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
   			aProduct.process_input_file
   			aErrorFile = File.open(aProduct.error_file.path).readlines  			
-  			aProduct.status.should == "0 products, 0 variants, 0 sub_variants, 66 errors"
+  			aProduct.status.should == "0 products, 0 variants, 0 sub_variants, #{@total_rows} errors"
   		end
   		
   		it "should get a sku patterns error on every row" do   		   		
@@ -161,7 +137,7 @@ describe Import do
   			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
   			aProduct.process_input_file
   			aErrorFile = File.open(aProduct.error_file.path).readlines  			
-  			aProduct.status.should == "0 products, 0 variants, 0 sub_variants, 66 errors"
+  			aProduct.status.should == "0 products, 0 variants, 0 sub_variants, #{@total_rows} errors"
   		end
   		
   		it "should create product,variant and subvariant row" do   		   		
@@ -171,7 +147,7 @@ describe Import do
   			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
   			aProduct.process_input_file
   			aErrorFile = File.open(aProduct.error_file.path).readlines  			
-  			aProduct.status.should == "6 products, 10 variants, 58 sub_variants, 2 errors"
+  			aProduct.status.should == "#{@product_rows} products, #{@variant_rows} variants, #{@valid_sub_variant_rows} sub_variants, #{@error_sub_variant_rows} errors"
   		end
   		
   		it "should create 2 subvariant row" do
@@ -179,52 +155,11 @@ describe Import do
   			aProduct = FactoryGirl.create(:import, :input_file => File.new(ERROR_FILENAME))  			
   			aProduct.process_input_file  			
   			aErrorFile = File.open(aProduct.error_file.path).readlines  				
-  			aProduct.status.should == "0 products, 0 variants, 2 sub_variants, 0 errors"
+  			aProduct.status.should == "0 products, 0 variants, #{@error_sub_variant_rows} sub_variants, 0 errors"
   		end
   		
   	end
   	
-  	context "when unsucessful" do
-  		it "should not have 68 lines" do
-  			aRead = File.open(TEST_FILENAME).readlines.size
-  			aRead.should_not == 100
-  		end
-  		
-  		it "should get a brand error on every row" do   		   		
-  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
-  			aProduct.process_input_file
-  			aErrorFile = File.open(aProduct.error_file.path).readlines
-  			aProduct.status.should_not == "10 products, 10 variants, 10 sub_variants, 36 errors"
-  		end
-  		
-  		it "should get a sub_sku patterns missing error on every row" do   		   		
-  			aBrand = FactoryGirl.create(:brand, :name =>'2XU')
-  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
-  			aProduct.process_input_file
-  			aErrorFile = File.open(aProduct.error_file.path).readlines  			
-  			aProduct.status.should_not == "10 products, 10 variants, 10 sub_variants, 36 errors"
-  		end
-  		
-  		it "should get a sku patterns missing error on every row" do   		   		
-  			aBrand = FactoryGirl.create(:brand, :name =>'2XU')
-  			aSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size_code}", :granularity=>'SubVariant')
-  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
-  			aProduct.process_input_file
-  			aErrorFile = File.open(aProduct.error_file.path).readlines  			
-  			aProduct.status.should_not == "10 products, 10 variants, 10 sub_variants, 36 errors"
-  		end
-			
-			it "should create product,variant and subvariant row" do   		   		
-  			aBrand = FactoryGirl.create(:brand, :name =>'2XU')
-  			aSubSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size_code}", :granularity=>'SubVariant')
-  			aSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}", :granularity=>'Variant')
-  			aProduct = FactoryGirl.create(:import, :input_file => File.new(TEST_FILENAME))  			
-  			aProduct.process_input_file
-  			aErrorFile = File.open(aProduct.error_file.path).readlines  			
-  			aProduct.status.should_not == "6 products, 10 variants, 59 sub_variants, 1 errors"
-  		end
-  		
-  	end
   end	
   
   describe "Create variant image" do 
@@ -234,21 +169,18 @@ describe Import do
 				aSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}", :granularity=>'Variant')
 				aSubSkuPattern = FactoryGirl.create(:sku_pattern, :brand_id=>aBrand.id, :pattern=>"{product_sku}+'-'+{color1_code}+'-'+{size_code}", :granularity=>'SubVariant')
 				aImport = FactoryGirl.create(:import)
-				rows = CSV.read(TEST_FILENAME, { :headers=>Import::H, :col_sep => "\t", :skip_blanks => true })
+				rows = CSV.read(TEST_FILENAME, { :headers=>Import::H, :col_sep => Import::CSV_DELIMITER, :skip_blanks => true })
 				
 				row = rows[3]
 				if row.field('parent-child') == "child"
 					aVariant = aImport.find_or_create_variant_from_csv(row)					
-					aVariantImage = aImport.find_or_create_variant_image(aVariant.id,row)
-					aVariantImage.unique_image_file_name.should == row.field('main-image-url')
-					aVariantImage.variant_id.should == aVariant.id
-					#aVI = FactoryGirl.create(:variant_image, :variant_id => aVariant.id, :unique_image_file_name => row.field('main-image-url') )
+					someVariantImages = aImport.find_or_create_variant_images_from_csv(aVariant.id,row)
+					someVariantImages[0].unique_image_file_name.should == row.field('main-image-url')
+					someVariantImages[0].variant_id.should == aVariant.id
 				end
 			end
 	  end
-  	context "unsuccessful" do 
-  		
-  	end
+
   end
 
 end

@@ -23,8 +23,10 @@ class VariantImagesControllerTest < ActionController::TestCase
     assert_difference('VariantImage.count') do
       post :create, variant_image: @variant_image.attributes
     end
-
     assert_redirected_to variant_path(assigns(:variant))
+    
+    # Confirm that image2 was assigned properly
+    assert_equal @variant_image.image_file_size, @variant_image.image2_file_size
   end
 
   test "should show variant_image" do
