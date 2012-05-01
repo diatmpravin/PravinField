@@ -142,7 +142,8 @@ class Store < ActiveRecord::Base
     request.update_attributes!(:message => m)    
     
     # submit the feed to Amazon for processing, store feed ID
-    request.submit_mws_feed(self,async)
+    return request.delay.submit_mws_feed(self,async) if async
+    return request.submit_mws_feed(self,async)
   end
 
 	private
