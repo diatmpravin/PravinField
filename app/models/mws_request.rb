@@ -56,7 +56,7 @@ class MwsRequest < ActiveRecord::Base
 		if next_token.is_a?(Numeric)
 			return next_token
 		end
-		
+
 		page_num = 1
 		failure_count = 0
 		while next_token.is_a?(String) && page_num<self.store.max_order_pages do
@@ -76,7 +76,7 @@ class MwsRequest < ActiveRecord::Base
 		end
 		#puts "  PROCESS_ORDERS: finishing"   
   end
-	
+
 	# accepts a working MWS connection and the XML model of the response, and incorporates this information into the database
 	# calls process_order or process_order_item in turn, which call the Amazon MWS API
 	def process_response(mws_connection,response_xml,page_num,sleep_if_error)
@@ -95,7 +95,7 @@ class MwsRequest < ActiveRecord::Base
 			:amazon_request_id => response_xml.request_id,
 			:page_num => page_num
 		)
-		
+
 		# If there is an error code, save the error in the record, sleep for some time to recover, and return the response id, indicating error
 		if response_xml.accessors.include?("code")
 		  #puts "PROCESS_RESPONSE: error code #{response_xml.message}"
@@ -106,7 +106,7 @@ class MwsRequest < ActiveRecord::Base
 			return response.id
 		end
 		#puts "no error code"
-		
+
 		# assign next token if given
 		response.next_token = response_xml.next_token
 
@@ -114,7 +114,7 @@ class MwsRequest < ActiveRecord::Base
 		if self.request_type=="ListOrders"
 			response.last_updated_before = response_xml.last_updated_before
 			response.save!
-			
+
 			#puts "    PROCESS_RESPONSE: ListOrders response contains #{response_xml.orders.count} orders"
 
 			# Process all orders first
@@ -133,7 +133,7 @@ class MwsRequest < ActiveRecord::Base
 				amazon_orders << amz_order
 				#puts "      PROCESS_RESPONSE: now #{amazon_orders.count} orders in array"
 			end
-			
+
 			#puts "    PROCESS_RESPONSE: done building array, #{amazon_orders.count} orders"
 			# Then get item detail behind each order
 			sleep_time = MwsOrder::get_sleep_time_per_order(amazon_orders.count)
@@ -142,14 +142,14 @@ class MwsRequest < ActiveRecord::Base
 				#puts "      PROCESS_RESPONSE: going to process order #{amz_order.amazon_order_id}"
 				r = amz_order.process_order(mws_connection)
 			end
-			
+
 		# else if this is a response containing items
 		elsif self.request_type=="ListOrderItems"
 			response.amazon_order_id = response_xml.amazon_order_id
 			response.save!
-			
+
 			#puts "            PROCESS_RESPONSE: ListOrderItems response contains #{response_xml.order_items.count} items"
-						
+
 			amz_order = MwsOrder.find_by_amazon_order_id(response.amazon_order_id)
 			if !amz_order.nil?
 			  response_xml.order_items.each do |i|
@@ -194,9 +194,7 @@ class MwsRequest < ActiveRecord::Base
   # Parent request
   def submit_mws_feed(store, async=true, chain=true)
     response = store.mws_connection.submit_feed(self.feed_type,self.message_type,self.message)    
-    if !response.is_a? SubmitFeedResponse
-      return self.handle_error_response(response)
-    end
+    return self.handle_error_response(response) if !response.is_a? SubmitFeedResponse
 
     r = MwsResponse.create(
       :request_type => self.request_type,
@@ -209,21 +207,21 @@ class MwsRequest < ActiveRecord::Base
     self.update_attributes(:feed_submission_id => r.feed_submission_id, :processing_status => r.processing_status)
       
     # Schedule job for get_mws_feed_status in x.minutes
+    self.delay(:run_at=>(3.minutes.from_now)).get_mws_feed_status(store, async) if async # Schedule job for get_mws_feed_status in x.minutes #TODO intelligent timing    
     self.get_mws_feed_status(store, async) if chain #TODO in x.minutes
     return r
   end
 
   
-  # Child request
-  def get_mws_feed_status(store, async=true, chain=true) 
+  # Child request, STATUS
+  def get_mws_feed_status(store, async=true, chain=true)
+    response = store.mws_connection.get_feed_submission_list('FeedSubmissionIdList'=>[self.feed_submission_id])
+    return self.handle_error_response(response) if !response.is_a? GetFeedSubmissionListResponse
+    raise "Feed submission count error" if response.feed_submissions.count != 1
+    raise "Feed submission ID error" if self.feed_submission_id != response.feed_submissions.first.id    
+
     child_request = MwsRequest.create(:store=>store, :request_type=>'GetFeedSubmissionList', 
       :mws_request_id=>self.id, :feed_submission_id=>self.feed_submission_id)
-    response = store.mws_connection.get_feed_submission_list('FeedSubmissionIdList'=>[self.feed_submission_id])
-    if !response.is_a? GetFeedSubmissionListResponse
-      return self.handle_error_response(response)  
-    end
-    #assert_equal 1, response.feed_submissions.count
-    #assert_equal self.feed_submission_id, response.feed_submissions.first.id
         
     fs = response.feed_submissions.first
         
@@ -239,14 +237,15 @@ class MwsRequest < ActiveRecord::Base
       :started_at => fs.started_processing_date,
       :completed_at => fs.completed_processing_date)
         
+    return r if !chain
     if r.processing_status == Feed::Enumerations::PROCESSING_STATUSES[:done]
-      # If complete: schedule get_mws_feed_result in x.minutes
-      return self.get_mws_feed_result(store, async) if chain #TODO in x.minutes
+      # If complete: schedule get_mws_feed_result now
+      return self.get_mws_feed_result(store, async)
     else
       # If not complete: schedule get_mws_feed_status in x.minutes
-      return self.get_mws_feed_status(store, async) if chain #TODO in x.minutes
+      return self.delay(:run_at=>(1.minutes.from_now)).get_mws_feed_status(store, async) if async #TODO intelligent timing
+      return self.get_mws_feed_status(store, async)
     end
-    return r # not chaining
   end
 
   # Child request

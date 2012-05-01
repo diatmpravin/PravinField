@@ -147,9 +147,8 @@ class Store < ActiveRecord::Base
 
 	private
 	def add_listings_shopify(products)
-		if self.authenticated_url.nil?
-			return nil
-		end
+		return nil if self.authenticated_url.nil?
+
 		ShopifyAPI::Base.site = self.authenticated_url
 		products.each do |p|
 		  shopify_product = ShopifyAPI::Product.create(p.attributes_for_shopify)

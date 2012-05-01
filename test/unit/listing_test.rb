@@ -132,14 +132,14 @@ class ListingTest < ActiveSupport::TestCase
     end
   end
 
-  test "sync_mws_listings should work" do
+  test "sync_mws_listings should work synchronously" do
     expected_messages_count = (PARENT_ROWS+CHILD_ROWS)+(PARENT_ROWS)+(CHILD_ROWS)+(CHILD_ROWS*IMAGES_PER_CHILD)+(CHILD_ROWS)
     assert_equal 0, MwsMessage.count
  	  assert_difference('Listing.count',0) do
  	    assert_difference('MwsMessage.count',expected_messages_count) do      
         assert_difference('MwsRequest.count',STEPS_PER_FEED*REQUESTS_PER_STEP) do
           assert_difference('MwsResponse.count',STEPS_PER_FEED*REQUESTS_PER_STEP) do
-	          response = @s.sync_mws_listings(false)       
+	          response = @s.sync_mws_listings(false)
 	          pr = response.mws_request
 	          assert_equal 'SubmitFeed', pr.request_type
 	          assert_equal MwsRequest::FEED_STEPS[0], pr.feed_type
@@ -151,5 +151,25 @@ class ListingTest < ActiveSupport::TestCase
       end
     end
   end
+  
+  test "sync_mws_listings should work asynchronously" do
+    expected_messages_count = (PARENT_ROWS+CHILD_ROWS)+(PARENT_ROWS)+(CHILD_ROWS)+(CHILD_ROWS*IMAGES_PER_CHILD)+(CHILD_ROWS)
+    assert_equal 0, MwsMessage.count
+   	assert_difference('Listing.count',0) do
+   	  assert_difference('MwsMessage.count',expected_messages_count) do      
+        assert_difference('MwsRequest.count',STEPS_PER_FEED*REQUESTS_PER_STEP) do
+          assert_difference('MwsResponse.count',STEPS_PER_FEED*REQUESTS_PER_STEP) do
+  	        response = @s.sync_mws_listings
+  	        pr = response.mws_request
+  	        assert_equal 'SubmitFeed', pr.request_type
+  	        assert_equal MwsRequest::FEED_STEPS[0], pr.feed_type
+  	        assert_equal STEPS_PER_FEED-1 + REQUESTS_PER_STEP-1, pr.sub_requests.count
+            assert_equal 1, pr.listings.count
+            assert_equal expected_messages_count, pr.listings[0].mws_messages.count
+          end
+        end
+      end
+    end
+  end    
 
 end
