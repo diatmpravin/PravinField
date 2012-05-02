@@ -9,6 +9,7 @@ gem 'aws-sdk'
 gem 'kaminari'	# pagination
 gem "devise", ">= 2.0.4" #AUTHENTICATION
 gem "cancan" # MODEL PERMISSION
+gem 'acts-as-taggable-on', '~>2.2.0' # TAGGING
 
 group :development, :test do
 	gem 'heroku'

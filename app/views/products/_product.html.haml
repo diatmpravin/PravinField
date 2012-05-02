@@ -12,6 +12,10 @@
 		%input{:type=>"checkbox", :name=>"product_ids", :value=>product.id}
 		= link_to image_tag('page_edit.png', :title=>'Edit Product', :alt=>'E'), edit_product_path(product)
 		= link_to image_tag('delete.png', :title=>'Delete Product', :alt=>'X'), product, confirm: 'Are you sure?', method: :delete
+		
+		-tag_cloud(@tags, %w("label","label label-success","label label-warning","label label-important")) do |tag, css_class|
+			= link_to tag.name, :class => css_class
+
 	-#%td
 	-#	- product_stores_arr = product.products_stores
 	-#	- product_stores_arr.each do |ps|
