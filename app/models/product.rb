@@ -1,5 +1,6 @@
 require 'amazon/mws'
 class Product < ActiveRecord::Base
+	acts_as_taggable
 	belongs_to :brand
 	has_many :listings, :dependent => :destroy
 	#has_one :current_listing # TODO we need to restrict this to only a certain type of listing - product listings

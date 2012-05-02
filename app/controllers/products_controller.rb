@@ -20,6 +20,7 @@ class ProductsController < ApplicationController
   # GET /products
   # GET /products.json
   def index
+  	@tags = Product.tag_counts_on(:tags)
   	prod_per_page = 400		
 		if params[:search]
     	@products = Product.search(params[:search]).order('sku').page(params[:page]).per(prod_per_page)
@@ -90,7 +91,8 @@ class ProductsController < ApplicationController
   # POST /products.json
   def create
     @product = Product.new(params[:product])
-
+		@product.tag_list = params[:tags]
+		
     respond_to do |format|
       if @product.save
         format.html { redirect_to @product, notice: 'Product was successfully created.' }
@@ -106,7 +108,8 @@ class ProductsController < ApplicationController
   # PUT /products/1.json
   def update
     @product = Product.find(params[:id])
-
+		@product.tag_list = params[:tags]
+		
     respond_to do |format|
       if @product.update_attributes(params[:product])
         format.html { redirect_to @product, notice: 'Product was successfully updated.' }
