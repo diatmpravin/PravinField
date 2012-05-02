@@ -10,6 +10,10 @@
 	.field
 		= f.label :name
 		= f.text_field :name
+		
+	.field
+		= f.label :name, "Tags for this product"
+		= text_field_tag('tags', '')	
 
 	.field
 		= f.label :brand_id
