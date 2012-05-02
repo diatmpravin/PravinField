@@ -22,21 +22,25 @@ class SubVariant < ActiveRecord::Base
 	end
 	
 	def self.search(search)
-    fields = ['sku', 'size', 'size_code','UPC','ASIN']
+    fields = ['sku', 'size', 'size_code','UPC','ASIN', 'amazon_name']
   	select('variant_id').where(MwsHelper::search_helper(fields, search)).group('variant_id').collect { |sv| sv.variant.product_id }.uniq
 	end
 	
 	def upc_for_amazon
 	  #TODO deal with fake UPCs for Oakley at least
 	  if !self.upc.nil?
-	    return {'Type'=>'UPC', 'Value'=>self.upc}
+	    return { 'Type'=>'UPC', 'Value'=>self.upc[0,12] }
 	  elsif !self.asin.nil?
-	    return {'Type'=>'ASIN', 'Value'=>self.asin}
+	    return { 'Type'=>'ASIN', 'Value'=>self.asin[0,10] }
 	  else
 	    return nil
 	  end
 	end
-
+	
+	def name_for_amazon
+	  return "#{self.variant.name_for_amazon} #{self.size_code}" 
+	end
+	
   #TODO make this unique for a store
   def build_mws_messages(listing, feed_type)
     
@@ -48,20 +52,21 @@ class SubVariant < ActiveRecord::Base
         'OperationType'=>listing.operation_type,
         'Product'=> {
           'SKU'=>self.sku,
+          'StandardProductID'=>self.upc_for_amazon,
+          'ProductTaxCode'=>'A_GEN_NOTAX',                 
           'ItemPackageQuantity'=>'1',
           'NumberOfItems'=>'1',
-          'StandardProductID'=>self.upc_for_amazon,
           'DescriptionData'=>{
-            'Title'=>p.name,
+            'Title'=>self.name_for_amazon,
             'Brand'=>p.brand.name,
             #'Designer'=>'designer',
-            'Description'=>p.description.nil? ? nil : p.description[0,2000], # max length 2000
+            'Description'=>self.variant.description_for_amazon,
             'BulletPoint'=>Product.unpack_keywords(p.bullet_points,5), # max 5
-            'ShippingWeight'=>{'unitOfMeasure'=>'LB', 'Value'=>'1'}, #TODO value is probably not the right term
-            'MSRP'=>self.variant.msrp.to_s,
+            'ShippingWeight'=>['1','unitOfMeasure'=>'LB'], #TODO value is probably not the right term
+            'MSRP'=>[self.variant.msrp.to_s, 'currency'=>self.variant.currency_for_amazon],
             'SearchTerms'=>Product.unpack_keywords(p.search_keywords,5), # max 5
-            'IsGiftWrapAvailable'=>'True',
-            'IsGiftMessageAvailable'=>'True'
+            'IsGiftWrapAvailable'=>'true',
+            'IsGiftMessageAvailable'=>'true'
             #'RecommendedBrowseNode'=>'60583031', # only for Europe
           },#DescriptionData
           'ProductData' => {
@@ -69,7 +74,7 @@ class SubVariant < ActiveRecord::Base
               'VariationData'=> {
                 'Parentage'=>'child', 
                 'Size'=>self.size,
-                'Color'=>self.variant.color1,
+                'Color'=>self.variant.color_for_amazon,
                 'VariationTheme'=>p.variation_theme,
               },#VariationData
               'ClassificationData'=>{
@@ -94,11 +99,11 @@ class SubVariant < ActiveRecord::Base
         'OperationType' => listing.operation_type,
         'Price' => {
           'SKU'=>self.sku,
-          'StandardPrice' => self.variant.price.to_s, #TODO currency, should be of type OverrideCurrencyAmount
+          'StandardPrice' => [self.variant.price.to_s, 'currency'=>self.variant.currency_for_amazon], #TODO currency, should be of type OverrideCurrencyAmount
           'Sale' => {
             'StartDate' => '2004-03-03T00:00:00Z', #TODO
             'EndDate' => '2020-03-03T00:00:00Z', #TODO
-            'SalePrice' => self.variant.sale_price.to_s
+            'SalePrice' => [self.variant.sale_price.to_s, 'currency'=>self.variant.currency_for_amazon]
           }#Sale
         }#Price
       }

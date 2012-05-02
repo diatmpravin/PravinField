@@ -57,6 +57,32 @@ class Variant < ActiveRecord::Base
 		self.save
 	end
 
+	def color_for_amazon
+	  "#{self.color1} #{self.color2}".gsub(/[ ]+/,' ').strip
+	end
+
+  def name_for_amazon
+    #Pearl Izumi Mens Pro LTD Bib Short Prey Black S
+    product_name = self.product.name_for_amazon
+    return nil if product_name.nil?
+    return "#{product_name} #{self.color_for_amazon}"
+  end
+	
+	def currency_for_amazon
+	  if self.currency.nil?
+	    return 'USD'
+	  end
+	  return self.currency
+	end
+	
+	# Max length 2000
+	def description_for_amazon
+	  d = self.amazon_description
+    d = self.product.description_for_amazon if d.nil? || d.blank?
+    return d[0,2000] if !d.nil?
+    return nil
+	end
+
 	def get_clean_sku
     SkuPattern.evaluate(self).first
 
@@ -89,7 +115,7 @@ class Variant < ActiveRecord::Base
 	# searches variants, but returns an ActiveRecord association of the *products* associated with the matched variants
 	def self.search(search)
 		product_ids_1 = SubVariant.search(search)
-		fields = [ 'sku', 'color1', 'color2','color1_code','color2_code', 'amazon_product_name', 'amazon_product_id', 'amazon_product_description' ] 
+		fields = [ 'sku', 'color1', 'color2','color1_code','color2_code', 'amazon_description' ] 
 		product_ids_2 = select('product_id').where(MwsHelper::search_helper(fields, search)).group('product_id').collect { |v| v.product_id }
 	  return (product_ids_1 | product_ids_2)
 	end

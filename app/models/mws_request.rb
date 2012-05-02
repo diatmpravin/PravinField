@@ -211,7 +211,6 @@ class MwsRequest < ActiveRecord::Base
     self.get_mws_feed_status(store, async) if chain #TODO in x.minutes
     return r
   end
-
   
   # Child request, STATUS
   def get_mws_feed_status(store, async=true, chain=true)

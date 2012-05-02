@@ -101,7 +101,7 @@ class ImportTest < ActiveSupport::TestCase
     row = rows[2]
     assert_equal 'parent', row.field('parent-child')
     p = i.find_or_create_product_from_csv(row)
-    assert_equal row.field('product-name'), p.name
+    assert_equal row.field('product-name'), p.amazon_name
     assert_equal row.field('sku'), p.sku
 
     # an existing product
@@ -110,9 +110,9 @@ class ImportTest < ActiveSupport::TestCase
     p2 = FactoryGirl.create(:product, :sku=>row.field('sku'), :department=>'replace me')
     p2_from_csv = i.find_or_create_product_from_csv(row)
     assert_equal p2.id, p2_from_csv.id
-    assert_equal row.field('product-name'), p2_from_csv.name
+    assert_equal row.field('product-name'), p2_from_csv.amazon_name
     p2_from_csv = Product.find(p2.id)
-    assert_equal row.field('product-name'), p2_from_csv.name
+    assert_equal row.field('product-name'), p2_from_csv.amazon_name
     
     # a subvariant row of an existing product
     row = rows[3]
@@ -148,7 +148,6 @@ class ImportTest < ActiveSupport::TestCase
         end
       end
     end
-    assert_equal row.field('product-name'), v.amazon_product_name
     assert_equal v.get_clean_sku, v.sku
     assert_equal row.field('parent-sku'), v.product.sku
     
@@ -203,13 +202,12 @@ class ImportTest < ActiveSupport::TestCase
         end
       end
     end
-    
-    # an identical subvariant that alreqdy exists
-    assert_equal row.field('product-name'), sv.variant.amazon_product_name
+    assert_nil sv.amazon_name # amazon name is identical to the parent product
     assert_equal row.field('sku'), sv.sku
     assert_equal sv.variant.get_clean_sku, sv.variant.sku
     assert_equal row.field('parent-sku'), sv.variant.product.sku
-    
+
+    # an identical subvariant that alreqdy exists    
     sv2 = nil
     assert_difference('Product.count', 0) do
       assert_difference('Variant.count', 0) do

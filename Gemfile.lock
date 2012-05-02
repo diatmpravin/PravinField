@@ -1,6 +1,6 @@
 GIT
   remote: git://github.com/aew/amazon-mws.git
-  revision: 47bc5b44f3019262ad633c5fec340c54a133fe65
+  revision: 18abae1ee3854b0e6311e11091e7f9f3afb414b9
   specs:
     amazon-mws (0.1.1)
       builder (~> 3.0.0)
@@ -260,7 +260,7 @@ GEM
     uuidtools (2.1.2)
     warden (1.1.1)
       rack (>= 1.0)
-    watir-webdriver (0.5.5)
+    watir-webdriver (0.5.6)
       selenium-webdriver (>= 2.18.0)
     xml-simple (1.1.1)
     xpath (0.1.4)

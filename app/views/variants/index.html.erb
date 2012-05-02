@@ -19,9 +19,7 @@
     <th>Deleted at</th>
     <th>Is master</th>
     <th>Position</th>
-    <th>Amazon product</th>
-    <th>Amazon product name</th>
-    <th>Amazon product description</th>
+    <th>Amazon description</th>
     <th></th>
     <th></th>
     <th></th>
@@ -46,9 +44,7 @@
     <td><%= variant.deleted_at %></td>
     <td><%= variant.is_master %></td>
     <td><%= variant.position %></td>
-    <td><%= variant.amazon_product_id %></td>
-    <td><%= variant.amazon_product_name %></td>
-    <td><%= variant.amazon_product_description %></td>
+    <td><%= variant.amazon_description %></td>
     <td><%= link_to 'Show', variant %></td>
     <td><%= link_to 'Edit', edit_variant_path(variant) %></td>
     <td><%= link_to 'Destroy', variant, confirm: 'Are you sure?', method: :delete %></td>

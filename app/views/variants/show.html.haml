@@ -4,6 +4,7 @@
 	%b= link_to "#{@variant.product.brand.name} #{@variant.product.name}", @variant.product
 	%p= "SKU: #{@variant.sku}"
 	%p= "UPC: #{@variant.upc}"
+	%p= "ASIN: #{@variant.asin}"
 	%p= "Cost: $#{@variant.cost_price}"
 	%p= "Size: #{@variant.size}"
 	%p= "Color1: #{@variant.color1} (#{@variant.color1_code})"
@@ -11,7 +12,6 @@
 	%p= "Availability: #{@variant.availability}"
 	%p= "Master?: #{@variant.is_master}"
 	
-	%p= "Amazon Product ID: #{@variant.amazon_product_id}"
 	%p
 		= link_to 'Edit', edit_variant_path(@variant)
 		= link_to 'Back', @variant.product

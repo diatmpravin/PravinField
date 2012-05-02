@@ -15,6 +15,9 @@
 		= f.text_field :sku
 	.field
 		= f.label :upc
+		= f.text_field :upc
+	.field
+		= f.label :upc
 		= f.text_field :upc		
 	.field
 		= f.label :price
@@ -59,14 +62,8 @@
 		= f.label :position 
 		= f.number_field :position
 	.field
-		= f.label :amazon_product_id
-		= f.text_field :amazon_product_id
-	.field
-		= f.label :amazon_product_name
-		= f.text_field :amazon_product_name
-	.field
-		= f.label :amazon_product_description
+		= f.label :amazon_description
 		%br
-		= f.text_area :amazon_product_description
+		= f.text_area :amazon_description
 	.actions
 		= f.submit

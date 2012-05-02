@@ -1,3 +1,4 @@
+# encoding: utf-8
 require 'test_helper'
 require 'amazon/mws'
 
@@ -10,17 +11,36 @@ class ListingTest < ActiveSupport::TestCase
   REQUESTS_PER_STEP = 3
   
   def setup
-	  @p = FactoryGirl.create(:product, :search_keywords=>"term1\rterm2\rterm3")
-	  @v1 = FactoryGirl.create(:variant, :product_id=>@p.id, :msrp=>10.00, :price=>10.00, :sale_price=>9.00)
-	  @v2 = FactoryGirl.create(:variant, :product_id=>@p.id, :msrp=>10.00, :price=>10.00, :sale_price=>9.00)
-	  @sv1 = FactoryGirl.create(:sub_variant, :variant_id=>@v1.id, :upc=>'23432343432')
-	  @sv2 = FactoryGirl.create(:sub_variant, :variant_id=>@v1.id, :upc=>'23432343433')
-	  @sv3 = FactoryGirl.create(:sub_variant, :variant_id=>@v2.id, :upc=>'23432343434')
-	  @sv4 = FactoryGirl.create(:sub_variant, :variant_id=>@v2.id, :upc=>'23432343435')
-	  @vi1 = FactoryGirl.create(:variant_image, :variant_id=>@v1.id)
-	  @vi2 = FactoryGirl.create(:variant_image, :variant_id=>@v1.id, :unique_image_file_name=>LOCAL_IMAGE2)
-	  @vi3 = FactoryGirl.create(:variant_image, :variant_id=>@v2.id, :unique_image_file_name=>LOCAL_IMAGE3)
-	  @vi4 = FactoryGirl.create(:variant_image, :variant_id=>@v2.id, :unique_image_file_name=>LOCAL_IMAGE4) 
+    @b = FactoryGirl.create(:brand, :name=>'Pearl Izumi')
+	  @p = FactoryGirl.create(:product, :brand_id=>@b.id, :sku=>'0269', :name=>'Pro Ltd Bib Short', 
+	        :description=>'The P.R.O. LTD Bib Short utilizes the anatomic fit, comfort and performance of our race proven team bibs with the addition of original, sublimated Pearl Izumi designs and the Anatomic P.R.O. Seamless 4D Chamois. P.R.O. Transfer fabric provides optimal stretch, recovery, and compression and moisture transfer P.R.O. Aero panels with In-R-Cool technology Direct-Vent panels provide superior ventilation Anatomic multi-panel design Flatlock seams Silicone leg gripper Anatomic P.R.O. Seamless 4D Chamois 9" inseam [size medium]', 
+	        :bullet_points=>['4D Seamless Chamois','IN-R-COOL MOISTURE TRANSFER','VENTILATION'].join(Import::KEYWORD_DELIMITER),
+	        :search_keywords=>["Men's Cycling Apparel","Cycling Gear","Bib Short",'Cycle'].join(Import::KEYWORD_DELIMITER), 
+	        :variation_theme=>'SizeColor',
+	        :department=>['Mens'].join(Import::KEYWORD_DELIMITER),
+	        :product_type=>'Shorts',
+	        :style_keywords=>['Athletic', 'Form Fit', 'Race Proven', 'Anatomic 4D Chamois', 'IN-R-COOL'].join(Import::KEYWORD_DELIMITER),
+	        :occasion_lifestyle_keywords=>['Athlete', 'Weekend Warrior', 'Competitor', 'Cycling'].join(Import::KEYWORD_DELIMITER))
+	        
+	  @v1 = FactoryGirl.create(:variant, :sku=>'0269-3IZ', :color1=>'Prey Black', :color1_code=>'3IZ',
+	        :product_id=>@p.id, :msrp=>164.95, :price=>164.95, :sale_price=>164.95)
+	  @v2 = FactoryGirl.create(:variant, :sku=>'0269-3JB', :color1=>'Sustain White', :color1_code=>'3JB', 
+	        :product_id=>@p.id, :msrp=>164.95, :price=>164.95, :sale_price=>164.95)
+	  
+	  @sv1 = FactoryGirl.create(:sub_variant, :variant_id=>@v1.id, :sku=>'0269-3IZ-SM', :upc=>'703051803094', 
+	        :size=>'Small', :size_code=>'SM', :quantity=>0, :fulfillment_latency=>12)
+	  @sv2 = FactoryGirl.create(:sub_variant, :variant_id=>@v1.id, :sku=>'0269-3IZ-MD', :upc=>'703051803100', 
+	        :size=>'Medium', :size_code=>'MD', :quantity=>0, :fulfillment_latency=>12)
+	  @sv3 = FactoryGirl.create(:sub_variant, :variant_id=>@v2.id, :sku=>'0269-3JB-SM', :upc=>'703051803148', 
+	        :size=>'Small', :size_code=>'SM', :quantity=>0, :fulfillment_latency=>12)
+	  @sv4 = FactoryGirl.create(:sub_variant, :variant_id=>@v2.id, :sku=>'0269-3JB-MD', :upc=>'703051803155', 
+	        :size=>'Medium', :size_code=>'MD', :quantity=>0, :fulfillment_latency=>12)
+	  
+	  @vi1 = FactoryGirl.create(:variant_image, :variant_id=>@v1.id, :unique_image_file_name=>LOCAL_IMAGE_PATH+'0269_3QW_v1_m56577569830762236.png')
+	  @vi2 = FactoryGirl.create(:variant_image, :variant_id=>@v1.id, :unique_image_file_name=>LOCAL_IMAGE_PATH+'0269_3QW_BACK_v1_m56577569830762237.png')
+	  @vi3 = FactoryGirl.create(:variant_image, :variant_id=>@v2.id, :unique_image_file_name=>LOCAL_IMAGE_PATH+'0269_3RO_v1_m56577569830762238.png')
+	  @vi4 = FactoryGirl.create(:variant_image, :variant_id=>@v2.id, :unique_image_file_name=>LOCAL_IMAGE_PATH+'0269_3RO_BACK_v1_m56577569830762239.png') 
+    
     @s = FactoryGirl.create(:store, :store_type=>'MWS')
     @s.mws_connection.stubs(:post).returns(xml_for('submit_feed',200))
     @s.mws_connection.stubs(:get).returns(xml_for('get_feed_submission_list',200))
@@ -43,6 +63,7 @@ class ListingTest < ActiveSupport::TestCase
         assert_equal '_SUBMITTED_', response.processing_status
         assert_equal '5023807698', response.feed_submission_id
         assert_equal 'bca661a7-e843-4e67-b4cb-dea42c766300', response.amazon_request_id
+        #puts Amazon::MWS::FeedBuilder.new(response.mws_request.message_type, response.mws_request.message, {:merchant_id => 'DUMMY'}).render
       end
     end
   end
@@ -66,6 +87,7 @@ class ListingTest < ActiveSupport::TestCase
         assert_equal '_SUBMITTED_', response.processing_status
         assert_equal '5023807698', response.feed_submission_id
         assert_equal 'bca661a7-e843-4e67-b4cb-dea42c766300', response.amazon_request_id
+        #puts Amazon::MWS::FeedBuilder.new(response.mws_request.message_type, response.mws_request.message, {:merchant_id => 'DUMMY'}).render        
       end
     end
   end
@@ -87,6 +109,7 @@ class ListingTest < ActiveSupport::TestCase
         assert_equal '_SUBMITTED_', response.processing_status
         assert_equal '5023807698', response.feed_submission_id
         assert_equal 'bca661a7-e843-4e67-b4cb-dea42c766300', response.amazon_request_id
+        #puts Amazon::MWS::FeedBuilder.new(response.mws_request.message_type, response.mws_request.message, {:merchant_id => 'DUMMY'}).render
       end
     end
   end
@@ -108,6 +131,7 @@ class ListingTest < ActiveSupport::TestCase
         assert_equal '_SUBMITTED_', response.processing_status
         assert_equal '5023807698', response.feed_submission_id
         assert_equal 'bca661a7-e843-4e67-b4cb-dea42c766300', response.amazon_request_id
+        #puts Amazon::MWS::FeedBuilder.new(response.mws_request.message_type, response.mws_request.message, {:merchant_id => 'DUMMY'}).render
       end
     end
   end
@@ -128,6 +152,8 @@ class ListingTest < ActiveSupport::TestCase
         assert_equal '_SUBMITTED_', response.processing_status
         assert_equal '5023807698', response.feed_submission_id
         assert_equal 'bca661a7-e843-4e67-b4cb-dea42c766300', response.amazon_request_id
+        #puts Amazon::MWS::FeedBuilder.new(response.mws_request.message_type, response.mws_request.message, {:merchant_id => 'DUMMY'}).render        
+        #puts response.mws_request.message
       end
     end
   end
@@ -164,5 +190,12 @@ class ListingTest < ActiveSupport::TestCase
       end
     end
   end    
+
+  test "sync_mws_listings should work LIVE" do
+    pending
+    @s2 = FactoryGirl.create(:store, :store_type=>'MWS', :name=>'FieldDay')
+	  @listing = FactoryGirl.create(:listing, :store_id=>@s2.id, :operation_type=>'Update', :product_id=>@p.id)
+    #response = @s2.sync_mws_listings
+  end
 
 end

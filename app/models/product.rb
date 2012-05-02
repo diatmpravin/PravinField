@@ -25,7 +25,7 @@ class Product < ActiveRecord::Base
       :dependent => :destroy,
       :order => "variants.position ASC, variants.id ASC"
 	
-	validates_presence_of :brand_id, :name
+	validates_presence_of :brand_id
 	validates_associated :brand
 	validates_uniqueness_of :sku, :scope => [:brand_id]
   
@@ -49,7 +49,7 @@ class Product < ActiveRecord::Base
 		
 		# get direct matches at order level
 		# TODO searching a brand won't work here
-		fields = [ 'name', 'description', 'meta_description', 'meta_keywords', 'sku', 'category' ]
+		fields = [ 'name', 'description', 'amazon_name', 'amazon_description', 'meta_description', 'meta_keywords', 'sku', 'category' ]
 		bind_vars = MwsHelper::search_helper(fields, search)
 		o2 = select('id').where(bind_vars).collect { |p| p.id }
 			
@@ -121,6 +121,18 @@ class Product < ActiveRecord::Base
     end
     keywords.split(Import::KEYWORD_DELIMITER, max)
   end
+
+  def name_for_amazon
+    return "#{self.brand.name} #{self.department} #{self.name}" if self.amazon_name.nil? || self.amazon_name.blank?
+    return self.name
+  end
+  
+  def description_for_amazon
+	  d = self.amazon_description
+    d = self.description if d.nil? || d.blank?
+    return d[0,2000] if !d.nil?
+    return nil
+  end
   
   #TODO make this specific to a store
   def build_mws_messages(listing, feed_type)
@@ -134,18 +146,19 @@ class Product < ActiveRecord::Base
         'OperationType'=>listing.operation_type,
         'Product'=> {
           'SKU'=>self.sku,
+          'ProductTaxCode'=>'A_GEN_NOTAX',
           'ItemPackageQuantity'=>'1',
           'NumberOfItems'=>'1',
           'DescriptionData'=>{
-            'Title'=>self.name,
+            'Title'=>self.name_for_amazon,
             'Brand'=>self.brand.name,
             #'Designer'=>'designer',
-            'Description'=>self.description.nil? ? nil : self.description[0,2000], # max length 2000
+            'Description'=>self.description_for_amazon,
             'BulletPoint'=>Product.unpack_keywords(self.bullet_points,5), # max 5
-            'ShippingWeight'=>{'unitOfMeasure'=>'LB', 'Value'=>'1'}, #TODO value is probably not the right term
+            'ShippingWeight'=>['1', 'unitOfMeasure'=>'LB'],
             'SearchTerms'=>Product.unpack_keywords(self.search_keywords,5), # max 5
-            'IsGiftWrapAvailable'=>'True',
-            'IsGiftMessageAvailable'=>'True'
+            'IsGiftWrapAvailable'=>'true',
+            'IsGiftMessageAvailable'=>'true'
             #'RecommendedBrowseNode'=>'60583031', # only for Europe
           },#DescriptionData
           'ProductData' => {
@@ -171,13 +184,12 @@ class Product < ActiveRecord::Base
       m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'Product', :feed_type=>feed_type)
       rows = self.variants.collect { |v| v.build_mws_messages(listing, feed_type) }.flatten
       
+      relation_rows = rows.collect { |r| {'Relation' => r} }
+      
       row = [{
         'MessageID'=>m.id,
         'OperationType'=>listing.operation_type,        
-        'Relationship'=>{
-          'ParentSKU'=>self.sku,
-          'Relation'=>rows
-        }#Relationship
+        'Relationship'=>['ParentSKU'=>self.sku]+relation_rows
       }]
       m.update_attributes!(:message => row[0])
       return row
