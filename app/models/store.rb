@@ -7,7 +7,7 @@ class Store < ActiveRecord::Base
 	
   has_many :queued_listings, :class_name => 'Listing', :conditions => ["listings.mws_request_id IS NULL"], :order => 'listings.id ASC'
 
-	has_many :products, :through => :listings
+	has_many :products, :through => :listings, :conditions => ["listings.status=?", 'complete']
 	has_attached_file :icon, PAPERCLIP_STORAGE_OPTIONS
 	after_initialize :init_mws_connection
 	

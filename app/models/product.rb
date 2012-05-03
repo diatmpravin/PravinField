@@ -8,6 +8,8 @@ class Product < ActiveRecord::Base
 	has_many :mws_messages, :as => :matchable # polymorphic association to link an amazon message to either a product or subvariant
 	has_many :stores, :through => :listings
 	has_many :variants, :dependent => :destroy, :order => "variants.id ASC"
+	has_many :sub_variants, :through => :variants
+	has_many :variant_images, :through => :variants
 	has_many :mws_order_items
 	has_many :sku_mappings, :as=>:sku_mapable
 
@@ -125,7 +127,7 @@ class Product < ActiveRecord::Base
 
   def name_for_amazon
     return "#{self.brand.name} #{self.department} #{self.name}" if self.amazon_name.nil? || self.amazon_name.blank?
-    return self.name
+    return self.amazon_name
   end
   
   def description_for_amazon

@@ -63,8 +63,8 @@ class VariantImage < ActiveRecord::Base
   rescue TypeError
     self.image = open_io_file(self.unique_image_file_name)
     self.image2 = open_io_file(self.unique_image_file_name)
-  rescue SocketError
-    puts "Not connected to Internet"
+  #rescue SocketError
+  #  puts "Not connected to Internet"
   rescue # catch url errors with validations instead of exceptions (Errno::ENOENT, OpenURI::HTTPError, etc...) 
     self.errors[:unique_image_file_name].push "returned #{$!.inspect}"
   end

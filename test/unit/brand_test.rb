@@ -41,7 +41,7 @@ class BrandTest < ActiveSupport::TestCase
   end
 
 	test "add_listings should work" do
-    pending
+    pending "will revisit once we can successfully create a single listing for a product"
 		b = FactoryGirl.create(:brand)
 		p = FactoryGirl.create(:product, :brand => b)
 		p2 = FactoryGirl.create(:product, :brand => b)

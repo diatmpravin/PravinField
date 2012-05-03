@@ -8,10 +8,14 @@ class Variant < ActiveRecord::Base
 	
 	validates_uniqueness_of :sku
 
+  before_save :nil_if_blank
 	after_create :set_default_master
 	after_save :generate_skus
 	around_destroy :product_master_succession
 	#before_update :register_changes
+
+  NULL_ATTRS = %w( color1 color1_code color2 color2_code amazon_description )
+
 
   def brand
     self.product.brand
@@ -176,6 +180,11 @@ class Variant < ActiveRecord::Base
   end
 
 	protected  
+	
+  def nil_if_blank
+    NULL_ATTRS.each { |attr| self[attr] = nil if self[attr].blank? }
+  end
+	
   def generate_skus
     SkuMapping.auto_generate(self)
   end	

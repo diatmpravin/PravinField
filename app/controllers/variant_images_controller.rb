@@ -17,9 +17,11 @@ class VariantImagesController < ApplicationController
   # GET /variant_images/1.json
   def show
     @variant_image = VariantImage.find(params[:id])
+    @variant = @variant_image.variant
 
     respond_to do |format|
       format.html # show.html.erb
+      format.js
       format.json { render json: @variant_image }
     end
   end
@@ -34,6 +36,7 @@ class VariantImagesController < ApplicationController
 
     respond_to do |format|
       format.html # new.html.erb
+      format.js # new.js.erb
       format.json { render json: @variant_image }
     end
   end
@@ -55,10 +58,12 @@ class VariantImagesController < ApplicationController
 
     respond_to do |format|
       if @variant_image.save
-        format.html { redirect_to @variant, notice: 'Variant image was successfully created.' }
+        format.html { redirect_to @variant, notice: 'Image added successfully.' }
+        format.js { redirect_to @variant_image, notice: 'Image added successfully.' }
         format.json { render json: @variant_image, status: :created, location: @variant_image }
       else
         format.html { render action: "new" }
+        format.js { render action: "new" }
         format.json { render json: @variant_image.errors, status: :unprocessable_entity }
       end
     end
@@ -88,7 +93,7 @@ class VariantImagesController < ApplicationController
     @variant_image.destroy
 
     respond_to do |format|
-      format.html { redirect_to @variant }
+      format.html { redirect_to @variant.product }
       format.json { head :ok }
     end
   end

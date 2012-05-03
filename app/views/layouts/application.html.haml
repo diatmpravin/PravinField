@@ -48,22 +48,25 @@
                 %a(href='#' class="dropdown-toggle" data-toggle="dropdown") Admin
                 %ul.dropdown-menu
                   = render 'shared/navigation'
-      - if flash[:error]
-        #flasherrors= flash[:error]
-      - if flash[:notice]
-        #flashnotices= flash[:notice]
-      - if flash[:alert]
-        #flasherrors= flash[:alert]
-
+			
+									
     .container
+      - if flash[:error]
+        #flasherrors{:class=>'alert'}= flash[:error]
+      - if flash[:notice]
+        #flashnotices{:class=>'alert alert-success'}= flash[:notice]
+      - if flash[:alert]
+        #flashalerts{:class=>'alert alert-error'}= flash[:alert]
+
+      #myModal{:class=>'modal hide fade'}
 
       .content
         .row
           .span12
             = yield
     
-      %footer
-        %p &copy; HDO Group 2012
+      -#%footer
+      -#  %p &copy; HDO Group 2012
     /
       Javascripts
       \==================================================

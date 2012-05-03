@@ -1,0 +1,52 @@
+.modal-header
+	%button.close{ "data-dismiss"=>"modal"} x
+	%h3= 'Add/Edit Variant'
+
+= form_for(@variant, :remote=>true, :html=>{:class=>'form-horizontal'}) do |f|
+	.modal-body
+		- if @variant.errors.any?
+			#error_explanation
+				%h2= pluralize(@variant.errors.count, "error") + " prohibited this variant from being saved:"
+
+				%ul
+					- @variant.errors.full_messages.each do |msg|
+						%li= msg
+	
+		= f.hidden_field :product_id
+			
+		.control-group
+			= f.label :sku, :class=>'control-label'
+			.controls= f.text_field :sku
+				
+		.control-group
+			= f.label :color1, :class=>'control-label'
+			.controls
+				= f.text_field :color1, :placeholder=>'Variation Title', :class=>'input-large'
+				= f.text_field :color1_code, :placeholder=>'SKU Code', :class=>'input-small'
+
+		.control-group
+			= f.label :color2, :class=>'control-label'
+			.controls
+				= f.text_field :color2, :placeholder=>'Variation Title', :class=>'input-large'
+				= f.text_field :color2_code, :placeholder=>'SKU Code', :class=>'input-small'
+
+		.control-group
+			= f.label :amazon_description, :class=>'control-label'
+			.controls= f.text_area :amazon_description, :rows=>3
+
+		.control-group
+			%table{:class=>'table-condensed table-bordered'}
+				%tr
+					%th= f.label :msrp
+					%th= f.label :price
+					%th= f.label :sale_price
+					%th= f.label :cost_price
+				%tr
+					%td= f.text_field :msrp, :class=>'input-small'
+					%td= f.text_field :price, :class=>'input-small'
+					%td= f.text_field :sale_price, :class=>'input-small'
+					%td= f.text_field :cost_price, :class=>'input-small'
+	
+	.modal-footer
+		= f.submit 'Add/Edit Variant', :class=>'btn btn-primary btn-medium'
+		= link_to 'Destroy', @variant, confirm: 'Are you sure?', method: :delete, :class=>'btn btn-medium btn-danger'

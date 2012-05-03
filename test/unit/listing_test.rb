@@ -176,6 +176,18 @@ class ListingTest < ActiveSupport::TestCase
         end
       end
     end
+
+    pending "need to establish relations based on conditions"
+		# confirm listing was created
+		assert_equal 1, @s.reload.products.count
+		assert_equal 1, @p.reload.stores.count
+		assert_equal @p, @s.products.first
+		assert_equal @s, @p.stores.first
+
+    # remove product from store
+		s.remove_listings([@p])
+		assert_equal 0, @s.reload.products.count
+		assert_equal 0, @p.reload.stores.count
   end
   
   test "sync_mws_listings should work asynchronously" do

@@ -43,6 +43,7 @@ class VariantsController < ApplicationController
 
     respond_to do |format|
       format.html # show.html.erb
+      format.js
       format.json { render json: @variant }
     end
   end
@@ -51,10 +52,13 @@ class VariantsController < ApplicationController
   # GET /variants/new.json
   def new
     @variant = Variant.new
-    @variant.product_id = params[:product_id]
+    @product = Product.find(params[:product_id])
+    @variant.product_id = @product.id
+    @variant.sku = "#{@variant.product.sku}-"
 
     respond_to do |format|
       format.html # new.html.erb
+      format.js
       format.json { render json: @variant }
     end
   end
@@ -72,6 +76,7 @@ class VariantsController < ApplicationController
     respond_to do |format|
       if @variant.save
         format.html { redirect_to @variant, notice: 'Variant was successfully created.' }
+        format.js { redirect_to @variant, notice: 'Variant was successfully created.' }
         format.json { render json: @variant, status: :created, location: @variant }
       else
         format.html { render action: "new" }
@@ -88,6 +93,7 @@ class VariantsController < ApplicationController
     respond_to do |format|
       if @variant.update_attributes(params[:variant])
         format.html { redirect_to @variant, notice: 'Variant was successfully updated.' }
+        format.js { redirect_to @variant, notice: 'Variant was successfully updated.' }
         format.json { head :ok }
       else
         format.html { render action: "edit" }
@@ -103,7 +109,7 @@ class VariantsController < ApplicationController
     @variant.destroy
 
     respond_to do |format|
-      format.html { redirect_to variants_url }
+      format.html { redirect_to @variant.product }
       format.json { head :ok }
     end
   end

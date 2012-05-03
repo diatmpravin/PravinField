@@ -43,9 +43,14 @@ class SubVariantsController < ApplicationController
   # GET /sub_variants/new.json
   def new
     @sub_variant = SubVariant.new
+    @variant = Variant.find(params[:variant_id])
+    @sub_variant.variant_id = @variant.id
+    @product = @variant.product
+    @title = "Add SubVariant"  
 
     respond_to do |format|
       format.html # new.html.erb
+      format.js
       format.json { render json: @sub_variant }
     end
   end
@@ -53,6 +58,7 @@ class SubVariantsController < ApplicationController
   # GET /sub_variants/1/edit
   def edit
     @sub_variant = SubVariant.find(params[:id])
+    @title = "Edit SubVariant"
   end
 
   # POST /sub_variants
@@ -62,7 +68,8 @@ class SubVariantsController < ApplicationController
 
     respond_to do |format|
       if @sub_variant.save
-        format.html { redirect_to @sub_variant, notice: 'Sub variant was successfully created.' }
+        format.html { redirect_to @sub_variant, notice: 'SubVariant was successfully created.' }
+        format.js { redirect_to @sub_variant, notice: 'SubVariant was successfully created.' }
         format.json { render json: @sub_variant, status: :created, location: @sub_variant }
       else
         format.html { render action: "new" }
@@ -78,7 +85,8 @@ class SubVariantsController < ApplicationController
 
     respond_to do |format|
       if @sub_variant.update_attributes(params[:sub_variant])
-        format.html { redirect_to @sub_variant, notice: 'Sub variant was successfully updated.' }
+        format.html { redirect_to @sub_variant, notice: 'SubVariant was successfully updated.' }
+        format.js { redirect_to @sub_variant, notice: 'SubVariant was successfully updated.' }
         format.json { head :ok }
       else
         format.html { render action: "edit" }

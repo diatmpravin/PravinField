@@ -39,9 +39,16 @@ class VariantsControllerTest < ActionController::TestCase
   end
 
   test "should get new" do
-    get :new, :product_id => @product.id
+    get :new, :product_id => @product.to_param
     assert_response :success
   end
+
+	test "should get new via ajax" do
+    xhr :get, :new, :product_id => @product.to_param
+    assert_response :success
+    assert_not_nil assigns(:product)
+    assert_not_nil assigns(:variant)    
+	end
 
   test "should create variant" do
     assert_difference('Variant.count') do
@@ -51,8 +58,22 @@ class VariantsControllerTest < ActionController::TestCase
     assert_redirected_to variant_path(assigns(:variant))
   end
 
+	test "should create variant via ajax" do
+		last_id = Variant.last.id
+		assert_difference('Variant.count',1) do
+			xhr :post, :create, variant:@variant2.attributes
+			assert_redirected_to variant_path(assigns(:variant))
+			assert_equal last_id+1, Variant.last.id
+		end
+	end
+
   test "should show variant" do
     get :show, id: @variant.to_param
+    assert_response :success
+  end
+
+  test "should show variant via ajax" do
+    xhr :get, :show, id: @variant.to_param
     assert_response :success
   end
 
@@ -66,11 +87,16 @@ class VariantsControllerTest < ActionController::TestCase
     assert_redirected_to variant_path(assigns(:variant))
   end
 
+	test "should update variant via ajax" do
+  	xhr :put, :update, id:@variant.to_param, variant: @variant.attributes
+		assert_redirected_to variant_path(assigns(:variant))
+	end
+
   test "should destroy variant" do
     assert_difference('Variant.count', -1) do
       delete :destroy, id: @variant.to_param
     end
 
-    assert_redirected_to variants_path
+    assert_redirected_to @variant.product
   end
 end

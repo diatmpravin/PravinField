@@ -1,32 +1,25 @@
--#- variants_arr = product.variants
-.product
-	%div
-		= image_tag product.brand.icon(:thumb)
-		- master = product.master
-		- if !master.nil?
-			- if master.variant_images.count>=1
-				= link_to image_tag(product.master.variant_images.first.image(:thumb)), product
-	%div
-		= link_to "#{truncate(product.name)} [#{product.variants.count}]", product
-	%div
+%tr.product
+	%td
 		%input{:type=>"checkbox", :name=>"product_ids", :value=>product.id}
-		= link_to image_tag('page_edit.png', :title=>'Edit Product', :alt=>'E'), edit_product_path(product)
-		= link_to image_tag('delete.png', :title=>'Delete Product', :alt=>'X'), product, confirm: 'Are you sure?', method: :delete
-		
-		-tag_cloud(@tags, %w("label","label label-success","label label-warning","label label-important")) do |tag, css_class|
+	%td= link_to product.brand.name, products_path(:brand_id => product.brand_id)
+	%td= link_to product.name_for_amazon, product	
+	%td
+		%span{:class=>"badge badge-info", :title=>'Variants (Color)'}= product.variants.count
+		%span{:class=>"badge badge-inverse", :title=>'SubVariants (Color+Size)'}= product.sub_variants.count
+		- if product.variant_images.any?
+			%span{:class=>"badge badge-success", :title=>'Variant Images'}= product.variant_images.count	
+
+	%td
+		- tag_cloud(@tags, %w("label","label label-success","label label-warning","label label-important")) do |tag, css_class|
 			= link_to tag.name, :class => css_class
 
-	-#%td
-	-#	- product_stores_arr = product.products_stores
-	-#	- product_stores_arr.each do |ps|
-	-#		.pill
-	-#			-#= link_to image_tag('delete.png') + "#{s.name}", s
-	-#			= link_to image_tag('delete.png', :title => 'Remove from store', :alt => 'X') + "#{ps.store.name}", ps, :confirm => 'Are you sure you want to remove this product from this store?', :method => :delete
-	-#	%br
-	-#	- stores_arr2 = Store.all.keep_if { |s| !product.stores.include?(s) }
-	-#	- ps = ProductsStore.new(:product_id => product.id)
-	-#	= form_for ps do |f|
-	-#		= f.hidden_field :product_id
-	-#		= f.collection_select(:store_id, stores_arr2, :id, :name)
-	-#		= f.submit 'Add to'
-	-#	%br
+	%td
+		- product.stores.each do |s|
+			%span{:class=>"label label-inverse"}= s.name
+
+	%td
+		= link_to edit_product_path(product) do
+			%i.icon-pencil
+		
+		= link_to product, confirm: 'Are you sure?', method: :delete do
+			%i.icon-remove		

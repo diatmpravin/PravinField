@@ -1,40 +1,55 @@
-.pane
-	%p=link_to image_tag(@product.brand.icon), products_path(:brand_id => @product.brand.id)
-	
-	%p
-		%b Name:
-		= @product.name
+.row
+	.span6
 
-	%p
-		%b Base SKU:
-		= @product.sku
+		.pull-right
+			= link_to new_variant_path(:product_id => @product.id), :remote=>true, :class=>'btn btn-small' do
+				%i.icon-plus
+				Add Variant
 
-	%p
-		%b Category:
-		= @product.category
+		.pull-right= link_to 'Edit product', edit_product_path(@product), :class=>'btn btn-small'
 		
-	%p
-		%b Description:
-		= @product.description
+		=link_to image_tag(@product.brand.icon(:thumb)), products_path(:brand_id => @product.brand.id)		
+		
+		%br
+		%h1
+			= @product.name_for_amazon
+		
+		%table{:class=>'table'}
+			%tbody
+				%tr
+					%td SKU
+					%td
+						= @product.sku
+						- if !@product.sku2.blank?
+							= ' / ' + @product.sku2
+				%tr
+					%td Category
+					%td= @product.category
+				%tr
+					%td Department
+					%td= @product.department
+				%tr
+					%td Product Type
+					%td= @product.product_type
+				%tr
+					%td Variation Theme
+					%td= @product.variation_theme					
+				%tr
+					%td Bullet Points
+					%td= @product.bullet_points
+				%tr
+					%td Style Keywords
+					%td= @product.style_keywords
+				%tr
+					%td Search Keywords
+					%td= @product.search_keywords
+				%tr
+					%td Occasion Lifestyle Keywords
+					%td= @product.occasion_lifestyle_keywords
+				%tr
+					%td Description
+					%td= @product.description_for_amazon
 	
-	%p
-		%b Meta Keywords:
-		= @product.meta_keywords
-	
-	%p
-		%b Available on:
-		= @product.available_on
-
-	= link_to 'Edit', edit_product_path(@product)
-	= link_to 'Back', products_path
-
-.pane
-	%p
-		%b Variants
-		= render @product.variants
-	
-	-#= form_for(@product) do |f|
--#	= f.select(:store_id, Store.all.collect {|s| [ s.name, s.id ] })
--#	= f.submit "Push to Shopify"
-
-	= link_to 'Add Variant', new_variant_path(:product_id => @product.id)
+	.span6#variants= render @product.variants
+		
+		

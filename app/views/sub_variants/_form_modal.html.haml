@@ -1,0 +1,45 @@
+.modal-header
+	%button.close{ "data-dismiss"=>"modal"} x
+	%h3= @title
+
+= form_for(@sub_variant, :remove=>true, :html=>{:class=>'form-horizontal'}) do |f|
+	.modal-body
+		- if @sub_variant.errors.any?
+			#error_explanation
+			%h2= pluralize(@sub_variant.errors.count, "error") + " prohibited this sub_variant from being saved:"
+
+			%ul
+				- @sub_variant.errors.full_messages.each do |msg|
+					%li= msg
+
+		= f.hidden_field :variant_id
+
+		.control-group
+			= f.label :sku, :class=>'control-label'
+			.controls= f.text_field :sku, :class=>'input-large'
+
+		.control-group
+			= f.label :size, :class=>'control-label'
+			.controls
+				= f.text_field :size, :placeholder=>'Size Title', :class=>'input-medium'
+				= f.text_field :size_code, :placeholder=>'SKU Code', :class=>'input-small'
+
+		.control-group
+			= f.label :quantity, :class=>'control-label'
+			.controls= f.number_field :quantity, :class=>'input-small'
+
+		.control-group
+			= f.label :fulfillment_latency, :class=>'control-label'
+			.controls= f.number_field :fulfillment_latency, :class=>'input-small'
+
+		.control-group
+			= f.label :upc, :class=>'control-label'
+			.controls= f.text_field :upc, :length=>12, :class=>'input-medium'
+
+		.control-group
+			= f.label :asin, :class=>'control-label'
+			.controls= f.text_field :asin, :length=>10, :class=>'input-medium'
+
+	.modal-footer
+		= f.submit @title, :class=>'btn btn-primary btn-large'
+		= link_to 'Destroy', @sub_variant, confirm: 'Are you sure?', method: :delete, :class=>'btn btn-large btn-danger' if params[:action]=='edit'
