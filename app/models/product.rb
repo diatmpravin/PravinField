@@ -3,15 +3,19 @@ class Product < ActiveRecord::Base
 	acts_as_taggable
 	belongs_to :brand
 	has_many :listings, :dependent => :destroy
+  has_many :queued_listings, :class_name => 'Listing', :conditions => ["listings.status=?", 'queued'], :order => 'listings.id ASC'	
+	has_many :active_listings, :class_name => 'Listing', :conditions => ["listings.status=?", 'active'], :order => 'listings.built_at ASC'
+	has_many :stores, :through => :active_listings # Stores relation only works for active listings, ignores all others
+	
 	#has_one :current_listing # TODO we need to restrict this to only a certain type of listing - product listings
 
 	has_many :mws_messages, :as => :matchable # polymorphic association to link an amazon message to either a product or subvariant
-	has_many :stores, :through => :listings
-	has_many :variants, :dependent => :destroy, :order => "variants.id ASC"
 	has_many :sub_variants, :through => :variants
 	has_many :variant_images, :through => :variants
 	has_many :mws_order_items
 	has_many :sku_mappings, :as=>:sku_mapable
+
+	has_many :variants, :dependent => :destroy, :order => "variants.id ASC"
 
   has_one :master, :class_name => 'Variant',
       		:conditions => ["variants.is_master = ? AND variants.deleted_at IS NULL", true]	
@@ -19,14 +23,7 @@ class Product < ActiveRecord::Base
   has_many :variants_excluding_master,
       :class_name => 'Variant',
       :conditions => ["variants.is_master = ? AND variants.deleted_at IS NULL", false],
-      :dependent => :destroy, #added this
       :order => "variants.position ASC"
-
-  has_many :variants,
-      :class_name => 'Variant',
-      :conditions => ["variants.deleted_at IS NULL"],
-      :dependent => :destroy,
-      :order => "variants.position ASC, variants.id ASC"
 	
 	validates_presence_of :brand_id
 	validates_associated :brand
@@ -182,7 +179,9 @@ class Product < ActiveRecord::Base
       })
       m.update_attributes!(:message => rows[0])
       return rows
-
+    
+    elsif listing.operation_type == 'Delete'
+      return [] # if this is a delete listing, it is not necessary to submit anything further
     elsif feed_type==Feed::Enumerations::FEED_TYPES[:product_relationship_data]
       m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'Product', :feed_type=>feed_type)
       rows = self.variants.collect { |v| v.build_mws_messages(listing, feed_type) }.flatten

@@ -4,7 +4,6 @@ class StoreTest < ActiveSupport::TestCase
 
   setup do
     @p = FactoryGirl.create(:product)
-		assert_equal 0, @p.stores.count
   end
     
   test "store_type should be valid" do
@@ -56,6 +55,35 @@ class StoreTest < ActiveSupport::TestCase
 		end
 		
 	end
+
+  test "add and remove listings should work" do
+    @s = FactoryGirl.create(:store, :store_type=>'Shopify')
+    @p2 = FactoryGirl.create(:product)
+    @s.add_listings([@p, @p2])
+    
+    assert_equal 0, @s.reload.products.count
+    assert_equal 0, @p.reload.stores.count
+    assert_equal 2, @s.queued_listings.count
+    
+    @s.sync_listings(false)
+    assert_equal 2, @s.reload.products.count
+    assert_equal 1, @p.reload.stores.count
+    assert_equal 1, @p2.reload.stores.count
+    
+    @s.remove_listings([@p])
+    assert_equal 2, @s.reload.products.count
+    assert_equal 1, @p.reload.stores.count
+    assert_equal 1, @s.queued_listings.count
+    
+    @s.sync_listings(false)
+    assert_equal 1, @s.reload.products.count
+    assert_equal 0, @p.reload.stores.count
+    assert_equal 1, @p2.reload.stores.count
+    
+    @s.remove_listings([@p2])
+    @s.sync_listings(false)
+    assert_equal 0, @s.reload.products.count
+  end
 
   test "get_last_date should work" do
     s = FactoryGirl.create(:store)
@@ -110,16 +138,6 @@ class StoreTest < ActiveSupport::TestCase
       end
     end
   end
-
-
-	# shopify stores should have an authenticated URL
-	test "shopify stores should have an authenticated URL" do
-		s = FactoryGirl.create(:store)
-		s.store_type = 'Shopify'
-		assert s.valid?
-		s.authenticated_url = nil
-		assert s.invalid?, "Shopify store with nil authenticated_url is valid"
-	end
 	
 	test "get_orders_missing_items should work" do
 		assert_difference('MwsOrder.count',1) do
@@ -137,15 +155,22 @@ class StoreTest < ActiveSupport::TestCase
 		end
 	end
 
-	test "init_mws_connection should work" do
+	test "init_store_connection should work for MWS" do
   	s = FactoryGirl.create(:store, :store_type=>'MWS')
 		assert_instance_of Amazon::MWS::Base, s.mws_connection
+	end
+	
+	test "init_store_connection should work for Shopify" do
+		s = FactoryGirl.create(:store, :store_type => 'Shopify') # authenticated URL of test store is in Factory
+		assert s.valid?
+		s.authenticated_url = nil
+		assert s.invalid?, "Shopify store with nil authenticated_url is valid"	  
+    assert s.errors[:authenticated_url].any?
 	end
 
   # tests for listings
 
 	test "add and remove listings should work for Shopify" do
-	  pending
     # add shopify store
 		s = FactoryGirl.create(:store, :store_type => 'Shopify')		
 		assert_equal 0, s.products.count
@@ -156,7 +181,14 @@ class StoreTest < ActiveSupport::TestCase
 		# add listing to store.  Not stubbing connection to Shopify right now as connection is to test store
 		s.add_listings([p])
 		
-    # confirm successful addition to store
+		# No listings yet as we haven't run sync_listings
+		assert_equal 0, s.reload.products.count
+		assert_equal 0, p.reload.stores.count
+		
+		# Sync listings synchronously
+		s.sync_listings(false)
+		
+    # Confirm successful addition to store
 		assert_equal 1, s.reload.products.count
 		assert_equal 1, p.reload.stores.count
 		assert_equal p, s.products.first
@@ -164,22 +196,16 @@ class StoreTest < ActiveSupport::TestCase
 
     # remove from store
 		s.remove_listings([p])
+		
+		# Still have listings as we haven't run sync_listings yet
+		assert_equal 1, s.reload.products.count
+		assert_equal 1, p.reload.stores.count		
+		
+		s.sync_listings(false)
+		
+		# Confirm successful removal from store
 		assert_equal 0, s.reload.products.count
 		assert_equal 0, p.reload.stores.count
 	end
-
-  test "only active listings should be returned" do
-    pending "until revisit relations between stores and products with conditions"
-    s = FactoryGirl.create(:store, :store_type => 'Shopify')
-    p = FactoryGirl.create(:product)
-    l = FactoryGirl.create(:listing, :product_id=>p.to_param, :store_id=>s.to_param)
-    assert_equal 1, s.reload.listings.count
-    assert_equal 1, s.products.count
-    
-    l.inactivate
-    #l.destroy
-    assert_equal 0, s.reload.listings.count
-    assert_equal 0, s.reload.products.count
-  end
 		
 end

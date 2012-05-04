@@ -1,5 +1,5 @@
 class MwsMessage < ActiveRecord::Base
-  attr_accessible :listing_id, :matchable_id, :matchable_type, :message, :variant_image_id, :feed_type
+  attr_accessible :listing_id, :matchable_id, :matchable_type, :message, :variant_image_id, :feed_type, :result_code, :message_code, :result_description
   belongs_to :matchable, :polymorphic => true
   belongs_to :listing
   belongs_to :variant_image

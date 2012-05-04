@@ -40,24 +40,4 @@ class BrandTest < ActiveSupport::TestCase
     assert_equal 'POLO_BASE-XX', v.reload.sku
   end
 
-	test "add_listings should work" do
-    pending "will revisit once we can successfully create a single listing for a product"
-		b = FactoryGirl.create(:brand)
-		p = FactoryGirl.create(:product, :brand => b)
-		p2 = FactoryGirl.create(:product, :brand => b)
-		s = FactoryGirl.create(:store, :store_type => 'Shopify')
-		assert_difference('Listing.count',2) do 
-			b.add_listings(s)
-		end
-		assert_equal 1, p.stores.count
-		assert_equal 1, p2.stores.count
-		assert_equal 2, s.products.count
-		assert_difference('Listing.count',-2) do 
-			b.remove_listings(s)
-		end
-		assert_equal 0, p.reload.stores.count
-		assert_equal 0, p2.reload.stores.count
-		assert_equal 0, s.reload.products.count				
-	end
-
 end

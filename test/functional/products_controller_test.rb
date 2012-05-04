@@ -4,18 +4,18 @@ class ProductsControllerTest < ActionController::TestCase
   setup do
     @store = FactoryGirl.create(:store, :store_type=>'Shopify')
     @vendor = FactoryGirl.create(:vendor)
-    @brand = FactoryGirl.create(:brand, :vendor => @vendor)
-    @brand2 = FactoryGirl.create(:brand, :vendor => @vendor)
-    @product = FactoryGirl.create(:product, :brand => @brand, :name=>'Carrera 127/S')
-    @product2 = FactoryGirl.create(:product, :brand => @brand, :name=>'Carrera 127/S')
-    @product3 = FactoryGirl.create(:product, :brand => @brand2, :name=>'Carrera 128/S')
+    @brand = FactoryGirl.create(:brand, :vendor_id => @vendor.id)
+    @brand2 = FactoryGirl.create(:brand, :vendor_id => @vendor.id)
+    @product = FactoryGirl.create(:product, :brand_id => @brand.id, :name=>'Carrera 127/S')
+    @product2 = FactoryGirl.create(:product, :brand_id => @brand.id, :name=>'Carrera 127/S')
+    @product3 = FactoryGirl.create(:product, :brand_id => @brand2.id, :name=>'Carrera 128/S')
     @product4 = FactoryGirl.build(:product)
     @u = FactoryGirl.create(:user)
     sign_in :user, @u    
   end
 
   test "should get index" do
-    # basic function, should be 3 products
+    # Basic function, should be 3 products
     get :index
     assert_response :success
     assert_not_nil assigns(:products)
@@ -26,7 +26,7 @@ class ProductsControllerTest < ActionController::TestCase
     assert_not_nil assigns(:products)
     assert_select '.product', 2    
 
-    # only 2 products are for the given brand
+    # Only 2 products are for the given brand
     get :index, :brand_id => @brand.id
     assert_response :success
     assert_not_nil assigns(:products)
@@ -38,22 +38,33 @@ class ProductsControllerTest < ActionController::TestCase
     assert_not_nil assigns(:products)
     assert_select '.product', 3
     
-    @brand.add_listings(@store)    
+    # Add products to a store
+    assert_equal 0, @store.products.count    
+    @store.add_listings([@product, @product3])
+    @store.sync_listings(false)
+    assert_equal 2, @store.reload.products.count    
 
-    pending "number of products returned per store depends on fixing relation between product and store"
-    # only 2 products are for same store
+    # 2 products are for same store
     get :index, :store_id => @store.id
     assert_response :success
     assert_not_nil assigns(:products)
     assert_select '.product', 2
 
-    # 2 products for this combination of brand and store
+    # 1 product for this combination of brand and store
     get :index, :brand_id => @brand.id, :store_id => @store.id
     assert_response :success
     assert_not_nil assigns(:products)
-    assert_select '.product', 2
+    assert_select '.product', 1
 
-    @brand.remove_listings(@store)
+    @store.remove_listings([@product, @product3])
+    @store.sync_listings(false)
+    assert_equal 0, @store.reload.products.count
+    
+    # After removing the listings, there are no products for this store
+    get :index, :store_id => @store.id
+    assert_response :success
+    assert_not_nil assigns(:products)
+    assert_select '.product', 0
   end
 
 	test "should get specific product if sku and brand_id are passed" do

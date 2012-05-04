@@ -3,13 +3,14 @@ class Store < ActiveRecord::Base
 	has_many :mws_requests, :dependent => :destroy
 	has_many :mws_orders, :dependent => :destroy
 	has_many :mws_order_items, :through => :mws_orders
-	has_many :listings, :dependent => :destroy
 	
-  has_many :queued_listings, :class_name => 'Listing', :conditions => ["listings.mws_request_id IS NULL"], :order => 'listings.id ASC'
+	has_many :listings, :dependent => :destroy
+  has_many :queued_listings, :class_name => 'Listing', :conditions => ["listings.status=?", 'queued'], :order => 'listings.id ASC' # order is important to processing them FIFO
+	has_many :active_listings, :class_name => 'Listing', :conditions => ["listings.status=?", 'active'], :order => 'listings.built_at ASC'
+	has_many :products, :through => :active_listings # Products relation only works for active listings
 
-	has_many :products, :through => :listings, :conditions => ["listings.status=?", 'complete']
 	has_attached_file :icon, PAPERCLIP_STORAGE_OPTIONS
-	after_initialize :init_mws_connection
+	after_initialize :init_store_connection
 	
 	validates_inclusion_of :store_type, :in => %w(MWS Shopify), :message => 'Invalid store type'
 	validates_uniqueness_of :name, :scope => [:store_type]
@@ -44,31 +45,33 @@ class Store < ActiveRecord::Base
 		end
 	end
   
-	def init_mws_connection
-		if self.name=='HDO'
-			self.mws_connection = Amazon::MWS::Base.new(
-				"access_key"=>"AKIAIIPPIV2ZWUHDD5HA",
-  			"secret_access_key"=>"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",
-  			"merchant_id"=>"A3VX72MEBB21JI",
-  			"marketplace_id"=>US_MKT )
-		elsif self.name=='HDO Webstore'
-			self.mws_connection = Amazon::MWS::Base.new(
-				"access_key"=>"AKIAJLQG3YW3XKDQVDIQ",
-  			"secret_access_key"=>"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",
-  			"merchant_id"=>"A3HFI0FEL8PQWZ",
-  			"marketplace_id"=>"A1MY0E7E4IHPQT" )
-		elsif self.name=='FieldDay'
-			self.mws_connection = Amazon::MWS::Base.new(
-		  	"access_key"=>"AKIAIUCCPIMBYXZOZMXQ",
-  			"secret_access_key"=>"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",
-  			"merchant_id"=>"A39CG4I2IXB4I2",
-  			"marketplace_id"=>US_MKT )
- 		else
-			self.mws_connection = Amazon::MWS::Base.new(
-		  	"access_key"=>"DUMMY",
-  			"secret_access_key"=>"DUMMY",
-  			"merchant_id"=>"DUMMY",
-  			"marketplace_id"=>US_MKT )
+	def init_store_connection
+	  if self.store_type == 'MWS'
+		  if self.name=='HDO'
+			  self.mws_connection = Amazon::MWS::Base.new(
+				  "access_key"=>"AKIAIIPPIV2ZWUHDD5HA",
+  			  "secret_access_key"=>"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",
+  			  "merchant_id"=>"A3VX72MEBB21JI",
+  			  "marketplace_id"=>US_MKT )
+		  elsif self.name=='HDO Webstore'
+			  self.mws_connection = Amazon::MWS::Base.new(
+				  "access_key"=>"AKIAJLQG3YW3XKDQVDIQ",
+  			  "secret_access_key"=>"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",
+  			  "merchant_id"=>"A3HFI0FEL8PQWZ",
+  			  "marketplace_id"=>"A1MY0E7E4IHPQT" )
+		  elsif self.name=='FieldDay'
+			  self.mws_connection = Amazon::MWS::Base.new(
+		  	  "access_key"=>"AKIAIUCCPIMBYXZOZMXQ",
+  			  "secret_access_key"=>"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",
+  			  "merchant_id"=>"A39CG4I2IXB4I2",
+  			  "marketplace_id"=>US_MKT )
+ 		  else
+			  self.mws_connection = Amazon::MWS::Base.new(
+			    "access_key"=>"DUMMY",
+  			  "secret_access_key"=>"DUMMY",
+  			  "merchant_id"=>"DUMMY",
+  			  "marketplace_id"=>US_MKT )
+ 		  end
  		end
 	end
 
@@ -106,82 +109,47 @@ class Store < ActiveRecord::Base
 		end
 	end
 
-  # takes an array of products, lists them on the appropriate storefront
+  # takes an array of products, creates removal listings for this store
 	def add_listings(products=[])
-		if self.store_type == 'Shopify'
-			add_listings_shopify(products)
-		#elsif self.store_type == 'MWS'
-		#	add_listings_amazon(products)
-		end
+		products.collect { |p| Listing.create!(:store_id=>self.id, :product_id=>p.id, :operation_type=>'Update')}
 	end
 
-  # takes an array of products, removes listings from the appropriate storefront
-	def remove_listings(products)
-		if self.store_type == 'Shopify'
-			remove_listings_shopify(products)
-		#elsif self.store_type == 'MWS'
-		#	remove_listings_amazon(products)
-		end
+  # takes an array of products, creates removal listings for this store
+	def remove_listings(products=[])
+    products.collect { |p| Listing.create!(:store_id=>self.id, :product_id=>p.id, :operation_type=>'Delete')}
 	end
 
   # Create an mws_request for an update operation type
   # Add queued listings to this request and prepare messages
   # Submit request (feed) to Amazon
-  def sync_mws_listings(async=true)
-    raise "Attempted Non MWS Store Sync To MWS" if self.store_type!='MWS'
+  def sync_listings(async=true)
+    return nil if !self.queued_listings.any?
     
-    # create a new mws_request, with request_type SubmitFeed
-    request = MwsRequest.create!(:store=>self, :request_type=>'SubmitFeed', :feed_type=>MwsRequest::FEED_STEPS[0], :message_type=>MwsRequest::FEED_MSGS[0])
+    if self.store_type=='MWS'
+      # create a new mws_request, with request_type SubmitFeed
+      request = MwsRequest.create!(:store_id=>self.id, :request_type=>'SubmitFeed', 
+                :feed_type=>MwsRequest::FEED_STEPS[0], :message_type=>MwsRequest::FEED_MSGS[0])
 
-    # Take all listings that are unsynchronized (queued for synchronization, have now mws_request_id), by order of listing creation
-    m = []
-    self.queued_listings.each do |l|
-      l.update_attributes!(:mws_request_id => request.id)
-      m += l.build_mws_messages(request)
+      # Take all listings that are unsynchronized (queued for synchronization, have now mws_request_id), by order of listing creation
+      request.update_attributes!(:message => self.queued_listings.collect { |l| l.assign_amazon!(request) })
+    
+      # submit the feed to Amazon for processing, store feed ID
+      return request.delay.submit_mws_feed(self,async) if async
+      return request.submit_mws_feed(self,async)
+
+    elsif self.store_type=='Shopify'
+
+      # Create a request with SubmitShopify request type
+      request = MwsRequest.create!(:store_id=>self.id, :request_type=>'SubmitShopify')
+  		
+  		# Process all of the listings (do not batch like with MWS)
+  		self.queued_listings.each do |l| 
+  		  l.delay.process_shopify!(request) if async
+  		  l.process_shopify!(request) if !async
+  		end
+
+  		return request # MWS returns a response, shopify returns a request, it is inconsistent
     end
-    request.update_attributes!(:message => m)    
-    
-    # submit the feed to Amazon for processing, store feed ID
-    return request.delay.submit_mws_feed(self,async) if async
-    return request.submit_mws_feed(self,async)
   end
-
-	private
-	def add_listings_shopify(products)
-		return nil if self.authenticated_url.nil?
-
-		ShopifyAPI::Base.site = self.authenticated_url
-		products.each do |p|
-		  shopify_product = ShopifyAPI::Product.create(p.attributes_for_shopify)
-      Listing.create(:product_id=>p.to_param, :store_id=>self.id, :handle=>shopify_product.handle, :foreign_id=>shopify_product.id)
-		end
-	end
-	
-	def remove_listings_shopify(products)
-	  products.each do |p|
-		  l = Listing.find_by_store_id_and_product_id(self.id, p.id)
-		  shopify_product = ShopifyAPI::Product.find(l.foreign_id)
-		  shopify_product.destroy
-		  Listing.create(:store_id=>self.id, :product_id=>p.id, :operation_type=>'Delete')
-		end
-	end
-
-	#def add_listings_amazon(products)
-	#  messages = []
-	#	products.each do |p|
-	#	  messages += p.attributes_for_amazon(:product_data)
-  #    Listing.create(:product_id=>p.to_param, :store_id=>self.id)
-      # listing needs to be qualified as pending, incomplete, etc
-	#	end
-  #  request = MwsRequest.create(:store=>self, :request_type=>'SubmitFeed', :feed_type=>:product_data, :message=>messages)    
-	#end
-	
-	#def remove_listings_amazon(products)
-	#  products.each do |p|
-	#	  l = Listing.find_by_store_id_and_product_id(self.id, p.id)
-  		#TODO code for remove from mws
-	#	  l.inactivate
-	#  end
-	#end
 	
 end

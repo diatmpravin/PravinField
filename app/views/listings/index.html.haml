@@ -1,0 +1,27 @@
+%h1 Listings
+
+%table{:class=>'table table-condensed table-striped'}
+  %tr
+    %th Product
+    %th Store
+    %th OperationType
+    %th Status
+    %th Built At
+    %th Request
+    %th
+
+  - @listings.each do |listing|
+    %tr
+      %td= link_to listing.product.name_for_amazon, listing.product
+      %td= link_to listing.store.name, listing.store
+      %td= listing.operation_type
+      %td= listing.status
+      %td= listing.built_at.to_s
+      %td= listing.mws_request_id
+      %td
+        = link_to 'Show', listing
+        = link_to 'Destroy', listing, :confirm => 'Are you sure?', :method => :delete
+
+%br
+
+= link_to 'New Listing', new_listing_path

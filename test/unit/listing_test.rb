@@ -45,16 +45,17 @@ class ListingTest < ActiveSupport::TestCase
     @s.mws_connection.stubs(:post).returns(xml_for('submit_feed',200))
     @s.mws_connection.stubs(:get).returns(xml_for('get_feed_submission_list',200))
     @s.mws_connection.stubs(:get_feed_submission_result).returns(GetFeedSubmissionResultResponse.format(xml_for('get_feed_submission_result',200)))
-    MwsMessage.stubs(:find).returns(MwsMessage.new)
   
 	  @r_product = FactoryGirl.create(:mws_request, :store_id=>@s.id, :request_type=>'SubmitFeed', 
 	              :feed_type=>MwsRequest::FEED_STEPS[0], :message_type=>'Product')
 	  @l_product = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Update', :product_id=>@p.id)     
+
+    MwsMessage.stubs(:find).returns(MwsMessage.new)
   end
   
-	test "build_mws_messages should work for product data" do
+	test "assign_amazon! should work for product data" do
 	  assert_difference('MwsMessage.count',PARENT_ROWS+CHILD_ROWS) do
-	    a = @l_product.build_mws_messages(@r_product)
+	    a = @l_product.assign_amazon!(@r_product)
       assert_kind_of Array, a
       @r_product.update_attributes(:message => a)
       
@@ -68,7 +69,7 @@ class ListingTest < ActiveSupport::TestCase
     end
   end
   
-  test "build_mws_messages should work for relationship data" do
+  test "assign_amazon! should work for relationship data" do
     # this relationship listing should be created automatically
     r_relationship = FactoryGirl.create(:mws_request, :store_id=>@s.id, :request_type=>'SubmitFeed', 
                     :feed_type=>MwsRequest::FEED_STEPS[1], :message_type=>MwsRequest::FEED_MSGS[1])
@@ -77,7 +78,7 @@ class ListingTest < ActiveSupport::TestCase
  
     # a relationship only has a single message
  	  assert_difference('MwsMessage.count',PARENT_ROWS) do
-	    a = l_relationship.build_mws_messages(r_relationship)
+	    a = l_relationship.assign_amazon!(r_relationship)
       assert_kind_of Array, a
       r_relationship.message = a
       r_relationship.save
@@ -92,14 +93,14 @@ class ListingTest < ActiveSupport::TestCase
     end
   end
 
-  test "build_mws_messages should work for product pricing" do
+  test "assign_amazon! should work for product pricing" do
     r_pricing = FactoryGirl.create(:mws_request, :store_id=>@s.id, :request_type=>'SubmitFeed', 
                     :feed_type=>MwsRequest::FEED_STEPS[2], :message_type=>MwsRequest::FEED_MSGS[2])
     l_pricing = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Update', 
                     :product_id=>@p.id, :parent_listing_id=>@l_product.id)
  
  	  assert_difference('MwsMessage.count',CHILD_ROWS) do
-	    a = l_pricing.build_mws_messages(r_pricing)
+	    a = l_pricing.assign_amazon!(r_pricing)
       assert_kind_of Array, a
       r_pricing.message = a
       r_pricing.save
@@ -114,14 +115,14 @@ class ListingTest < ActiveSupport::TestCase
     end
   end
 
-  test "build_mws_messages should work for product image data" do
+  test "assign_amazon! should work for product image data" do
     r_image = FactoryGirl.create(:mws_request, :store_id=>@s.id, :request_type=>'SubmitFeed', 
                     :feed_type=>MwsRequest::FEED_STEPS[3], :message_type=>MwsRequest::FEED_MSGS[3])
     l_image = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Update', 
                     :product_id=>@p.id, :parent_listing_id=>@l_product.id)
  
  	  assert_difference('MwsMessage.count',CHILD_ROWS*IMAGES_PER_CHILD) do
-	    a = l_image.build_mws_messages(r_image)
+	    a = l_image.assign_amazon!(r_image)
       assert_kind_of Array, a
       r_image.message = a
       r_image.save
@@ -135,15 +136,47 @@ class ListingTest < ActiveSupport::TestCase
       end
     end
   end
+  
 
-  test "build_mws_messages should work for inventory availability" do
+  test "update_status! should work" do
+    # normal usage, when finished processing listing status turns to active
+    assert_equal 'queued', @l_product.status
+    @l_product.update_status!
+    assert_equal 'active', @l_product.reload.status
+
+    # a newer listing will change older listings to updated
+    @l_product2 = FactoryGirl.create(:listing, :product_id=>@l_product.product_id, :store_id=>@l_product.store_id, :operation_type=>'Update')
+    @l_product2.update_status!
+    assert_equal 'active', @l_product2.reload.status
+    assert_equal 'updated', @l_product.reload.status
+    
+    # if the listing has error messages associated with it, then it will return error
+    m = FactoryGirl.create(:mws_message, :listing_id=>@l_product.id, :result_code=>'Error')
+    @l_product.update_status!
+    assert_equal 'error', @l_product.reload.status
+    
+    # delete listings will be deleted
+	  @l_remove = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Delete', :product_id=>@p.id)     
+    @l_remove.update_status!
+    assert_equal 'deleted', @l_remove.reload.status
+    
+    # won't change old error listings
+    assert_equal 'error', @l_product.reload.status
+    
+    # but will change existing active listings to removed
+    @l_product.update_attributes(:status=>'active')
+    @l_remove.update_status!
+    assert_equal 'removed', @l_product.reload.status
+  end
+
+  test "assign_amazon! should work for inventory availability" do
     r_inventory = FactoryGirl.create(:mws_request, :store_id=>@s.id, :request_type=>'SubmitFeed', 
                     :feed_type=>MwsRequest::FEED_STEPS[4], :message_type=>MwsRequest::FEED_MSGS[4])
     l_inventory = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Update', 
                     :product_id=>@p.id, :parent_listing_id=>@l_product.id)
  
  	  assert_difference('MwsMessage.count',CHILD_ROWS) do
-	    a = l_inventory.build_mws_messages(r_inventory)
+	    a = l_inventory.assign_amazon!(r_inventory)
       assert_kind_of Array, a
       r_inventory.update_attributes(:message => a)
       
@@ -158,26 +191,27 @@ class ListingTest < ActiveSupport::TestCase
     end
   end
 
-  test "sync_mws_listings should work synchronously" do
+  test "sync_listings should work synchronously for MWS" do
     expected_messages_count = (PARENT_ROWS+CHILD_ROWS)+(PARENT_ROWS)+(CHILD_ROWS)+(CHILD_ROWS*IMAGES_PER_CHILD)+(CHILD_ROWS)
     assert_equal 0, MwsMessage.count
  	  assert_difference('Listing.count',0) do
  	    assert_difference('MwsMessage.count',expected_messages_count) do      
         assert_difference('MwsRequest.count',STEPS_PER_FEED*REQUESTS_PER_STEP) do
           assert_difference('MwsResponse.count',STEPS_PER_FEED*REQUESTS_PER_STEP) do
-	          response = @s.sync_mws_listings(false)
+	          response = @s.sync_listings(false)
 	          pr = response.mws_request
 	          assert_equal 'SubmitFeed', pr.request_type
 	          assert_equal MwsRequest::FEED_STEPS[0], pr.feed_type
 	          assert_equal STEPS_PER_FEED-1 + REQUESTS_PER_STEP-1, pr.sub_requests.count
 	          assert_equal 1, pr.listings.count
+	          assert_equal @l_product, pr.listings[0]
 	          assert_equal expected_messages_count, pr.listings[0].mws_messages.count
+	          assert_equal 'active', pr.listings[0].reload.status
           end
         end
       end
     end
 
-    pending "need to establish relations based on conditions"
 		# confirm listing was created
 		assert_equal 1, @s.reload.products.count
 		assert_equal 1, @p.reload.stores.count
@@ -185,17 +219,63 @@ class ListingTest < ActiveSupport::TestCase
 		assert_equal @s, @p.stores.first
 
     # remove product from store
-		s.remove_listings([@p])
-		assert_equal 0, @s.reload.products.count
-		assert_equal 0, @p.reload.stores.count
+	  @l_remove = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Delete', :product_id=>@p.id) 
+    assert_equal 1, @s.reload.queued_listings.count
+    assert_equal 1, @p.reload.queued_listings.count
+    
+    expected_messages_count = (PARENT_ROWS+CHILD_ROWS)
+ 	  assert_difference('Listing.count',0) do
+ 	    assert_difference('MwsMessage.count',expected_messages_count) do      
+        assert_difference('MwsRequest.count',1*REQUESTS_PER_STEP) do
+          assert_difference('MwsResponse.count',1*REQUESTS_PER_STEP) do
+	          response = @s.sync_listings(false)
+	          pr = response.mws_request
+	          assert_equal 'SubmitFeed', pr.request_type
+	          assert_equal MwsRequest::FEED_STEPS[0], pr.feed_type
+	          assert_equal REQUESTS_PER_STEP-1, pr.sub_requests.count
+	          assert_equal 1, pr.listings.count
+	          assert_equal @l_remove, pr.listings[0]
+	          assert_equal expected_messages_count, pr.listings[0].mws_messages.count
+	          assert_equal 'deleted', pr.listings[0].reload.status
+	          assert_equal 'removed', @l_product.reload.status
+          end
+        end
+      end
+    end
+
+    # Store has 2 listings, but no active listings
+    assert_equal 2, @s.reload.listings.count
+		assert_equal 0, @s.products.count
+		assert_equal 0, @s.queued_listings.count
+		
+    # Product has 2 listings, but no active listings
+    assert_equal 2, @p.reload.listings.count
+		assert_equal 0, @p.stores.count
+		assert_equal 0, @p.queued_listings.count
   end
   
-  test "sync_mws_listings should work asynchronously" do
+  test "update and delete listing in same batch should work for MWS" do 
+    # this way, a newer delete will override an older update, and vice versa
+    @l_remove = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Delete', :product_id=>@p.id, :status=>'queued') 
+	  assert_equal @l_product, @s.queued_listings.first
+	  assert_equal @l_remove, @s.queued_listings.last
+	  response = @s.sync_listings(false)
+	  
+    # Store has 2 listings, but no active listings
+    assert_equal 2, @s.reload.listings.count
+		assert_equal 0, @s.products.count
+		
+    # Product has 2 listings, but no active listings
+    assert_equal 2, @p.reload.listings.count
+		assert_equal 0, @p.stores.count
+  end
+  
+  test "sync_listings should work asynchronously for MWS" do
    	assert_difference('Listing.count',0) do
    	  assert_difference('MwsMessage.count',STEPS_PER_FEED) do      
         assert_difference('MwsRequest.count',1) do
           assert_difference('MwsResponse.count',0) do
-  	        response = @s.sync_mws_listings
+  	        response = @s.sync_listings
   	        assert_kind_of Delayed::Backend::ActiveRecord::Job, response
           end
         end
@@ -203,8 +283,8 @@ class ListingTest < ActiveSupport::TestCase
     end
   end    
 
-  test "sync_mws_listings should work LIVE" do
-    pending
+  test "sync_mws_listings should work LIVE for MWS" do
+    pending "need to make sure we want to try this"
     @s2 = FactoryGirl.create(:store, :store_type=>'MWS', :name=>'FieldDay')
 	  @listing = FactoryGirl.create(:listing, :store_id=>@s2.id, :operation_type=>'Update', :product_id=>@p.id)
     #response = @s2.sync_mws_listings

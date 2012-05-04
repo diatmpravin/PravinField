@@ -15,12 +15,4 @@ class Brand < ActiveRecord::Base
 		end
 	end
 
-	def add_listings(store)
-		store.add_listings(self.products)
-	end
-
-	def remove_listings(store)
-    store.remove_listings(self.products)
-	end
-
 end

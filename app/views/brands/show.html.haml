@@ -14,12 +14,6 @@
 	%b Icon file name:
 	= image_tag @brand.icon.url
 
-%p
-	= form_tag(add_to_store_brand_path, :method => :put) do
-		= hidden_field_tag 'id', @brand.id
-		= select_tag 'store_id', options_from_collection_for_select(Store.all, :id, :name)
-		= submit_tag 'Add to'
-
 = link_to 'Edit', edit_brand_path(@brand)
 = link_to 'Destroy', @brand, confirm: 'Are you sure?', method: :delete
 = link_to 'Back', brands_path

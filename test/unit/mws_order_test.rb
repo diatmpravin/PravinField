@@ -61,9 +61,9 @@ class MwsOrderTest < ActiveSupport::TestCase
 	end
 	
 	test "order should have an associated MWS connection" do
-		s = FactoryGirl.create(:store, :name => 'FieldDay')
-		o = FactoryGirl.create(:mws_order, :store => s)
-  	#o = MwsOrder.find(o.id)
+		s = FactoryGirl.create(:store, :name => 'FieldDay', :store_type=>'MWS')
+		o = FactoryGirl.create(:mws_order, :store_id => s.id)
+
   	s = o.reload.store
   	assert s.valid?
   	assert_equal 'FieldDay', s.name

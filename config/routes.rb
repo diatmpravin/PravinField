@@ -18,16 +18,14 @@ Fieldday::Application.routes.draw do
   end
   resources :brands do
   	get 'by_name', :on => :collection
-  	member do
-  		put 'add_to_store'
-  		put 'remove_from_store'
-  	end
   end
   resources :products do
   	collection do  		
   		get 'by_sku_and_brand_id'
   	end		  	
   end
+  
+  resources :listings
   
   resources :variants, :variant_images do
   	get 'by_sku', :on => :collection

@@ -26,7 +26,10 @@ FactoryGirl.define do
   end
   
   factory :mws_message do
-    
+    feed_type 'Product'
+    listing
+    matchable_id 1
+    matchable_type 'Product'
   end
   
 	factory :vendor do
