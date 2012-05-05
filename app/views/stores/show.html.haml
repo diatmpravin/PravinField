@@ -1,36 +1,22 @@
-%p
-	= link_to(image_tag(@store.icon),products_path(:store_id => @store.id))
+.row
+  .span6
+    .pull-right= link_to 'Edit', edit_store_path(@store), :class=>'btn btn-small'
 
-%p
-	%b Name:
-	= @store.name
 
-%p
-	%b Type:
-	= @store.store_type
+    %h1
+      = image_tag(@store.icon(:original))
+      = @store.name
+      
+    %table{:class=>'table'}
+      %tbody
+        %tr
+          %td Type
+          %td= @store.store_type
 
-%p
-	%b Queue Flag:
-	= @store.queue_flag
+  .span6
 
-%p
-	%b Verify Flag:
-	= @store.verify_flag
 
-%p
-	%b Orders / Page:
-	= @store.order_results_per_page
 
-%p
-	%b Max order pages:
-	= @store.max_order_pages
-
-%hr
-
-%h2 Products in this store:
-
-= render @products
-
-%p
-	= link_to 'Edit', edit_store_path(@store)
-	= link_to 'Back', stores_path
+.row
+  %h2 Products in this store:
+  = render @products

@@ -49,11 +49,10 @@ class ListingTest < ActiveSupport::TestCase
 	  @r_product = FactoryGirl.create(:mws_request, :store_id=>@s.id, :request_type=>'SubmitFeed', 
 	              :feed_type=>MwsRequest::FEED_STEPS[0], :message_type=>'Product')
 	  @l_product = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Update', :product_id=>@p.id)     
-
-    MwsMessage.stubs(:find).returns(MwsMessage.new)
   end
   
 	test "assign_amazon! should work for product data" do
+    MwsMessage.stubs(:find).returns(MwsMessage.new)	  
 	  assert_difference('MwsMessage.count',PARENT_ROWS+CHILD_ROWS) do
 	    a = @l_product.assign_amazon!(@r_product)
       assert_kind_of Array, a
@@ -70,6 +69,7 @@ class ListingTest < ActiveSupport::TestCase
   end
   
   test "assign_amazon! should work for relationship data" do
+    MwsMessage.stubs(:find).returns(MwsMessage.new)
     # this relationship listing should be created automatically
     r_relationship = FactoryGirl.create(:mws_request, :store_id=>@s.id, :request_type=>'SubmitFeed', 
                     :feed_type=>MwsRequest::FEED_STEPS[1], :message_type=>MwsRequest::FEED_MSGS[1])
@@ -94,6 +94,7 @@ class ListingTest < ActiveSupport::TestCase
   end
 
   test "assign_amazon! should work for product pricing" do
+    MwsMessage.stubs(:find).returns(MwsMessage.new)    
     r_pricing = FactoryGirl.create(:mws_request, :store_id=>@s.id, :request_type=>'SubmitFeed', 
                     :feed_type=>MwsRequest::FEED_STEPS[2], :message_type=>MwsRequest::FEED_MSGS[2])
     l_pricing = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Update', 
@@ -116,6 +117,7 @@ class ListingTest < ActiveSupport::TestCase
   end
 
   test "assign_amazon! should work for product image data" do
+    MwsMessage.stubs(:find).returns(MwsMessage.new)    
     r_image = FactoryGirl.create(:mws_request, :store_id=>@s.id, :request_type=>'SubmitFeed', 
                     :feed_type=>MwsRequest::FEED_STEPS[3], :message_type=>MwsRequest::FEED_MSGS[3])
     l_image = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Update', 
@@ -170,6 +172,7 @@ class ListingTest < ActiveSupport::TestCase
   end
 
   test "assign_amazon! should work for inventory availability" do
+    MwsMessage.stubs(:find).returns(MwsMessage.new)    
     r_inventory = FactoryGirl.create(:mws_request, :store_id=>@s.id, :request_type=>'SubmitFeed', 
                     :feed_type=>MwsRequest::FEED_STEPS[4], :message_type=>MwsRequest::FEED_MSGS[4])
     l_inventory = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Update', 
@@ -192,6 +195,7 @@ class ListingTest < ActiveSupport::TestCase
   end
 
   test "sync_listings should work synchronously for MWS" do
+    MwsMessage.stubs(:find).returns(MwsMessage.new)
     expected_messages_count = (PARENT_ROWS+CHILD_ROWS)+(PARENT_ROWS)+(CHILD_ROWS)+(CHILD_ROWS*IMAGES_PER_CHILD)+(CHILD_ROWS)
     assert_equal 0, MwsMessage.count
  	  assert_difference('Listing.count',0) do
@@ -254,7 +258,8 @@ class ListingTest < ActiveSupport::TestCase
 		assert_equal 0, @p.queued_listings.count
   end
   
-  test "update and delete listing in same batch should work for MWS" do 
+  test "update and delete listing in same batch should work for MWS" do
+    MwsMessage.stubs(:find).returns(MwsMessage.new)    
     # this way, a newer delete will override an older update, and vice versa
     @l_remove = FactoryGirl.create(:listing, :store_id=>@s.id, :operation_type=>'Delete', :product_id=>@p.id, :status=>'queued') 
 	  assert_equal @l_product, @s.queued_listings.first
@@ -271,6 +276,7 @@ class ListingTest < ActiveSupport::TestCase
   end
   
   test "sync_listings should work asynchronously for MWS" do
+    MwsMessage.stubs(:find).returns(MwsMessage.new)    
    	assert_difference('Listing.count',0) do
    	  assert_difference('MwsMessage.count',STEPS_PER_FEED) do      
         assert_difference('MwsRequest.count',1) do
@@ -283,11 +289,27 @@ class ListingTest < ActiveSupport::TestCase
     end
   end    
 
-  test "sync_mws_listings should work LIVE for MWS" do
-    pending "need to make sure we want to try this"
+=begin
+  test "sync_listings should work LIVE for MWS" do
     @s2 = FactoryGirl.create(:store, :store_type=>'MWS', :name=>'FieldDay')
 	  @listing = FactoryGirl.create(:listing, :store_id=>@s2.id, :operation_type=>'Update', :product_id=>@p.id)
-    #response = @s2.sync_mws_listings
+    assert_equal @listing, @s2.queued_listings.first
+    response = @s2.sync_listings(false)
+    assert_equal 0, @s2.queued_listings.count
+    puts response.inspect
+    puts response.error_message.inspect
+    pr = response.mws_request
+    puts pr.inspect
+    assert_equal 'SubmitFeed', pr.request_type
+    assert_equal MwsRequest::FEED_STEPS[0], pr.feed_type
+    assert_equal 1, pr.listings.count
+    assert_equal @l_product, pr.listings[0]
+    assert_equal expected_messages_count, pr.listings[0].mws_messages.count
+    assert_equal 'active', pr.listings[0].reload.status
+    
+    @listing2 = FactoryGirl.create(:listing, :store_id=>@s2.id, :operation_type=>'Delete', :product_id=>@p.id)
+    response = @s2.sync_listings(false)
   end
+=end
 
 end

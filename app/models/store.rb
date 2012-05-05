@@ -72,6 +72,7 @@ class Store < ActiveRecord::Base
   			  "merchant_id"=>"DUMMY",
   			  "marketplace_id"=>US_MKT )
  		  end
+ 		  #Amazon::MWS::Base.debug=true
  		end
 	end
 
@@ -132,6 +133,7 @@ class Store < ActiveRecord::Base
 
       # Take all listings that are unsynchronized (queued for synchronization, have now mws_request_id), by order of listing creation
       request.update_attributes!(:message => self.queued_listings.collect { |l| l.assign_amazon!(request) })
+      #puts request.inspect
     
       # submit the feed to Amazon for processing, store feed ID
       return request.delay.submit_mws_feed(self,async) if async

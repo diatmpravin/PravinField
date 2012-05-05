@@ -137,7 +137,7 @@ class Product < ActiveRecord::Base
   #TODO make this specific to a store
   def build_mws_messages(listing, feed_type)
     
-    if feed_type==Feed::Enumerations::FEED_TYPES[:product_data]
+    if feed_type==MwsRequest::FEED_STEPS[0] #'product_data'
       m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'Product', :feed_type=>feed_type)
       rows = self.variants.collect { |v| v.build_mws_messages(listing, feed_type) }.flatten
 
@@ -182,7 +182,8 @@ class Product < ActiveRecord::Base
     
     elsif listing.operation_type == 'Delete'
       return [] # if this is a delete listing, it is not necessary to submit anything further
-    elsif feed_type==Feed::Enumerations::FEED_TYPES[:product_relationship_data]
+
+    elsif feed_type==MwsRequest::FEED_STEPS[1] # 'product_relationship_data'
       m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'Product', :feed_type=>feed_type)
       rows = self.variants.collect { |v| v.build_mws_messages(listing, feed_type) }.flatten
       

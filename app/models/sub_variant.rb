@@ -44,7 +44,7 @@ class SubVariant < ActiveRecord::Base
   #TODO make this unique for a store
   def build_mws_messages(listing, feed_type)
     
-    if feed_type==Feed::Enumerations::FEED_TYPES[:product_data]
+    if feed_type==MwsRequest::FEED_STEPS[0] #Feed::Enumerations::FEED_TYPES[:product_data]
       m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'SubVariant', :feed_type=>feed_type)
       p = self.product
       row = {
@@ -89,10 +89,10 @@ class SubVariant < ActiveRecord::Base
       }
       m.update_attributes!(:message => row)
       return row
-    elsif feed_type==Feed::Enumerations::FEED_TYPES[:product_relationship_data]
+    elsif feed_type==MwsRequest::FEED_STEPS[1] #Feed::Enumerations::FEED_TYPES[:product_relationship_data]
       # This one is not a separate message, but just a repeated element within the relationship message
       return [{ 'SKU'=>self.sku, 'Type'=>'Variation' }]
-    elsif feed_type==Feed::Enumerations::FEED_TYPES[:product_pricing]
+    elsif feed_type==MwsRequest::FEED_STEPS[2] #Feed::Enumerations::FEED_TYPES[:product_pricing]
       m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'SubVariant', :feed_type=>feed_type)
       row = {
         'MessageID' => m.id,
@@ -109,7 +109,7 @@ class SubVariant < ActiveRecord::Base
       }
       m.update_attributes(:message => row)
       return row
-    elsif feed_type==Feed::Enumerations::FEED_TYPES[:product_image_data]
+    elsif feed_type==MwsRequest::FEED_STEPS[3] #Feed::Enumerations::FEED_TYPES[:product_image_data]
       rows = []
       self.variant_images.each_with_index do |vi,i|
         m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'SubVariant', :variant_image_id=>vi.id, :feed_type=>feed_type)
@@ -126,7 +126,7 @@ class SubVariant < ActiveRecord::Base
         rows << row
       end
       return rows
-    elsif feed_type==Feed::Enumerations::FEED_TYPES[:inventory_availability]
+    elsif feed_type==MwsRequest::FEED_STEPS[4] #Feed::Enumerations::FEED_TYPES[:inventory_availability]
       m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'SubVariant', :feed_type=>feed_type)
       row = {
         'MessageID' => m.id,

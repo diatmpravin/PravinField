@@ -23,25 +23,6 @@ class Listing < ActiveRecord::Base
 
   validates_inclusion_of :status, :in => %w(queued assigned error deleted removed updated active)
 
-	#state_machine :state, :initial=>:queued do
-	#  event :assign do transition :queued => :assigned end 
-	#  event :submit_feed do
-	#    transition :assigned => :product_submitted
-	#    transition :product_done => :relationship_submitted
-	#    transition :relationship_done => :price_submitted
-	#    transition :price_done => :image_submitted
-	#    transition :image_done => :inventory_submitted
-	#  end
-	#  event :feed_done do
-	#    transition :product_submitted => :product_done
-	#    transition :relationship_submitted => :relationship_done
-	#    transition :price_submitted => :price_done
-	#    transition :image_submitted => :image_done
-	#    transition :inventory_submitted => :done
-	#  end
-	#	after_transition any => :done, :do => :determine_status
-	#end
-
   # Set the status of this listing to assigned, and register the mws_request id
   # Return the messages necessary to render this message in the given request
   def assign_amazon!(request)

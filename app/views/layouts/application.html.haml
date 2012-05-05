@@ -26,19 +26,23 @@
             =image_tag(asset_path('logo.png'), :width=>'50px')
           .container.nav-collapse
             %ul.nav
-              %li= link_to 'Home', '/home'
+              %li= link_to 'Home', '/'
               %li.dropdown
-                %a(href='#' class="dropdown-toggle" data-toggle="dropdown") Amazon
+                =link_to '#', {'data-toggle'=>"dropdown", :class=>"dropdown-toggle" } do
+                  Stores
+                  %b.caret
                 %ul.dropdown-menu
+                  %li= link_to 'Storefronts', stores_path
                   %li= link_to 'Requests', mws_requests_path
-                  %li= link_to 'Orders', mws_orders_path
-              %li= link_to 'Stores', stores_path
+              %li= link_to 'Orders', mws_orders_path
               %li= link_to 'Vendors', vendors_path
               %li= link_to 'Brands', brands_path
               %li= link_to 'Products', products_path
               %li= link_to 'Listings', listings_path
               %li.dropdown
-                %a(href='#' class="dropdown-toggle" data-toggle="dropdown") Mappings
+                =link_to '#', {'data-toggle'=>"dropdown", :class=>"dropdown-toggle" } do              
+                  Mappings
+                  %b.caret
                 %ul.dropdown-menu
                   %li= link_to 'States', products_path							
                   %li= link_to 'SKU Patterns', sku_patterns_path
@@ -46,7 +50,9 @@
               %li= link_to 'Analytics', analytics_path
               %li= link_to 'Imports', imports_path
               %li.dropdown
-                %a(href='#' class="dropdown-toggle" data-toggle="dropdown") Admin
+                =link_to '#', {'data-toggle'=>"dropdown", :class=>"dropdown-toggle" } do
+                  Admin
+                  %b.caret
                 %ul.dropdown-menu
                   = render 'shared/navigation'
 			

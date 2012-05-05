@@ -13,14 +13,9 @@ class MwsRequest < ActiveRecord::Base
 	
 	FEED_POLL_WAIT = 3.minutes
 	FEED_INCOMPLETE_WAIT = 1.minutes
-	FEED_NEXT_WAIT = 30.seconds
+	#FEED_NEXT_WAIT = 30.seconds
 	
-
-  FEED_STEPS = [Amazon::MWS::Feed::Enumerations::FEED_TYPES[:product_data], 
-                Amazon::MWS::Feed::Enumerations::FEED_TYPES[:product_relationship_data], 
-                Amazon::MWS::Feed::Enumerations::FEED_TYPES[:product_pricing],
-                Amazon::MWS::Feed::Enumerations::FEED_TYPES[:product_image_data],
-                Amazon::MWS::Feed::Enumerations::FEED_TYPES[:inventory_availability] ]
+  FEED_STEPS = ['product_data','product_relationship_data','product_pricing', 'product_image_data','inventory_availability']
   FEED_MSGS = ['Product', 'Relationship', 'Price', 'ProductImage', 'Inventory']
   
 	def get_request_summary_string
@@ -198,8 +193,13 @@ class MwsRequest < ActiveRecord::Base
 
   # Parent request
   def submit_mws_feed(store, async=true, chain=true)
-    response = store.mws_connection.submit_feed(self.feed_type,self.message_type,self.message)    
+    #puts "BEGIN SUBMIT MWS FEED"
+    #puts self.inspect
+    #store.init_store_connection
+    response = store.mws_connection.submit_feed(self.feed_type.to_sym,self.message_type,self.message)    
     return self.handle_error_response(response) if !response.is_a? SubmitFeedResponse
+
+    #puts Amazon::MWS::FeedBuilder.new(self.message_type, self.message, {:merchant_id => 'DUMMY'}).render        
 
     r = MwsResponse.create(
       :request_type => self.request_type,
@@ -207,9 +207,10 @@ class MwsRequest < ActiveRecord::Base
       :amazon_request_id => response.request_id, 
       :feed_submission_id => response.feed_submission.id,
       :processing_status => response.feed_submission.feed_processing_status)
+    #puts "SUBMIT_MWS_FEED response="+r.inspect
       
     # But also save it in the request for easy access to current information
-    self.update_attributes(:feed_submission_id => r.feed_submission_id, :processing_status => r.processing_status)
+    self.update_attributes!(:feed_submission_id => r.feed_submission_id, :processing_status => r.processing_status)
       
     # Schedule job for get_mws_feed_status in x.minutes
     self.delay(:run_at=>(FEED_POLL_WAIT.from_now)).get_mws_feed_status(store, async) if async # Schedule job for get_mws_feed_status in x.minutes #TODO intelligent timing    
@@ -219,10 +220,14 @@ class MwsRequest < ActiveRecord::Base
   
   # Child request, STATUS
   def get_mws_feed_status(store, async=true, chain=true)
-    response = store.mws_connection.get_feed_submission_list('FeedSubmissionIdList'=>[self.feed_submission_id])
+    #puts "BEGIN GET_MWS_FEED_STATUS"
+    #puts self.inspect    
+    #store.init_store_connection
+    response = store.mws_connection.get_feed_submission_list('FeedSubmissionIdList.Id.1'=>self.feed_submission_id)
     return self.handle_error_response(response) if !response.is_a? GetFeedSubmissionListResponse
-    raise "Feed submission count error" if response.feed_submissions.count != 1
-    raise "Feed submission ID error" if self.feed_submission_id != response.feed_submissions.first.id    
+
+    #raise "Feed submission count error" if response.feed_submissions.count != 1    
+    #raise "Feed submission ID error" if self.feed_submission_id != response.feed_submissions.first.id    
 
     child_request = MwsRequest.create(:store=>store, :request_type=>'GetFeedSubmissionList', 
       :mws_request_id=>self.id, :feed_submission_id=>self.feed_submission_id)
@@ -234,45 +239,51 @@ class MwsRequest < ActiveRecord::Base
       :mws_request_id => child_request.id, 
       :amazon_request_id => response.request_id,
       :processing_status => fs.feed_processing_status)
+    #puts "GET_MWS_FEED_STATUS response="+r.inspect
         
-    self.update_attributes(
+    self.update_attributes!(
       :processing_status => fs.feed_processing_status,
       :submitted_at => fs.submitted_date,
       :started_at => fs.started_processing_date,
       :completed_at => fs.completed_processing_date)
         
     return r if !chain
-    if r.processing_status == Feed::Enumerations::PROCESSING_STATUSES[:done]
+    if r.processing_status == '_DONE_' #Feed::Enumerations::PROCESSING_STATUSES[:done]
       # If complete: schedule get_mws_feed_result now
       return self.get_mws_feed_result(store, async)
     else
       # If not complete: schedule get_mws_feed_status in x.minutes
       return self.delay(:run_at=>(FEED_INCOMPLETE_WAIT.from_now)).get_mws_feed_status(store, async) if async #TODO intelligent timing
-      sleep FEED_NEXT_WAIT # if synchronous, just sleep and then run again
+      sleep FEED_INCOMPLETE_WAIT # if synchronous, just sleep and then run again
       return self.get_mws_feed_status(store, async)
     end
   end
 
   # Child request
-  def get_mws_feed_result(store, async=true, chain=true)     
+  def get_mws_feed_result(store, async=true, chain=true)
+    #puts "BEGIN GET_MWS_FEED_RESULT"
+    #puts self.inspect
+    #store.init_store_connection   
     child_request = MwsRequest.create(:store=>store, :request_type=>'GetFeedSubmissionResult', 
       :mws_request_id=>self.id, :feed_submission_id=>self.feed_submission_id)
     response = store.mws_connection.get_feed_submission_result(self.feed_submission_id)
-    if !response.is_a? GetFeedSubmissionResultResponse
-      return self.handle_error_response(response)
-    end
+    return self.handle_error_response(response) if !response.is_a? GetFeedSubmissionResultResponse
 
     r = MwsResponse.create(
       :request_type => child_request.request_type,
       :mws_request_id => child_request.id,
       :processing_status => response.message.status_code)
+    puts "GET_MWS_FEED_RESULT response="+r.inspect
 
-    self.update_attributes(:processing_status => response.message.status_code)
+    self.update_attributes!(:processing_status => response.message.status_code)
 
     # Increment step
     step = FEED_STEPS.index(self.feed_type) + 1
-
+    
+    #puts "#{response.message.processing_summary.messages_successful} successful messages, #{response.message.results.count} results"
+    
     response.message.results.each do |mr|
+      #puts "*****RESULT***** {mr.result_code}: #{mr.message_code}.  #{mr.description}"
       MwsMessage.find(mr.message_id).update_attributes(:result_code => mr.result_code, :message_code => mr.message_code, :result_description => mr.description)
       #assert_equal m.matchable.sku, mr.sku
     end
@@ -295,7 +306,7 @@ class MwsRequest < ActiveRecord::Base
       
       # Otherwise, if messages have come through, send the child request
       child_request.update_attributes(:message => m)
-      return child_request.delay(:run_at=>(FEED_NEXT_WAIT.from_now)).submit_mws_feed(store, async) if async && chain
+      #return child_request.delay(:run_at=>(FEED_NEXT_WAIT.from_now)).submit_mws_feed(store, async) if async && chain
       return child_request.submit_mws_feed(store, async) if chain #TODO in x minutes
     end
     
