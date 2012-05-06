@@ -2,7 +2,7 @@
 	%button.close{ "data-dismiss"=>"modal"} x
 	%h3= @title
 
-= form_for(@sub_variant, :remove=>true, :html=>{:class=>'form-horizontal'}) do |f|
+= form_for(@sub_variant, :remote=>true, :html=>{:class=>'form-horizontal'}) do |f|
 	.modal-body
 		- if @sub_variant.errors.any?
 			#error_explanation
@@ -41,5 +41,5 @@
 			.controls= f.text_field :asin, :length=>10, :class=>'input-medium'
 
 	.modal-footer
-		= f.submit @title, :class=>'btn btn-primary btn-large'
-		= link_to 'Destroy', @sub_variant, confirm: 'Are you sure?', method: :delete, :class=>'btn btn-large btn-danger' if params[:action]=='edit'
+		= f.submit :class=>'btn btn-primary btn-large'
+		= link_to 'Destroy', @sub_variant, confirm: 'Are you sure?', method: :delete, :remote=>true, :class=>'btn btn-large btn-danger' if params[:action]=='edit'

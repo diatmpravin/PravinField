@@ -21,7 +21,7 @@ class ProductsController < ApplicationController
   # GET /products.json
   def index
   	@tags = Product.tag_counts_on(:tags)
-  	prod_per_page = 400		
+  	prod_per_page = 20		
 		if params[:search]
     	@products = Product.search(params[:search]).order('sku').page(params[:page]).per(prod_per_page)
     	@search = params[:search]
@@ -38,8 +38,21 @@ class ProductsController < ApplicationController
     	@title = "#{@brand.name} Brand, All Stores"
     elsif params[:store_id]
     	@store = Store.find(params[:store_id])
-    	@products = @store.products.page(params[:page]).per(prod_per_page)
-    	@title = "All Brands, #{@store.name} Store"
+    	@title = @store.name
+    	if params[:listing_group]
+    	  if params[:listing_group]=='error'
+          @title += " - products with errors"
+    	    @products = @store.error_products
+    	  elsif params[:listing_group]=='queued'
+    	    @title += " - queued products"
+    	    @products = @store.get_queued_products
+    	  elsif params[:listing_group]=='dirty'
+    	    @title += ' - modified products not synced'
+    	    @products = @store.get_dirty_products
+    	  end
+    	else
+    	  @products = @store.products.page(params[:page]).per(prod_per_page)
+      end
     elsif params[:vendor_id]
     	@vendor = Vendor.find(params[:vendor_id])
     	@products = @vendor.products.page(params[:page]).per(prod_per_page)

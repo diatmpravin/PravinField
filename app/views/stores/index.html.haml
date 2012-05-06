@@ -1,17 +1,6 @@
-- @stores.each do |store|
-	%div.store
-		= link_to(image_tag(store.icon),products_path(:store_id => store.id))
-		%br
-		%b= store.name
-		%br
-		%i= store.store_type
-		%br
-		= link_to "#{store.products.count} products", products_path(:store_id => store.id)
-		%br
-		= link_to 'Show', store
-		= link_to 'Edit', edit_store_path(store)
-		= link_to 'Destroy', store, confirm: 'Are you sure?', method: :delete
+.row
+  .span12
+    .pull-right= link_to 'New Store', new_store_path, :class=>'btn btn-primary btn-large'
+    %table{:class=>'table'}= render @stores
 
-%br
-%hr
-= link_to 'New Store', new_store_path
+

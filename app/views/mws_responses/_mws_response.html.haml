@@ -1,0 +1,27 @@
+- if mws_response_counter == 0
+  %thead
+    %tr
+      %th Created at
+      %th Next token?
+      %th Error code
+      %th Error message
+      %th Detail
+
+%tr
+  %td= mws_response.created_at.to_s(:db)
+  %td= mws_response.next_token ? 'Yes' : 'No'
+  %td= mws_response.error_code
+  %td= mws_response.error_message
+  %td
+    - if mws_response.mws_request.request_type=='ListOrders'
+      = link_to mws_orders_path(:mws_response_id=>mws_response.id) do
+        ="#{mws_response.mws_orders.count} orders"
+        %i.chevron-right
+    - elsif mws_response.mws_request.request_type=='ListOrderItems'
+      = link_to mws_response.mws_orders.first do
+        ="Order #{mws_response.amazon_order_id}"
+        %i.chevron-right
+    - else mws_response.mws_request.request_type=='SubmitFeed'
+      = link_to mws_response.mws_request do
+        = mws_response.processing_status
+        %i.chevron-right

@@ -1,27 +1,57 @@
-%h1= "Amazon Request Detail"
+.row
+  .span6
+    %h2 Request
 
-%p
-	%b= "Amazon request:"
-	= @mws_request.request_type
-	= "-"
-	= @mws_request.amazon_request_id
+    %dl.dl-horizontal
+      %dt Store
+      %dd= link_to @mws_request.store.name, @mws_request.store
+    
+      %dt= 'Amazon request ID' if !@mws_request.amazon_request_id.nil?
+      %dd= @mws_request.amazon_request_id
+  
+      %dt Request type
+      %dd= @mws_request.request_type
 
-%p
-	%b= "Created at:"
-	= @mws_request.created_at.to_s(:db)
+      %dt Created at
+      %dd= @mws_request.created_at
+  
+      - if !@mws_request.mws_request_id.nil?
+        %dt Parent request
+        %dd= link_to 'Parent request', @mws_request.parent_request
 
-%hr
+      - if !@mws_request.feed_type.nil?
+        %dt Feed type
+        %dd= @mws_request.feed_type
+  
+        %dt Message type
+        %dd= @mws_request.message_type
+    
+        %dt Feed ID
+        %dd= @mws_request.feed_submission_id
 
-- @mws_request.mws_responses.each do |r|
-	%b= "Response: #{r.created_at.to_s(:db)}, Next-token?: #{r.next_token ? 'Yes' : 'No' } #{r.error_code} #{r.error_message}"
-	- r.mws_orders.each do |o|
-		%p
-			%b= "Order #{o.amazon_order_id}:"
-			= "#{o.purchase_date.to_s(:db)}, #{o.buyer_name}, #{o.amount}, items:#{o.mws_order_items.count}"
-			= link_to 'View Order', o
-	- @mws_request.sub_requests.each do |r2|
-		- r2.mws_responses.each do |r3|
-			= "Response: #{r3.created_at.to_s(:db)}, #{r3.error_code} #{r3.error_message}, #{r2.request_type}"
-			%br
-			
-	%hr
+        %dt Processing status
+        %dd= @mws_request.processing_status
+    
+        %dt Submitted at
+        %dd= @mws_request.submitted_at
+        
+        %dt Started at
+        %dd= @mws_request.started_at
+        
+        %dt Completed at
+        %dd= @mws_request.completed_at.to_s
+
+  .span6
+    %h2 Responses
+    %table{:class=>'table table-striped table-condensed'}= render @mws_request.mws_responses
+
+.row
+  .span12
+    %h2 Messages
+    %table{:class=>'table table-striped table-condensed'}= render @mws_request.mws_messages
+    %br
+.row
+  .span12
+  
+    %h2 Child requests
+    %table{:class=>'table-striped table-condensed'}= render @mws_request.sub_requests

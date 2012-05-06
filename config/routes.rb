@@ -5,14 +5,17 @@ Fieldday::Application.routes.draw do
   resources :sku_mappings
   resources :sku_patterns
   
-  resources :imports, :only => [:index, :show, :new, :create] do
-    collection do
-      post 'importProductFile'
-    end
-  end
+  resources :imports, :only => [:index, :show, :new, :create]
 
   resources :states
-  resources :stores #TODO member do for adding groups of products to store
+  
+  resources :mws_messages, :only => [:show]
+  
+  resources :stores do
+    post 'sync', :on => :member
+    post 'queue', :on => :member
+  end
+  
   resources :vendors do
   	get 'by_name', :on => :collection
   end
@@ -20,12 +23,10 @@ Fieldday::Application.routes.draw do
   	get 'by_name', :on => :collection
   end
   resources :products do
-  	collection do  		
-  		get 'by_sku_and_brand_id'
-  	end		  	
+  	get 'by_sku_and_brand_id', :on => :collection		  	
   end
   
-  resources :listings
+  resources :listings # TODO only index?
   
   resources :variants, :variant_images do
   	get 'by_sku', :on => :collection

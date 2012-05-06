@@ -3,9 +3,11 @@ class MwsRequest < ActiveRecord::Base
 	belongs_to :store
 	has_many :mws_orders, :through => :mws_responses
   belongs_to :parent_request, :class_name => "MwsRequest", :foreign_key => "mws_request_id"
-	has_many :sub_requests, :class_name => "MwsRequest"
+	has_many :sub_requests, :class_name => "MwsRequest", :dependent => :destroy
 	has_many :mws_responses, :dependent => :destroy
 	has_many :listings, :dependent => :destroy, :order => 'listings.id ASC' # Order is important to processing them FIFO
+  #has_many :products, :through => :listings
+  has_many :mws_messages, :through => :listings
   serialize :message
 
 	MAX_FAILURE_COUNT = 2
@@ -41,11 +43,17 @@ class MwsRequest < ActiveRecord::Base
 	end
 
 	def get_responses_with_errors
-		error_responses = Array.new
-		self.sub_requests.each do |r|
-			error_responses = error_responses + r.mws_responses.where('error_message IS NOT NULL')
-		end			
-		return error_responses
+		error_responses = self.mws_responses.where("error_message IS NOT NULL")
+		error_responses += self.sub_requests.collect { |r| r.mws_responses.where('error_message IS NOT NULL') }
+		return error_responses.flatten
+	end
+	
+	def get_messages_with_errors
+	  error_responses = self.mws_messages.where("result_code=?","Error")
+	end
+	
+	def get_total_error_count
+	  get_responses_with_errors.count + get_messages_with_errors.count
 	end
 
   # accepts a working MWS connection and a ListOrdersResponse, and fully processes these orders
@@ -181,7 +189,7 @@ class MwsRequest < ActiveRecord::Base
 
   
   def handle_error_response(response)
-    if !response.is_a? ResponseError
+    if !response.is_a? Amazon::MWS::ResponseError
       raise "Unknown MWS Response"
     end
     MwsResponse.create(
@@ -197,7 +205,7 @@ class MwsRequest < ActiveRecord::Base
     #puts self.inspect
     #store.init_store_connection
     response = store.mws_connection.submit_feed(self.feed_type.to_sym,self.message_type,self.message)    
-    return self.handle_error_response(response) if !response.is_a? SubmitFeedResponse
+    return self.handle_error_response(response) if !response.is_a? Amazon::MWS::SubmitFeedResponse
 
     #puts Amazon::MWS::FeedBuilder.new(self.message_type, self.message, {:merchant_id => 'DUMMY'}).render        
 
@@ -211,20 +219,41 @@ class MwsRequest < ActiveRecord::Base
       
     # But also save it in the request for easy access to current information
     self.update_attributes!(:feed_submission_id => r.feed_submission_id, :processing_status => r.processing_status)
-      
+
+    # Only schedule a feed status check on the first step
+    #if self.feed_type == FEED_STEPS[0]
+    #  self.delay(:run_at=>(FEED_POLL_WAIT.from_now)).get_mws_feed_status(store, async) if async && chain
+    #  self.get_mws_feed_status(store, async) if chain
+    #end
+    
     # Schedule job for get_mws_feed_status in x.minutes
-    self.delay(:run_at=>(FEED_POLL_WAIT.from_now)).get_mws_feed_status(store, async) if async # Schedule job for get_mws_feed_status in x.minutes #TODO intelligent timing    
-    self.get_mws_feed_status(store, async) if chain #TODO in x.minutes
+    self.delay(:run_at=>(FEED_POLL_WAIT.from_now)).get_mws_feed_status(store, async) if async && chain # Schedule job for get_mws_feed_status in x.minutes #TODO intelligent timing    
+    self.get_mws_feed_status(store, async) if !async && chain #TODO in x.minutes
     return r
   end
+  
+  #def get_feed_submission_id_list
+  #  self.sub_requests.each
+  #  return {'FeedSubmissionIdList.Id.1'=>self.feed_submission_id}
+  #end
   
   # Child request, STATUS
   def get_mws_feed_status(store, async=true, chain=true)
     #puts "BEGIN GET_MWS_FEED_STATUS"
     #puts self.inspect    
     #store.init_store_connection
+    
+    # Get the feed submission id list
+    #parent_request = self.mws_request_id.nil? ? self : self.parent_request    
+    #feed_submission_id_list = parent_request.get_feed_submission_id_list
+    #response = store.mws_connection.get_feed_submission_list(feed_submission_id_list)
+        
     response = store.mws_connection.get_feed_submission_list('FeedSubmissionIdList.Id.1'=>self.feed_submission_id)
-    return self.handle_error_response(response) if !response.is_a? GetFeedSubmissionListResponse
+    return self.handle_error_response(response) if !response.is_a? Amazon::MWS::GetFeedSubmissionListResponse
+
+    #response.feed_submissions.each do |fs| 
+      # one response for each feed submission?
+    #end
 
     #raise "Feed submission count error" if response.feed_submissions.count != 1    
     #raise "Feed submission ID error" if self.feed_submission_id != response.feed_submissions.first.id    
@@ -267,13 +296,13 @@ class MwsRequest < ActiveRecord::Base
     child_request = MwsRequest.create(:store=>store, :request_type=>'GetFeedSubmissionResult', 
       :mws_request_id=>self.id, :feed_submission_id=>self.feed_submission_id)
     response = store.mws_connection.get_feed_submission_result(self.feed_submission_id)
-    return self.handle_error_response(response) if !response.is_a? GetFeedSubmissionResultResponse
+    return self.handle_error_response(response) if !response.is_a? Amazon::MWS::GetFeedSubmissionResultResponse
 
     r = MwsResponse.create(
       :request_type => child_request.request_type,
       :mws_request_id => child_request.id,
       :processing_status => response.message.status_code)
-    puts "GET_MWS_FEED_RESULT response="+r.inspect
+    #puts "GET_MWS_FEED_RESULT response="+r.inspect
 
     self.update_attributes!(:processing_status => response.message.status_code)
 
@@ -282,9 +311,13 @@ class MwsRequest < ActiveRecord::Base
     
     #puts "#{response.message.processing_summary.messages_successful} successful messages, #{response.message.results.count} results"
     
+    #puts response.to_xml.to_s      
     response.message.results.each do |mr|
+      #puts mr.to_xml.to_s      
       #puts "*****RESULT***** {mr.result_code}: #{mr.message_code}.  #{mr.description}"
-      MwsMessage.find(mr.message_id).update_attributes(:result_code => mr.result_code, :message_code => mr.message_code, :result_description => mr.description)
+      m = MwsMessage.find(mr.message_id)
+      m.update_attributes(:result_code => mr.result_code, :message_code => mr.message_code, :result_description => [m.result_description,mr.description].join('\r'))
+      m.listing.update_attributes(:status=>'error') if !m.listing.nil?
       #assert_equal m.matchable.sku, mr.sku
     end
     
@@ -311,7 +344,7 @@ class MwsRequest < ActiveRecord::Base
     end
     
     # We are at the end, so update each of the listings and then return
-    parent_request.listings.collect { |l| l.update_status! }    
+    parent_request.listings.collect { |l| l.update_status! }
     return r
   end
   

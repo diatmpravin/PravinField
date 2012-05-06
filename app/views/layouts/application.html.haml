@@ -27,18 +27,18 @@
           .container.nav-collapse
             %ul.nav
               %li= link_to 'Home', '/'
+              %li= link_to 'Stores', stores_path
+              %li= link_to 'Orders', mws_orders_path
               %li.dropdown
-                =link_to '#', {'data-toggle'=>"dropdown", :class=>"dropdown-toggle" } do
-                  Stores
+                =link_to '#', {'data-toggle'=>"dropdown", :class=>"dropdown-toggle" } do              
+                  Inventory
                   %b.caret
                 %ul.dropdown-menu
-                  %li= link_to 'Storefronts', stores_path
-                  %li= link_to 'Requests', mws_requests_path
-              %li= link_to 'Orders', mws_orders_path
-              %li= link_to 'Vendors', vendors_path
-              %li= link_to 'Brands', brands_path
-              %li= link_to 'Products', products_path
-              %li= link_to 'Listings', listings_path
+                  %li= link_to 'Vendors', vendors_path
+                  %li= link_to 'Brands', brands_path
+                  %li= link_to 'Products', products_path
+                  %li= link_to 'Imports', imports_path
+              -#%li= link_to 'Listings', listings_path
               %li.dropdown
                 =link_to '#', {'data-toggle'=>"dropdown", :class=>"dropdown-toggle" } do              
                   Mappings
@@ -48,7 +48,7 @@
                   %li= link_to 'SKU Patterns', sku_patterns_path
                   %li= link_to 'SKU Mappings', sku_mappings_path
               %li= link_to 'Analytics', analytics_path
-              %li= link_to 'Imports', imports_path
+
               %li.dropdown
                 =link_to '#', {'data-toggle'=>"dropdown", :class=>"dropdown-toggle" } do
                   Admin
@@ -67,10 +67,7 @@
 
       #myModal{:class=>'modal hide fade'}
 
-      .content
-        .row
-          .span12
-            = yield
+      .content= yield
     
       -#%footer
       -#  %p &copy; HDO Group 2012

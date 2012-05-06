@@ -10,6 +10,8 @@ class MwsOrdersController < ApplicationController
     	@search = params[:search]
     elsif params[:unmatched]
     	@mws_orders = MwsOrder.get_unmatched_skus.page(params[:page]).per(100)
+    elsif params[:mws_response_id]
+      @mws_orders = MwsResponse.find(params[:mws_response_id]).mws_orders.page(params[:page]).per(100)
     else
     	@mws_orders = MwsOrder.page(params[:page]).per(100)
     end

@@ -7,15 +7,15 @@ class Variant < ActiveRecord::Base
 	has_many :sku_mappings, :as=>:sku_mapable
 	
 	validates_uniqueness_of :sku
+	validates_presence_of :price
 
-  before_save :nil_if_blank
+  before_validation :nil_if_blank
 	after_create :set_default_master
 	after_save :generate_skus
 	around_destroy :product_master_succession
 	#before_update :register_changes
 
-  NULL_ATTRS = %w( color1 color1_code color2 color2_code amazon_description )
-
+	SEARCH_FIELDS = [ 'sku', 'color1', 'color2','color1_code','color2_code', 'amazon_description' ] 
 
   def brand
     self.product.brand
@@ -86,7 +86,27 @@ class Variant < ActiveRecord::Base
     return d[0,2000] if !d.nil?
     return nil
 	end
-
+	
+	def standard_price_for_amazon
+	  [self.price.to_s, 'currency'=>self.currency_for_amazon]
+	end
+	
+	def msrp_for_amazon
+    return [self.msrp.to_s, 'currency'=>self.currency_for_amazon] if !self.msrp.nil? && self.msrp>0
+	  return self.standard_price_for_amazon
+	end
+	
+	def sale_price_for_amazon
+	  return [self.sale_price.to_s, 'currency'=>self.currency_for_amazon] if !self.sale_price.nil? && self.sale_price>0
+	  return nil
+	end
+	
+	def get_updated_at
+	  arr = self.sub_variants.collect { |sv| sv.updated_at }
+	  arr << self.updated_at
+	  return arr.max
+	end
+	
 	def get_clean_sku
     SkuPattern.evaluate(self).first
 
@@ -119,8 +139,7 @@ class Variant < ActiveRecord::Base
 	# searches variants, but returns an ActiveRecord association of the *products* associated with the matched variants
 	def self.search(search)
 		product_ids_1 = SubVariant.search(search)
-		fields = [ 'sku', 'color1', 'color2','color1_code','color2_code', 'amazon_description' ] 
-		product_ids_2 = select('product_id').where(MwsHelper::search_helper(fields, search)).group('product_id').collect { |v| v.product_id }
+		product_ids_2 = select('product_id').where(MwsHelper::search_helper(SEARCH_FIELDS, search)).group('product_id').collect { |v| v.product_id }
 	  return (product_ids_1 | product_ids_2)
 	end
 	
@@ -182,7 +201,7 @@ class Variant < ActiveRecord::Base
 	protected  
 	
   def nil_if_blank
-    NULL_ATTRS.each { |attr| self[attr] = nil if self[attr].blank? }
+    SEARCH_FIELDS.each { |attr| self[attr] = nil if self[attr].blank? }
   end
 	
   def generate_skus

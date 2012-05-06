@@ -1,25 +1,36 @@
+- if product_counter == 0
+  %thead
+    %tr
+      %th
+      %th Brand
+      %th Product
+      %th Variants / Subs / Images
+      %th Tags
+      %th Stores
+      %th Action
+
 %tr.product
-	%td
-		%input{:type=>"checkbox", :name=>"product_ids", :value=>product.id}
-	%td= link_to product.brand.name, products_path(:brand_id => product.brand_id)
-	%td= link_to product.name_for_amazon, product	
-	%td
-		%span{:class=>"badge badge-info", :title=>'Variants (Color)'}= product.variants.count
-		%span{:class=>"badge badge-inverse", :title=>'SubVariants (Color+Size)'}= product.sub_variants.count
-		- if product.variant_images.any?
-			%span{:class=>"badge badge-success", :title=>'Variant Images'}= product.variant_images.count	
+  %td
+    %input{:type=>"checkbox", :name=>"product_ids", :value=>product.id}
+  %td= link_to product.brand.name, products_path(:brand_id => product.brand_id)
+  %td= link_to product.name_for_amazon, product	
+  %td
+    %span{:class=>"badge badge-info", :title=>'Variants (Color)'}= product.variants.count
+    %span{:class=>"badge badge-inverse", :title=>'SubVariants (Color+Size)'}= product.sub_variants.count
+    - if product.variant_images.any?
+      %span{:class=>"badge badge-success", :title=>'Variant Images'}= product.variant_images.count	
 
-	%td
-		- tag_cloud(@tags, %w("label","label label-success","label label-warning","label label-important")) do |tag, css_class|
-			= link_to tag.name, :class => css_class
+  %td
+    - tag_cloud(@tags, %w("label","label label-success","label label-warning","label label-important")) do |tag, css_class|
+      = link_to tag.name, :class => css_class
 
-	%td
-		- product.stores.each do |s|
-			%span{:class=>"label label-inverse"}= s.name
+  %td
+    - product.stores.each do |s|
+      %span{:class=>"label label-inverse"}= s.name
 
-	%td
-		= link_to edit_product_path(product) do
-			%i.icon-pencil
+  %td
+    = link_to edit_product_path(product) do
+      %i.icon-pencil
 		
-		= link_to product, confirm: 'Are you sure?', method: :delete do
-			%i.icon-remove		
+    = link_to product, confirm: 'Are you sure?', method: :delete do
+      %i.icon-remove		

@@ -32,9 +32,11 @@ class SubVariantsController < ApplicationController
   # GET /sub_variants/1.json
   def show
     @sub_variant = SubVariant.find(params[:id])
+    @variant = @sub_variant.variant
 
     respond_to do |format|
       format.html # show.html.erb
+      format.js
       format.json { render json: @sub_variant }
     end
   end
@@ -44,9 +46,10 @@ class SubVariantsController < ApplicationController
   def new
     @sub_variant = SubVariant.new
     @variant = Variant.find(params[:variant_id])
+    @sub_variant.sku = @variant.sku
     @sub_variant.variant_id = @variant.id
     @product = @variant.product
-    @title = "Add SubVariant"  
+    @title = "Add SubVariant"
 
     respond_to do |format|
       format.html # new.html.erb
@@ -99,10 +102,12 @@ class SubVariantsController < ApplicationController
   # DELETE /sub_variants/1.json
   def destroy
     @sub_variant = SubVariant.find(params[:id])
+    @variant = @sub_variant.variant
     @sub_variant.destroy
 
     respond_to do |format|
       format.html { redirect_to sub_variants_url }
+      format.js
       format.json { head :ok }
     end
   end

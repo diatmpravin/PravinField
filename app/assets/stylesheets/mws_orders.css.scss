@@ -1,8 +1,6 @@
-hr { margin: 10px 0 10px 0; clear:both; width:99%; }
-table.order { width: 99%; padding-top: 10px;}
+
 table.order td.num { text-align: right; }
-table.order tr.total { background: #EEEEEE; font-weight: bold; }
-table.order th { background: #444444; color: #FFFFFF; }
+table.order tr.total { font-weight: bold; }
 div.block { background: #EEEEEE; border: 1px solid #CCCCCC; float: left; width: 48%; padding: 4px; margin: 4px; }
 div.block > form { float: right; }
 div.block h2 { padding: 0px; margin: 0px 0px 5px 0px; }

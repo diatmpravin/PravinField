@@ -7,7 +7,10 @@ class SubVariant < ActiveRecord::Base
 	validates_uniqueness_of :sku
 	validates_uniqueness_of :upc, :allow_nil => true
 
+  before_validation :nil_if_blank
 	after_save :generate_skus
+	
+  SEARCH_FIELDS = ['sku', 'size', 'size_code','upc','asin', 'amazon_name']	
 	
 	def product
 	  self.variant.product
@@ -22,8 +25,7 @@ class SubVariant < ActiveRecord::Base
 	end
 	
 	def self.search(search)
-    fields = ['sku', 'size', 'size_code','UPC','ASIN', 'amazon_name']
-  	select('variant_id').where(MwsHelper::search_helper(fields, search)).group('variant_id').collect { |sv| sv.variant.product_id }.uniq
+  	select('variant_id').where(MwsHelper::search_helper(SEARCH_FIELDS, search)).group('variant_id').collect { |sv| sv.variant.product_id }.uniq
 	end
 	
 	def upc_for_amazon
@@ -40,52 +42,60 @@ class SubVariant < ActiveRecord::Base
 	def name_for_amazon
 	  return "#{self.variant.name_for_amazon} #{self.size_code}" 
 	end
-	
+				
   #TODO make this unique for a store
   def build_mws_messages(listing, feed_type)
     
     if feed_type==MwsRequest::FEED_STEPS[0] #Feed::Enumerations::FEED_TYPES[:product_data]
       m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'SubVariant', :feed_type=>feed_type)
       p = self.product
+
+      description_data = {
+        'Title'=>self.name_for_amazon,
+        'Brand'=>p.brand.name,
+        #'Designer'=>'designer',
+        'Description'=>self.variant.description_for_amazon,
+        'BulletPoint'=>Product.unpack_keywords(p.bullet_points,5), # max 5
+        'ShippingWeight'=>['1','unitOfMeasure'=>'LB']
+      }
+      description_data.merge!({'MSRP'=>self.variant.msrp_for_amazon}) if !self.variant.msrp_for_amazon.nil?      
+      description_data.merge!({
+        'SearchTerms'=>Product.unpack_keywords(p.search_keywords,5), # max 5
+        'IsGiftWrapAvailable'=>'true',
+        'IsGiftMessageAvailable'=>'true'
+        #'RecommendedBrowseNode'=>'60583031', # only for Europe
+      })
+
+      variation_data = { 'Parentage'=>'child' }
+      variation_data.merge!({ 'Size'=>self.size }) if !self.size.nil?
+      variation_data.merge!({ 'Color'=>self.variant.color_for_amazon, 'VariationTheme'=>p.variation_theme })
+      
+      product_data = {
+        'Clothing'=>{
+          'VariationData'=> variation_data,
+          'ClassificationData'=>{
+            'ClothingType'=>p.product_type,
+            'Department'=>Product.unpack_keywords(p.department, 10), # max 10
+            'StyleKeywords'=>Product.unpack_keywords(p.style_keywords,10),  # max 10
+            'OccasionAndLifestyle'=>Product.unpack_keywords(p.occasion_lifestyle_keywords,10) # max 10
+          }#ClassificationData
+        }#Clothing
+      }#ProductData        
+      
+      product = { 'SKU'=>self.sku }
+      product.merge!({'StandardProductID'=>self.upc_for_amazon}) if !self.upc_for_amazon.nil?
+      product.merge!({
+        'ProductTaxCode'=>'A_GEN_NOTAX',                 
+        'ItemPackageQuantity'=>'1',
+        'NumberOfItems'=>'1',
+        'DescriptionData'=>description_data,
+        'ProductData'=>product_data
+      })
+      
       row = {
         'MessageID'=>m.id,
         'OperationType'=>listing.operation_type,
-        'Product'=> {
-          'SKU'=>self.sku,
-          'StandardProductID'=>self.upc_for_amazon,
-          'ProductTaxCode'=>'A_GEN_NOTAX',                 
-          'ItemPackageQuantity'=>'1',
-          'NumberOfItems'=>'1',
-          'DescriptionData'=>{
-            'Title'=>self.name_for_amazon,
-            'Brand'=>p.brand.name,
-            #'Designer'=>'designer',
-            'Description'=>self.variant.description_for_amazon,
-            'BulletPoint'=>Product.unpack_keywords(p.bullet_points,5), # max 5
-            'ShippingWeight'=>['1','unitOfMeasure'=>'LB'], #TODO value is probably not the right term
-            'MSRP'=>[self.variant.msrp.to_s, 'currency'=>self.variant.currency_for_amazon],
-            'SearchTerms'=>Product.unpack_keywords(p.search_keywords,5), # max 5
-            'IsGiftWrapAvailable'=>'true',
-            'IsGiftMessageAvailable'=>'true'
-            #'RecommendedBrowseNode'=>'60583031', # only for Europe
-          },#DescriptionData
-          'ProductData' => {
-            'Clothing'=>{
-              'VariationData'=> {
-                'Parentage'=>'child', 
-                'Size'=>self.size,
-                'Color'=>self.variant.color_for_amazon,
-                'VariationTheme'=>p.variation_theme,
-              },#VariationData
-              'ClassificationData'=>{
-                'ClothingType'=>p.product_type,
-                'Department'=>Product.unpack_keywords(p.department, 10), # max 10
-                'StyleKeywords'=>Product.unpack_keywords(p.style_keywords,10),  # max 10
-                'OccasionAndLifestyle'=>Product.unpack_keywords(p.occasion_lifestyle_keywords,10) # max 10
-              }#ClassificationData
-            }#Clothing
-          }#ProductData
-        }#Product
+        'Product'=>product
       }
       m.update_attributes!(:message => row)
       return row
@@ -94,18 +104,23 @@ class SubVariant < ActiveRecord::Base
       return [{ 'SKU'=>self.sku, 'Type'=>'Variation' }]
     elsif feed_type==MwsRequest::FEED_STEPS[2] #Feed::Enumerations::FEED_TYPES[:product_pricing]
       m = MwsMessage.create!(:listing_id=>listing.id, :matchable_id=>self.id, :matchable_type=>'SubVariant', :feed_type=>feed_type)
+      
+      price = {'SKU'=>self.sku, 'StandardPrice'=>self.variant.standard_price_for_amazon}
+      
+      if !self.variant.sale_price_for_amazon.nil?
+        price.merge!(
+          {'Sale'=>{
+            'StartDate' => '2004-03-03T00:00:00Z', #TODO
+            'EndDate' => '2020-03-03T00:00:00Z', #TODO
+            'SalePrice' => self.variant.sale_price_for_amazon
+            }
+          })
+      end
+      
       row = {
         'MessageID' => m.id,
         'OperationType' => listing.operation_type,
-        'Price' => {
-          'SKU'=>self.sku,
-          'StandardPrice' => [self.variant.price.to_s, 'currency'=>self.variant.currency_for_amazon], #TODO currency, should be of type OverrideCurrencyAmount
-          'Sale' => {
-            'StartDate' => '2004-03-03T00:00:00Z', #TODO
-            'EndDate' => '2020-03-03T00:00:00Z', #TODO
-            'SalePrice' => [self.variant.sale_price.to_s, 'currency'=>self.variant.currency_for_amazon]
-          }#Sale
-        }#Price
+        'Price' => price
       }
       m.update_attributes(:message => row)
       return row
@@ -134,7 +149,7 @@ class SubVariant < ActiveRecord::Base
         'Inventory' => {
           'SKU' => self.sku,
           #'FulfillmentCenterID' => 'Boston', #Option seller defined fulfillment center
-          'Quantity' => self.quantity,
+          'Quantity' => self.quantity ||=0,
           'FulfillmentLatency' => self.fulfillment_latency.nil? ? self.brand.fulfillment_latency : self.fulfillment_latency
           #'SwitchFulfillmentTo' => 'AFN' # Used only when switching fulfillment from AFN to MFN or back
         }#Inventory
@@ -160,7 +175,12 @@ class SubVariant < ActiveRecord::Base
     }    
   end
   
-	protected  
+	protected
+	
+  def nil_if_blank
+    SEARCH_FIELDS.each { |attr| self[attr] = nil if self[attr].blank? }
+  end
+  	  
   def generate_skus
     SkuMapping.auto_generate(self)
   end

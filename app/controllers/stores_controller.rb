@@ -15,7 +15,12 @@ class StoresController < ApplicationController
   # GET /stores/1.json
   def show
     @store = Store.find(params[:id])
-    @products = @store.products
+    @products = @store.products.length
+    @order_requests = @store.order_requests.page(params[:page]).per(10)
+    @feed_requests = @store.feed_requests.page(params[:page]).per(10)
+    @dirty_products = @store.get_dirty_products.length
+    @error_products = @store.error_products.length
+    @queued_products = @store.queued_products.length
 
     respond_to do |format|
       format.html # show.html.erb
@@ -82,4 +87,27 @@ class StoresController < ApplicationController
       format.json { head :ok }
     end
   end
+  
+  # POST /stores/1/sync
+  def sync
+    @store = Store.find(params[:id])
+    if @store.sync_listings
+      flash[:notice] = 'Sync successfully initiated'
+    else
+      flash[:notice] = 'No queued products to sync'
+    end
+    redirect_to store_path(@store)
+  end
+  
+  # POST /stores/1/queue
+  def queue
+    @store = Store.find(params[:id])
+    if @store.queue_products
+      flash[:notice] = 'Products successfully queued'
+    else
+      flash[:notice] = 'No modified products to queue'
+    end
+    redirect_to store_path(@store)
+  end
+  
 end

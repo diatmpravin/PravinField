@@ -1,24 +1,14 @@
 .pull-right
-	= form_tag products_path, :method => 'get', :class=>'form-search' do
-		= text_field_tag :search, @search
-		= submit_tag :search, :name => nil, :class => "btn btn-primary btn-small"
-		=link_to 'New Product', new_product_path, :class => "btn btn-small"
-
-.pull-right= paginate @products
+  = form_tag products_path, :method => 'get', :class=>'form-search' do
+    = text_field_tag :search, @search
+    = submit_tag :search, :name => nil, :class => "btn btn-primary btn-small"
+    =link_to '+ Add Product', new_product_path, :class => "btn btn-small"
 
 %h1= "Products: #{@title}"
+- if !params[:listing_group]
+  = paginate @products
 
-%table{:class=>'table table-condensed table-striped'}
-	%thead
-		%tr
-			%th
-			%th Brand
-			%th Product
-			%th Variants / Subs / Images
-			%th Tags
-			%th Stores
-			%th Action
-	%tbody= render @products
+%table{:class=>'table table-condensed table-striped'}= render @products
 	
 
 

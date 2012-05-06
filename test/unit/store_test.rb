@@ -208,4 +208,76 @@ class StoreTest < ActiveSupport::TestCase
 		assert_equal 0, p.reload.stores.count
 	end
 		
+	test "get dirty products should work" do
+	  s = FactoryGirl.create(:store)
+	  
+	  p1 = FactoryGirl.create(:product)
+	  p2 = FactoryGirl.create(:product)
+	  p3 = FactoryGirl.create(:product)
+	  p4 = FactoryGirl.create(:product)
+	  
+	  # store has 2 active listings, 1 queued, and two errors (both on the same product)
+	  # cannot set status in create because status is initialized to queued by model
+	  l1 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p1.id, :built_at=>Time.now)
+	  l1.update_attributes(:status=>'active')
+	  l2 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p2.id, :built_at=>Time.now)
+	  l2.update_attributes(:status=>'active')
+	  
+	  # One fresh queued listing
+	  l3 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p3.id, :built_at=>nil)
+	  
+	  # and 2 error listings (both for the same product)
+	  l4 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p4.id, :built_at=>Time.now)
+	  l4.update_attributes(:status=>'error')
+    l5 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p4.id, :built_at=>Time.now)
+    l5.update_attributes(:status=>'error')
+    
+    # Finally, one last listing, a queued listing for an already active product
+    l6 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p1.id)
+
+	  assert_equal 2, Listing.where(:status=>'active').count
+	  assert_equal 2, s.active_listings.length
+	  assert_equal 2, s.products.length
+	  assert_equal 2, s.queued_listings.length
+	  assert_equal 2, s.queued_products.length
+	  assert_equal 1, s.error_products.length
+	  assert_equal 2, s.error_listings.length
+    assert_equal 0, s.get_dirty_products.length
+
+    # first products does not become dirty because an update is already queued
+	  p1.update_attributes(:department=>'MENS')
+	  assert p1.reload.get_updated_at > l1.built_at
+	  assert l1.reload.is_dirty?
+    assert_equal 0, s.reload.get_dirty_products.length	   
+
+    # second product becomes dirty once modified after built_at
+	  p2.update_attributes(:department=>'MENS')
+	  assert p2.reload.get_updated_at > l2.built_at
+	  assert l2.reload.is_dirty?
+	  assert_equal 1, s.reload.get_dirty_products.length
+	  
+	  # a fresh queued product is already queued, so it can't become dirty
+	  p3.update_attributes(:department=>'MENS')
+	  assert !l3.reload.is_dirty?
+	  assert_equal 1, s.reload.get_dirty_products.length
+	  
+	  # an error product can become dirty and it stays in both lists
+	  p4.update_attributes(:department=>'MENS')
+	  assert_equal 2, s.reload.get_dirty_products.length
+	  assert_equal 1, s.error_products.length
+
+    # queuing the dirty products should remove them from the list of dirty products
+    assert_difference("Listing.count",2) do
+      s.queue_products
+    end
+    assert_equal 0, s.reload.get_dirty_products.length
+    
+    # syncing the queued listings should remove them from the queue
+    assert_equal 4, s.queued_listings.length
+    assert_equal 4, s.queued_products.length
+    s.sync_listings
+    assert_equal 0, s.reload.queued_products.length
+    assert_equal 'active', l2.reload.status # stays active until the end of processing
+	end
+
 end

@@ -17,7 +17,9 @@
       %td= listing.operation_type
       %td= listing.status
       %td= listing.built_at.to_s
-      %td= listing.mws_request_id
+      %td
+        - if !listing.mws_request_id.nil?
+          = link_to listing.mws_request_id, listing.mws_request
       %td
         = link_to 'Show', listing
         = link_to 'Destroy', listing, :confirm => 'Are you sure?', :method => :delete

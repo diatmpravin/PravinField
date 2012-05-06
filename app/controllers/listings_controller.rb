@@ -2,7 +2,11 @@ class ListingsController < ApplicationController
   # GET /listings
   # GET /listings.json
   def index
-    @listings = Listing.all
+	  if params[:mws_request_id]
+		  @listings = [Listing.find_by_mws_request_id(params[:mws_request_id])].flatten
+		else
+		  @listings = Listing.all
+		end
 
     respond_to do |format|
       format.html # index.html.erb
@@ -48,8 +52,8 @@ class ListingsController < ApplicationController
 
     respond_to do |format|
       if @listing.save
-        format.html { redirect_to @listing, notice: 'Listing was successfully created.' }
-        format.js { redirect_to @listing, notice: 'Listing was successfully created.' }
+        format.html { redirect_to @listing, notice: 'Product successfully queued.' }
+        format.js { redirect_to @listing, notice: 'Product successfully queued.' }
         format.json { render json: @listing, status: :created, location: @listing }
       else
         format.html { render action: "new" }

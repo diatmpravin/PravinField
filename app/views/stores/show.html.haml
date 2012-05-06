@@ -1,22 +1,42 @@
 .row
-  .span6
-    .pull-right= link_to 'Edit', edit_store_path(@store), :class=>'btn btn-small'
+  .span12
+    
+    -#TODO make these remote true
+    .pull-right
+
+      = link_to products_path(:store_id=>@store.id), :class=>'btn btn-success btn-small' do
+        %i.icon-search
+        = "View #{@products} products"
+
+      = link_to products_path(:store_id=>@store.id, :listing_group=>'error'), :class=>'btn btn-warning btn-small' do
+        %i.icon-search
+        = "View #{@error_products} errors"        
+
+      = link_to queue_store_path(@store), { :class=>'btn btn-small', :method=>:post, :controller=>'store', :action=>:queue } do
+        %i.icon-arrow-right
+        = "Queue #{@dirty_products} updated"
+
+
+      = link_to sync_store_path(@store), { :class=>'btn btn-info btn-small', :method=>:post, :controller=>'store', :action=>:sync} do
+        %i.icon-refresh
+        ="Sync #{@queued_products} queued"    
+
 
 
     %h1
       = image_tag(@store.icon(:original))
-      = @store.name
+      = "#{@store.name} (#{@store.store_type})"
+      = link_to 'Edit', edit_store_path(@store), :class=>'btn btn-small'
       
-    %table{:class=>'table'}
-      %tbody
-        %tr
-          %td Type
-          %td= @store.store_type
-
-  .span6
-
-
+    %br
 
 .row
-  %h2 Products in this store:
-  = render @products
+  .span6
+    %h2 Request Orders
+    %table{:class=>'table table-striped'}= render @order_requests
+    =paginate @order_requests  
+
+  .span6
+    %h2 Product Sync
+    %table{:class=>'table table-striped'}= render @feed_requests
+    = paginate @feed_requests

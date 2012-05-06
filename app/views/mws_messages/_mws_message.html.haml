@@ -1,0 +1,17 @@
+- if mws_message_counter == 0
+  %thead
+    %tr
+      %th Object
+      %th Feed Type
+      %th Result Code
+      %th Result Description
+      %th
+
+%tr
+  %td= link_to mws_message.matchable.name_for_amazon, mws_message.matchable
+  %td= mws_message.feed_type
+  %td= mws_message.result_code
+  %td= mws_message.result_description
+  %td
+    = link_to mws_message do
+      %i.icon-chevron-right     

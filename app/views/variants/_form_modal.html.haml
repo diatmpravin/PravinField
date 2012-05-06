@@ -1,6 +1,6 @@
 .modal-header
 	%button.close{ "data-dismiss"=>"modal"} x
-	%h3= 'Add/Edit Variant'
+	%h3= @title
 
 = form_for(@variant, :remote=>true, :html=>{:class=>'form-horizontal'}) do |f|
 	.modal-body
@@ -48,5 +48,5 @@
 					%td= f.text_field :cost_price, :class=>'input-small'
 	
 	.modal-footer
-		= f.submit 'Add/Edit Variant', :class=>'btn btn-primary btn-medium'
-		= link_to 'Destroy', @variant, confirm: 'Are you sure?', method: :delete, :class=>'btn btn-medium btn-danger'
+		= f.submit :class=>'btn btn-primary btn-medium'
+		= link_to 'Destroy', @variant, confirm: 'Are you sure?', method: :delete, :remote=>true, :class=>'btn btn-medium btn-danger'

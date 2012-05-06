@@ -1,13 +1,22 @@
 require 'amazon/mws'
 class Store < ActiveRecord::Base	
 	has_many :mws_requests, :dependent => :destroy
+	has_many :order_requests, :class_name=>'MwsRequest', :conditions=>["mws_requests.request_type=? AND mws_requests.mws_request_id IS NULL", 'ListOrders']
+  has_many :feed_requests, :class_name=>'MwsRequest', :conditions=>["mws_requests.request_type=? AND mws_requests.mws_request_id IS NULL AND mws_requests.feed_type=?",'SubmitFeed',MwsRequest::FEED_STEPS[0]]
+	
 	has_many :mws_orders, :dependent => :destroy
 	has_many :mws_order_items, :through => :mws_orders
 	
 	has_many :listings, :dependent => :destroy
-  has_many :queued_listings, :class_name => 'Listing', :conditions => ["listings.status=?", 'queued'], :order => 'listings.id ASC' # order is important to processing them FIFO
+
 	has_many :active_listings, :class_name => 'Listing', :conditions => ["listings.status=?", 'active'], :order => 'listings.built_at ASC'
+  has_many :queued_listings, :class_name => 'Listing', :conditions => ["listings.status=?", 'queued'], :order => 'listings.id ASC' # order is important to processing them FIFO
+  has_many :error_listings, :class_name => 'Listing', :conditions => ["listings.status=?", 'error'], :order => 'listings.built_at ASC'
+
 	has_many :products, :through => :active_listings # Products relation only works for active listings
+  has_many :queued_products, :through => :queued_listings, :source => 'product', :group=>'products.id'
+  has_many :error_products, :through => :error_listings, :source => 'product', :group=>'products.id'
+
 
 	has_attached_file :icon, PAPERCLIP_STORAGE_OPTIONS
 	after_initialize :init_store_connection
@@ -120,6 +129,14 @@ class Store < ActiveRecord::Base
     products.collect { |p| Listing.create!(:store_id=>self.id, :product_id=>p.id, :operation_type=>'Delete')}
 	end
 
+  def queue_products
+    dirty_products = self.get_dirty_products
+    return nil if !dirty_products.any?
+    dirty_products.each do |p|
+      Listing.create!(:product_id=>p.id, :store_id=>self.id)
+    end
+  end
+
   # Create an mws_request for an update operation type
   # Add queued listings to this request and prepare messages
   # Submit request (feed) to Amazon
@@ -150,8 +167,24 @@ class Store < ActiveRecord::Base
   		  l.process_shopify!(request) if !async
   		end
 
+      # TODO start background process
+      #options[:rails_env] ||= Rails.env
+      #args = options.map { |n, v| "#{n.to_s.upcase}='#{v}'" }
+      #system "/usr/bin/rake jobs:work #{args.join(' ')} --trace 2>&1 >> #{Rails.root}/log/rake.log &"
+      #system "script/delayed_job start"
+  		
   		return request # MWS returns a response, shopify returns a request, it is inconsistent
     end
+  end
+  
+  def get_dirty_products
+    arr = self.active_listings.collect { |l| l.product if l.is_dirty? && !l.product.queued_listings.any? }
+    arr += self.error_listings.collect { |l| l.product if l.is_dirty? && !l.product.queued_listings.any? }
+    arr.compact.uniq
+  end
+  
+  def get_dirty_count
+    get_dirty_products.count
   end
 	
 end

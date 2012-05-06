@@ -85,4 +85,11 @@ class SubVariantsControllerTest < ActionController::TestCase
 
     assert_redirected_to sub_variants_path
   end
+  
+  test "should destroy sub_variant via AJAX" do
+    assert_difference('SubVariant.count', -1) do
+      xhr :delete, :destroy, id: @sub_variant.to_param
+    end
+    assert_response :success
+  end  
 end

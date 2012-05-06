@@ -54,7 +54,8 @@ class VariantsController < ApplicationController
     @variant = Variant.new
     @product = Product.find(params[:product_id])
     @variant.product_id = @product.id
-    @variant.sku = "#{@variant.product.sku}-"
+    @variant.sku = @variant.product.sku #TODO add delimiter from sku pattern and a sku pattern reminder
+    @title = 'Add Variant'
 
     respond_to do |format|
       format.html # new.html.erb
@@ -66,6 +67,7 @@ class VariantsController < ApplicationController
   # GET /variants/1/edit
   def edit
     @variant = Variant.find(params[:id])
+    @title = 'Edit Variant'
   end
 
   # POST /variants
@@ -106,10 +108,12 @@ class VariantsController < ApplicationController
   # DELETE /variants/1.json
   def destroy
     @variant = Variant.find(params[:id])
+    @product = @variant.product
     @variant.destroy
 
     respond_to do |format|
       format.html { redirect_to @variant.product }
+      format.js
       format.json { head :ok }
     end
   end

@@ -99,4 +99,11 @@ class VariantsControllerTest < ActionController::TestCase
 
     assert_redirected_to @variant.product
   end
+  
+  test "should destroy variant via AJAX" do
+    assert_difference('Variant.count', -1) do
+      xhr :delete, :destroy, id: @variant.to_param
+    end
+    assert_response :success
+  end  
 end
