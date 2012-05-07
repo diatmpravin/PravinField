@@ -19,6 +19,7 @@ module Fieldday
       end
     end
 
+
     
     # Shopify API connection credentials:
     config.shopify.api_key = "04b6a9a830b55a658e6ccafa26f8e4ac"

@@ -56,15 +56,33 @@ class ProductsControllerTest < ActionController::TestCase
     assert_not_nil assigns(:products)
     assert_select '.product', 1
 
+    # groups based on listing status
+    @product5 = FactoryGirl.create(:product)
+    @listing = FactoryGirl.create(:listing, :store_id=>@store.id, :product_id=>@product5.id)
+    get :index, :store_id => @store.id, :listing_group => 'queued'
+    assert_select '.product', 1        
+    
+    @listing.update_attributes!(:status=>'error', :built_at=>Time.now)
+    assert_equal 1, @store.error_products.length
+    get :index, :store_id => @store.id, :listing_group => 'error'
+    assert_select '.product', 1    
+    
+    @listing.update_attributes!(:status=>'active')
+    @product5.update_attributes(:department=>'MENS')
+    assert @listing.reload.is_dirty?
+    
+    get :index, :store_id => @store.id, :listing_group => 'dirty'
+    assert_select '.product', 1
+
+    # After removing the listings, there are no products for this store
     @store.remove_listings([@product, @product3])
     @store.sync_listings(false)
-    assert_equal 0, @store.reload.products.count
-    
-    # After removing the listings, there are no products for this store
+    assert_equal 1, @store.reload.products.count # product 5 is still there
+
     get :index, :store_id => @store.id
     assert_response :success
     assert_not_nil assigns(:products)
-    assert_select '.product', 0
+    assert_select '.product', 1
   end
 
 	test "should get specific product if sku and brand_id are passed" do

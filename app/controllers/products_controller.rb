@@ -45,7 +45,7 @@ class ProductsController < ApplicationController
     	    @products = @store.error_products
     	  elsif params[:listing_group]=='queued'
     	    @title += " - queued products"
-    	    @products = @store.get_queued_products
+    	    @products = @store.queued_products
     	  elsif params[:listing_group]=='dirty'
     	    @title += ' - modified products not synced'
     	    @products = @store.get_dirty_products

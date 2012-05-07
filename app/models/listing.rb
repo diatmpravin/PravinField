@@ -5,7 +5,7 @@ class Listing < ActiveRecord::Base
   belongs_to :mws_request
   has_many :mws_messages, :dependent => :destroy
   
-  attr_accessible :product_id, :handle, :foreign_id, :store_id, :operation_type, :mws_request_id, :created_at, :status
+  attr_accessible :product_id, :handle, :foreign_id, :store_id, :operation_type, :mws_request_id, :created_at, :status, :built_at
   validates :product_id, :uniqueness=>{ :scope=>[:store_id, :status, :operation_type] }, :if => :is_unique_status?
   
   before_validation :clean_status_and_op_type, :on => :create
