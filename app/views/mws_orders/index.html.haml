@@ -5,8 +5,8 @@
   .span4
     #exportOrders.pull-right
       = form_tag export_to_csv_mws_orders_path, :autocomplete => 'off' ,:method => 'get', :class=>'form-inline' do
-        = text_field_tag :startDate, '' , :size => 10, :class => "exportOrdersDate input-small", :required => "required", :placeholder=> 'From date'
-        = text_field_tag :endDate, '' , :size => 10, :class => "exportOrdersDate input-small", :required => "required", :placeholder=>'To date'
+        = text_field_tag :start_date, '' , :size => 10, :class => "exportOrdersDate input-small", :required => "required", :placeholder=> 'From date'
+        = text_field_tag :end_date, '' , :size => 10, :class => "exportOrdersDate input-small", :required => "required", :placeholder=>'To date'
         = submit_tag "download", :class => "btn"
     .pull-right
       = form_tag mws_orders_path, :method => 'get', :class=>'form-search' do

@@ -56,14 +56,20 @@
                 %ul.dropdown-menu
                   = render 'shared/navigation'
 			
-									
-    .container
+
+    #container.container
       - if flash[:error]
-        #flasherrors{:class=>'alert'}= flash[:error]
+        #flasherrors{:class=>'alert'}
+          %button.close{ "data-dismiss" => 'alert'}= 'x'
+          = flash[:error]
       - if flash[:notice]
-        #flashnotices{:class=>'alert alert-success'}= flash[:notice]
+        #flashnotices{:class=>'alert alert-success'}
+          %button.close{ "data-dismiss" => 'alert'}= 'x'
+          = flash[:notice]
       - if flash[:alert]
-        #flashalerts{:class=>'alert alert-error'}= flash[:alert]
+        #flashalerts{:class=>'alert alert-error'}
+          %button.close{ "data-dismiss" => 'alert'}= 'x'
+          = flash[:alert]
 
       #myModal{:class=>'modal hide fade'}
 

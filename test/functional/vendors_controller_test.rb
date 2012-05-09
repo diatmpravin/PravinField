@@ -47,7 +47,7 @@ class VendorsControllerTest < ActionController::TestCase
       post :create, vendor: @vendor2.attributes
     end
 
-    assert_redirected_to vendor_path(assigns(:vendor))
+    assert_redirected_to vendors_path(assigns(:vendors))
   end
 
   test "should show vendor" do
@@ -62,7 +62,7 @@ class VendorsControllerTest < ActionController::TestCase
 
   test "should update vendor" do
     put :update, id: @vendor.to_param, vendor: @vendor.attributes
-    assert_redirected_to vendor_path(assigns(:vendor))
+    assert_redirected_to vendors_path(assigns(:vendors))
   end
 
   test "should destroy vendor" do

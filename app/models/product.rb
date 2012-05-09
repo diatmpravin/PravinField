@@ -26,6 +26,8 @@ class Product < ActiveRecord::Base
 	validates_presence_of :brand_id
 	validates_associated :brand
 	validates_uniqueness_of :sku, :scope => [:brand_id]
+	
+	validates_presence_of :name, :if => 'amazon_name.nil?'
   
   before_validation :nil_if_blank
 	after_save :generate_skus

@@ -1,17 +1,2 @@
-= link_to 'New Brand', new_brand_path
-%hr
-
-- @brands.each do |brand|
-	%div.brand
-		= link_to(image_tag(brand.icon(:thumb)),products_path(:brand_id => brand.id))
-		%br
-		%b= link_to "#{brand.name}"
-		%br
-		%i= link_to "#{brand.products.count} products", products_path(:brand_id => brand.id)
-		%i= link_to "(#{brand.vendor.name})", brand.vendor
-		%br
-		= link_to 'Show', brand
-		= link_to 'Edit', edit_brand_path(brand)
-		= link_to 'Destroy', brand, confirm: 'Are you sure?', method: :delete
-
-
+= link_to 'New Brand', new_brand_path, :class=>'btn btn-primary btn-large'
+%table{:class=>'table table-condensed'}= render @brands

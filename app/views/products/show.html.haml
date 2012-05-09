@@ -1,13 +1,13 @@
 .row
   .span5
 
-    %h1= @product.name_for_amazon
+    %h2= @product.name_for_amazon
     %br
 
-    .pull-left= link_to '+ Add Variant', new_variant_path(:product_id => @product.id), :remote=>true, :class=>'btn btn-small'
-    .pull-left= link_to 'Edit', edit_product_path(@product), :class=>'btn btn-small'
+    .pull-right= link_to '+ Add Variant', new_variant_path(:product_id => @product.id), :remote=>true, :class=>'btn btn-small'
+    .pull-right= link_to 'Edit', edit_product_path(@product), :class=>'btn btn-small'
 	
-    %div{:class=>'pull-left btn-group'}
+    %div{:class=>'pull-right btn-group'}
       = link_to '#', :class=>'btn btn-small dropdown-toggle', "data-toggle"=>"dropdown" do
         = "Sync"
         %span.caret
@@ -25,47 +25,50 @@
                   %i.icon-remove
                   = s.name
 	
-    .pull-right=link_to image_tag(@product.brand.icon(:thumb)), products_path(:brand_id => @product.brand.id)		
+    .pull-left=link_to image_tag(@product.brand.icon(:thumb)), products_path(:brand_id => @product.brand.id)		
 		
     %br
     %br
 
-    %dl.dl-horizontal
-      %dt Brand
-      %dd= @product.brand.name
+    %table{:class=>'table'}
+      %tbody
       
-      %dt SKU
-      %dd
-        = @product.sku
-        - if !@product.sku2.blank?
-          = ' / ' + @product.sku2
-		
-      %dt Category
-      %dd= @product.category
-
-      %dt Department
-      %dd= @product.department
-
-      %dt Product Type
-      %dd= @product.product_type
-
-      %dt Variation Theme
-      %dd= @product.variation_theme					
-
-      %dt Bullet Points
-      %dd= @product.bullet_points
-
-      %dt Style Keywords
-      %dd= @product.style_keywords
-
-      %dt Search Keywords
-      %dd= @product.search_keywords
-
-      %dt Occasion Lifestyle Keywords
-      %dd= @product.occasion_lifestyle_keywords
-
-      %dt Description
-      %dd= @product.description_for_amazon
+        %tr
+          %td Brand
+          %td= @product.brand.name
+        %tr
+          %td SKU
+          %td
+            = @product.sku
+            - if !@product.sku2.blank?
+              = ' / ' + @product.sku2
+        %tr
+          %td Category
+          %td= @product.category
+        %tr
+          %td Department
+          %td= @product.department
+        %tr
+          %td Product Type
+          %td= @product.product_type
+        %tr
+          %td Variation Theme
+          %td= @product.variation_theme					
+        %tr
+          %td Bullet Points
+          %td= @product.bullet_points
+        %tr
+          %td Style Keywords
+          %td= @product.style_keywords
+        %tr
+          %td Search Keywords
+          %td= @product.search_keywords
+        %tr
+          %td Occasion Lifestyle Keywords
+          %td= @product.occasion_lifestyle_keywords
+        %tr
+          %td Description
+          %td= @product.description_for_amazon
 	
   .span7#variants= render @product.variants
 

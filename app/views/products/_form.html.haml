@@ -1,82 +1,41 @@
-= form_for @product, :html=>{:class=>'form-horizontal'} do |f|
-	- if @product.errors.any?
-		#error_explanation
-			%h2= pluralize(@product.errors.count, "error") + " prohibited this product from being saved:"
+= simple_form_for @product, :html=>{:class=>'form-horizontal'} do |f|
 
-			%ul
-				- @product.errors.full_messages.each do |msg|
-					%li= msg
+  .row
+    .span6
 
-	.row
-		.span6
+      = f.association :brand
 
-			.control-group
-				= f.label :brand_id, :class=>'control-label'
-				.controls= f.collection_select :brand_id, Brand.all, :id, :name, {}, {:class=>'input-medium'}
-
-			.control-group
-				= f.label :name, :class=>'control-label'
-				.controls= f.text_field :name, :class=>'input-xlarge'
-				= f.label :amazon_name, :class=>'control-label'
-				.controls= f.text_field :amazon_name, :class=>'input-xlarge'
-
-			.control-group
-				= f.label :sku, :class=>'control-label'
-				.controls= f.text_field :sku
-				= f.label :sku2, :class=>'control-label'
-				.controls= f.text_field :sku2
-
-			.control-group
-				= f.label :category, :class=>'control-label'
-				.controls= f.text_field :category
-			.control-group
-				= f.label :department, :class=>'control-label'
-				.controls= f.text_field :department
-			.control-group
-				= f.label :product_type, :class=>'control-label'
-				.controls= f.text_field :product_type
-			.control-group
-				= f.label :variation_theme, :class=>'control-label'
-				.controls= f.text_field :variation_theme
-
-			.control-group
-				= f.label :description, :class=>'control-label'
-				.controls= f.text_area :description, :rows=>3, :class=>'input-xlarge'
-
-				= f.label :amazon_description, :class=>'control-label'
-				.controls= f.text_area :amazon_description, :rows=>3, :class=>'input-xlarge'
-
-
-		.span6
-
-			.control-group
-				= f.label :bullet_points, :class=>'control-label'
-				.controls= f.text_area :bullet_points, :rows=>3, :class=>'input-xlarge'
-
-			.control-group
-				= f.label :style_keywords, :class=>'control-label'
-				.controls= f.text_area :style_keywords, :rows=>3, :class=>'input-xlarge'
-
-			.control-group
-				= f.label :search_keywords, :class=>'control-label'
-				.controls= f.text_area :search_keywords, :rows=>3, :class=>'input-xlarge'
-
-			.control-group
-				= f.label :occasion_lifestyle_keywords, :class=>'control-label'
-				.controls= f.text_area :occasion_lifestyle_keywords, :rows=>3, :class=>'input-xlarge'
-
-			-#.control-group
-			-#	= f.label :meta_description, :class=>'control-label'
-			-#	.controls= f.text_area :meta_description, :rows=>3, :class=>'input-xlarge'
-
-			-#.control-group
-			-#	= f.label :meta_keywords, :class=>'control-label'
-			-#	.controls= f.text_area :meta_keywords, :rows=>3, :class=>'input-xlarge'
-		
-			.control-group
-				= f.label :name, "Tags for this product", :class=>'input-xlarge'
-				.controls= text_field_tag 'tags', ''
+      = f.input :name, :input_html=>{:class=>'input-xlarge'}
+      = f.input :amazon_name, :input_html=>{:class=>'input-xlarge'}
       
-			.actions.well
-				= f.submit 'Submit', :class=>'btn btn-primary btn-large'
-				= link_to 'Delete', @product, confirm: 'Are you sure? This will remove all Variants, VariantImages, and SubVariants as well.  There is no undo.', method: :delete , :class=>'btn btn-danger btn-large'
+      = f.input :sku, :placeholder=>'sku', :input_html=>{:class=>'input-small'}, :wrapper_html=>{:class=>'inline'}
+      = f.input :sku2, :placeholder=>'sku2', :label=>false, :input_html=>{:class=>'input-small'}
+
+      = f.input :category
+			
+      = f.input :department, :collection=>["Men's", "Women's", "Unisex"]
+			
+      = f.input :product_type, :collection=>['Accessory', 'Shorts', 'Shirt', 'Pants', 'Jacket']
+      = f.input :variation_theme, :collection=>['Size', 'SizeColor']
+      
+      .actions.controls
+        = f.button :submit, :class=>'btn btn-primary btn-large'
+        = link_to 'Delete', @product, confirm: 'Are you sure? This will remove all Variants, VariantImages, and SubVariants as well.  There is no undo.', method: :delete , :class=>'btn btn-danger btn-large'
+
+
+    .span6
+
+      = f.input :description, :as=>:text, :input_html=>{:rows=>3, :class=>'input-xlarge'}
+      = f.input :amazon_description, :as=>:text, :input_html=>{:rows=>3, :class=>'input-xlarge'}
+
+    
+
+      = f.input :bullet_points, :as=>:text, :input_html=>{ :rows=>3, :class=>'input-xlarge' }
+      = f.input :style_keywords, :as=>:text, :input_html=>{:rows=>3, :class=>'input-xlarge'}
+      = f.input :search_keywords, :as=>:text, :input_html=>{:rows=>3, :class=>'input-xlarge'}
+      = f.input :occasion_lifestyle_keywords, :input_html=>{:as=>:text, :rows=>3, :class=>'input-xlarge'}
+	
+      .control-group
+        %label.collection-label= "Tags for this product"
+        .controls= text_field_tag 'tags', ''
+          

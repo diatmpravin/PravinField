@@ -36,4 +36,14 @@ class MwsOrdersControllerTest < ActionController::TestCase
     assert_redirected_to mws_order_path(assigns(:mws_order))
   end
   
+  test "should export orders to CSV" do
+    get :export_to_csv
+    
+    get :export_to_csv, :start_date=>Time.now
+    
+    get :export_to_csv, :start_date=>Time.now, :end_date=>Time.now
+    
+    pending
+  end
+  
 end

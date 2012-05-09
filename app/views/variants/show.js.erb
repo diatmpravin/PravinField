@@ -1,5 +1,5 @@
 if( $('#variant_<%= @variant.id %>').length==0){
-	$('#myModal').modal('toggle');	
+	$('#myModal').modal('toggle');
 	$('#variants').append("<%= j render @variant %>");
 	$('#variant_<%= @variant.id %>').effect("highlight", {}, 3000);	
 }else{
@@ -7,3 +7,4 @@ if( $('#variant_<%= @variant.id %>').length==0){
 	$('#variant_<%= @variant.id %>').replaceWith("<%= j render @variant %>");
 	$('#variant_<%= @variant.id %>').effect("highlight", {}, 3000);
 }
+<%= show_flashes %>

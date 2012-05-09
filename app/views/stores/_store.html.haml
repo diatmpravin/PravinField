@@ -11,9 +11,8 @@
 %tr
   %td
     = link_to store do
-      =image_tag(store.icon)
-      %h2= store.name
-      %h4= store.store_type
+      %h2= "#{store.name} (#{store.store_type})"
+      =image_tag(store.icon)      
   %td.c
     - active_count = store.products.length
     - if active_count > 0

@@ -23,7 +23,6 @@ class ListingsController < ApplicationController
 
     respond_to do |format|
       format.html # show.html.erb
-      format.js
       format.json { render json: @listing }
     end
   end
@@ -50,13 +49,21 @@ class ListingsController < ApplicationController
   def create
     @listing = Listing.new(params[:listing])
 
+
     respond_to do |format|
       if @listing.save
-        format.html { redirect_to @listing, notice: 'Product successfully queued.' }
-        format.js { redirect_to @listing, notice: 'Product successfully queued.' }
+        flash[:notice] = "Product successfully queued in #{@listing.store.name}"
+        format.html { redirect_to @listing }
+        format.js
         format.json { render json: @listing, status: :created, location: @listing }
       else
+        if !@listing.store.nil?
+          flash[:error] = "Product is already queued in #{@listing.store.name}"
+        else
+          flash[:error] = "Error adding product to queue"
+        end
         format.html { render action: "new" }
+        format.js
         format.json { render json: @listing.errors, status: :unprocessable_entity }
       end
     end

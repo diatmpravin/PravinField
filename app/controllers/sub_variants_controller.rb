@@ -71,11 +71,14 @@ class SubVariantsController < ApplicationController
 
     respond_to do |format|
       if @sub_variant.save
-        format.html { redirect_to @sub_variant, notice: 'SubVariant was successfully created.' }
-        format.js { redirect_to @sub_variant, notice: 'SubVariant was successfully created.' }
+        flash[:notice] = 'SubVariant was successfully created'
+        format.html { redirect_to @sub_variant }
+        format.js { redirect_to @sub_variant }
         format.json { render json: @sub_variant, status: :created, location: @sub_variant }
       else
+        @title = 'Add SubVariant'
         format.html { render action: "new" }
+        format.js { render action: "new" }
         format.json { render json: @sub_variant.errors, status: :unprocessable_entity }
       end
     end
@@ -88,11 +91,14 @@ class SubVariantsController < ApplicationController
 
     respond_to do |format|
       if @sub_variant.update_attributes(params[:sub_variant])
-        format.html { redirect_to @sub_variant, notice: 'SubVariant was successfully updated.' }
-        format.js { redirect_to @sub_variant, notice: 'SubVariant was successfully updated.' }
+        flash[:notice] = 'SubVariant was successfully updated'
+        format.html { redirect_to @sub_variant }
+        format.js { redirect_to @sub_variant }
         format.json { head :ok }
       else
+        @title = 'Edit SubVariant'
         format.html { render action: "edit" }
+        format.js { render action: "edit" }
         format.json { render json: @sub_variant.errors, status: :unprocessable_entity }
       end
     end
@@ -106,6 +112,7 @@ class SubVariantsController < ApplicationController
     @sub_variant.destroy
 
     respond_to do |format|
+      flash[:notice] = 'SubVariant destroyed successfully'
       format.html { redirect_to sub_variants_url }
       format.js
       format.json { head :ok }

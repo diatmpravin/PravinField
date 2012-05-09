@@ -77,11 +77,14 @@ class VariantsController < ApplicationController
 
     respond_to do |format|
       if @variant.save
-        format.html { redirect_to @variant, notice: 'Variant was successfully created.' }
-        format.js { redirect_to @variant, notice: 'Variant was successfully created.' }
+        flash[:notice] = 'Variant was successfully created'
+        format.html { redirect_to @variant }
+        format.js { redirect_to @variant }
         format.json { render json: @variant, status: :created, location: @variant }
       else
+        @title = 'Add Variant'
         format.html { render action: "new" }
+        format.js { render action: "new" }
         format.json { render json: @variant.errors, status: :unprocessable_entity }
       end
     end
@@ -94,11 +97,14 @@ class VariantsController < ApplicationController
 
     respond_to do |format|
       if @variant.update_attributes(params[:variant])
-        format.html { redirect_to @variant, notice: 'Variant was successfully updated.' }
-        format.js { redirect_to @variant, notice: 'Variant was successfully updated.' }
+        flash[:notice] = 'Variant was successfully updated'
+        format.html { redirect_to @variant }
+        format.js { redirect_to @variant }
         format.json { head :ok }
       else
+        @title = 'Edit Variant'
         format.html { render action: "edit" }
+        format.js { render action: "edit" }
         format.json { render json: @variant.errors, status: :unprocessable_entity }
       end
     end
@@ -112,6 +118,7 @@ class VariantsController < ApplicationController
     @variant.destroy
 
     respond_to do |format|
+      flash[:notice] = 'Variant destroyed successfully'
       format.html { redirect_to @variant.product }
       format.js
       format.json { head :ok }

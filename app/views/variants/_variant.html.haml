@@ -1,7 +1,10 @@
-.row{:id=>"variant_#{variant.id}"}
+%div{:id=>"variant_#{variant.id}", :class=>'row well'}
   .span5
-    .pull-right= link_to '+ SubVariant', new_sub_variant_path(:variant_id=>variant.id), :remote=>true, :class=>'btn btn-small'
-    %h3
+    .pull-right
+      = link_to 'edit', edit_variant_path(variant), :remote=>true, :class=>'btn btn-small'
+      = link_to '+ sub', new_sub_variant_path(:variant_id=>variant.id), :remote=>true, :class=>'btn btn-small'
+
+    %h5
       = link_to edit_variant_path(variant), :remote=>true do
         -#= "#{variant.sku}: "
         = "#{variant.color1} " if variant.color1
@@ -35,6 +38,6 @@
         =render variant.sub_variants
 
   .span1
-    = link_to '+ Image', new_variant_image_path(:variant_id=>variant.id), :class=>'btn btn-small', :remote=>true
+    = link_to '+ image', new_variant_image_path(:variant_id=>variant.id), :class=>'btn btn-small', :remote=>true
     %ul{:id=>"variant_#{variant.id}_images", :class=>'thumbnails'}
       = render :partial => '/variant_images/variant_image', :collection => variant.variant_images, :locals => { :style => 'thumb' }

@@ -48,12 +48,12 @@ Fieldday::Application.routes.draw do
   resources :mws_order_items, :only => [:show]
   resources :analytics, :only => [:index]	
 
-  match 'welcome'            => 'home#welcome'
-  match 'design'             => 'home#design'
-  match 'login'              => 'login#index',        :as => :login
-  match 'login/authenticate' => 'login#authenticate', :as => :authenticate
-  match 'login/finalize'     => 'login#finalize',     :as => :finalize
-  match 'login/logout'       => 'login#logout',       :as => :logout
+  #match 'welcome'            => 'home#welcome'
+  #match 'design'             => 'home#design'
+  #match 'login'              => 'login#index',        :as => :login
+  #match 'login/authenticate' => 'login#authenticate', :as => :authenticate
+  #match 'login/finalize'     => 'login#finalize',     :as => :finalize
+  #match 'login/logout'       => 'login#logout',       :as => :logout
   root :to                   => 'home#index'
 
   # The priority is based upon order of creation:

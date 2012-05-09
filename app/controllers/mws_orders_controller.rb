@@ -52,8 +52,9 @@ class MwsOrdersController < ApplicationController
   end
   
   def export_to_csv
-  	if params[:startDate]
-  		@orders = MwsOrder.where(:purchase_date => (params[:startDate].to_date)..(params[:endDate].to_date) ) 
+  	if params[:start_date]
+  		@orders = MwsOrder.where(:purchase_date => (params[:start_date].to_date)..(params[:end_date].to_date)) if params[:end_date]
+  		@orders = MwsOrder.where(:purchase_date => (params[:start_date].to_date)..(Time.now.to_date)) if !params[:end_date]
   	else
   		@orders = MwsOrder.find(:all)
   	end  	

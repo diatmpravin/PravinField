@@ -1,0 +1,21 @@
+- if import_counter == 0
+  %thead
+    %tr
+      %th Import date
+      %th Format
+      %th Status
+      %th Input file
+      %th Error file
+
+%tr
+  %td
+    - if !import.import_date.nil?
+      = import.import_date.strftime("%d-%B-%Y")
+  %td= import.format
+  %td= import.status			
+  %td= link_to 'Input File', import.input_file.url
+  %td
+    - if !import.error_file.url.blank?
+      = link_to 'Error File', import.error_file.url
+    - else
+      = "No errors"

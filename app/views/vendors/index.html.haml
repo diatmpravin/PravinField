@@ -1,15 +1,2 @@
-- @vendors.each do |vendor|
-	%div.vendor
-		= link_to(image_tag(vendor.icon),products_path(:vendor_id => vendor.id))
-		%br
-		%b= vendor.name
-		%br
-		= link_to "#{vendor.products.count} products", products_path(:vendor_id => vendor.id)
-		%br
-		= link_to 'Show', vendor
-		= link_to 'Edit', edit_vendor_path(vendor)
-		= link_to 'Destroy', vendor, confirm: 'Are you sure?', method: :delete
-
-%br
-%hr
-= link_to 'New Vendor', new_vendor_path
+= link_to 'New Vendor', new_vendor_path, :class=>'btn btn-primary btn-large'
+%table{:class=>'table table-condensed'}= render @vendors

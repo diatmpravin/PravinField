@@ -31,7 +31,7 @@ class BrandsControllerTest < ActionController::TestCase
     assert_difference('Brand.count') do
       post :create, brand: @brand2.attributes
     end
-    assert_redirected_to brands_path
+    assert_redirected_to brands_path(assigns(:brands))
 
     post :create, brand: @brand2.attributes
     assert_response :success # render new, not a redirect
@@ -51,7 +51,7 @@ class BrandsControllerTest < ActionController::TestCase
     assert_equal @brand.name, b['']['name'] #TODO why is root element blank?
     
     get :by_name, :name=>'unknown name'
-    assert_redirected_to brands_path
+    assert_redirected_to brands_path(assigns(:brands))
   end
 
   test "should get edit" do

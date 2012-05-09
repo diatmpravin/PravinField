@@ -20,7 +20,7 @@ class VendorsController < ApplicationController
   # GET /vendors
   # GET /vendors.json?name=Luxottica
   def index
-    @vendors = Vendor.all
+    @vendors = Vendor.order('name ASC')
     if params[:name]
     	@vendor = Vendor.find_by_name(params[:name])
     end    
@@ -70,7 +70,7 @@ class VendorsController < ApplicationController
 
     respond_to do |format|
       if @vendor.save
-        format.html { redirect_to @vendor, notice: 'Vendor was successfully created.' }
+        format.html { redirect_to vendors_path, notice: 'Vendor was successfully created.' }
         format.json { render json: @vendor, status: :created, location: @vendor }
       else
         format.html { render action: "new" }
@@ -86,7 +86,7 @@ class VendorsController < ApplicationController
 
     respond_to do |format|
       if @vendor.update_attributes(params[:vendor])
-        format.html { redirect_to @vendor, notice: 'Vendor was successfully updated.' }
+        format.html { redirect_to vendors_path, notice: 'Vendor was successfully updated.' }
         format.json { head :ok }
       else
         format.html { render action: "edit" }

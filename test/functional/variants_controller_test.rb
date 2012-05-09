@@ -64,6 +64,8 @@ class VariantsControllerTest < ActionController::TestCase
 			xhr :post, :create, variant:@variant2.attributes
 			assert_redirected_to variant_path(assigns(:variant))
 			assert_equal last_id+1, Variant.last.id
+	    #assert_select '#flashnotices'
+      #assert_select_jquery :show, '#flashnotices'	
 		end
 	end
 
