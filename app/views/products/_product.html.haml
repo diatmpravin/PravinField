@@ -14,7 +14,7 @@
 		= link_to image_tag('delete.png', :title=>'Delete Product', :alt=>'X'), product, confirm: 'Are you sure?', method: :delete
 		
 		-tag_cloud(@tags, %w("label","label label-success","label label-warning","label label-important")) do |tag, css_class|
-			= link_to tag.name, :class => css_class
+			= link_to tag.name, :class => "label label-warning"
 
 	-#%td
 	-#	- product_stores_arr = product.products_stores
