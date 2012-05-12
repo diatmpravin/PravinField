@@ -1,0 +1,34 @@
+- if vendor_counter == 0
+  %thead
+    %tr
+      %th
+      %th Logo
+      %th.c Brands
+      %th.c Products
+      %th Link
+      %th
+
+%tr
+  %td
+    = link_to vendor do
+      %h3= "#{vendor.name}"
+  %td= image_tag(vendor.icon.url(:thumb))      
+  %td.c
+    - brand_count = vendor.brands.length
+    - if brand_count > 0
+      = link_to products_path(:vendor_id => vendor.id) do
+        %span{:class=>'badge'}= brand_count
+  %td.c
+    - product_count = vendor.products.length
+    - if product_count > 0
+      = link_to products_path(:vendor_id => vendor.id) do
+        %span{:class=>'badge badge-success'}= product_count
+  %td
+    - if !vendor.base_url.nil?
+      = link_to 'Base', vendor.base_url
+    - if !vendor.login_url.nil?
+      = link_to 'Login', vendor.login_url 
+  %td
+    = link_to 'Show', vendor
+    = link_to 'Edit', edit_vendor_path(vendor)
+    = link_to 'Destroy', vendor, confirm: 'Are you sure?', method: :delete

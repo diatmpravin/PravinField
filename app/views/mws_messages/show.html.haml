@@ -1,0 +1,34 @@
+%h2 MWS Message detail
+
+%dl.dl-horizontal
+  %dt Request
+  %dd= link_to 'request', @mws_message.listing.mws_request
+
+  %dt Object
+  %dd= link_to @mws_message.matchable.name_for_amazon, @mws_message.matchable
+
+  %dt Object type
+  %dd= @mws_message.matchable_type
+
+  - if !@mws_message.variant_image_id.nil?
+    %dt Variant image
+    %dd= link_to 'image', @mws_message.variant_image
+  
+  %dt Created at
+  %dd= @mws_message.created_at
+  
+  %dt Feed type
+  %dd= @mws_message.feed_type
+  
+  - if !@mws_message.result_code.nil?
+    %dt Result code
+    %dd= @mws_message.result_code
+  
+    %dt Message code
+    %dd= @mws_message.message_code
+  
+    %dt Result description
+    %dd= @mws_message.result_description
+  
+  %dt Message
+  %dd= @mws_message_xml

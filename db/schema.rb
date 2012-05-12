@@ -11,7 +11,7 @@
 #
 # It's strongly recommended to check this file into your version control system.
 
-ActiveRecord::Schema.define(:version => 20120502054828) do
+ActiveRecord::Schema.define(:version => 20120506220129) do
 
   create_table "brands", :force => true do |t|
     t.string   "name"
@@ -66,12 +66,11 @@ ActiveRecord::Schema.define(:version => 20120502054828) do
     t.string   "handle"
     t.string   "foreign_id"
     t.integer  "mws_request_id"
-    t.datetime "created_at",        :null => false
-    t.datetime "updated_at",        :null => false
+    t.datetime "created_at",     :null => false
+    t.datetime "updated_at",     :null => false
     t.string   "status"
     t.string   "operation_type"
     t.datetime "built_at"
-    t.integer  "parent_listing_id"
   end
 
   create_table "mws_messages", :force => true do |t|
@@ -320,20 +319,14 @@ ActiveRecord::Schema.define(:version => 20120502054828) do
     t.text     "search_keywords"
     t.text     "bullet_points"
     t.string   "sku2"
+    t.string   "amazon_name"
+    t.string   "amazon_description"
+    t.string   "fulfillment_channel"
   end
 
   add_index "products", ["brand_id"], :name => "index_products_on_brand_id"
   add_index "products", ["category"], :name => "index_products_on_category"
   add_index "products", ["sku"], :name => "index_products_on_base_sku"
-
-  create_table "products_stores", :force => true do |t|
-    t.integer  "product_id"
-    t.integer  "store_id"
-    t.string   "handle"
-    t.string   "foreign_id"
-    t.datetime "created_at"
-    t.datetime "updated_at"
-  end
 
   create_table "requests", :force => true do |t|
     t.string   "amazon_request_id"
@@ -427,6 +420,7 @@ ActiveRecord::Schema.define(:version => 20120502054828) do
     t.text     "size_code"
     t.integer  "fulfillment_latency"
     t.integer  "quantity"
+    t.string   "amazon_name"
   end
 
   create_table "taggings", :force => true do |t|
@@ -519,9 +513,7 @@ ActiveRecord::Schema.define(:version => 20120502054828) do
     t.datetime "deleted_at"
     t.boolean  "is_master"
     t.integer  "position"
-    t.string   "amazon_product_id"
-    t.string   "amazon_product_name"
-    t.text     "amazon_product_description"
+    t.text     "amazon_description"
     t.datetime "created_at"
     t.datetime "updated_at"
     t.string   "upc"
@@ -533,7 +525,6 @@ ActiveRecord::Schema.define(:version => 20120502054828) do
     t.string   "size_code"
   end
 
-  add_index "variants", ["amazon_product_id"], :name => "index_variants_on_amazon_product_id"
   add_index "variants", ["product_id"], :name => "index_variants_on_product_id"
   add_index "variants", ["sku"], :name => "index_variants_on_sku"
 

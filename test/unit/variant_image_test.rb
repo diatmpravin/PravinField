@@ -56,14 +56,17 @@ class VariantImageTest < ActiveSupport::TestCase
 	end
 
 	test "image upload should work via remote URL" do
-		vi = FactoryGirl.create(:variant_image, :unique_image_file_name => REMOTE_IMAGE)
-		assert vi.valid?
-		assert_equal REMOTE_IMAGE, vi.unique_image_file_name 		
+		vi = FactoryGirl.build(:variant_image, :unique_image_file_name => REMOTE_IMAGE)		
+		#TODO if no internet connectivity
+		vi.stubs(:open_io_uri).returns(vi.open_io_file(LOCAL_IMAGE))
+    vi.save
+	  assert_equal REMOTE_IMAGE, vi.unique_image_file_name
+	  assert vi.valid?		
 		assert_equal 300, vi.image_width # we know logo.png is 300x60
 		assert_equal 60, vi.image_height
 		
 		# Confirm primary image was saved
-		assert_equal 7447, vi.image_file_size # we know logo.png is 7kb
+		assert_equal 7447, vi.image_file_size  # we know logo.png is 7kb
 		assert_equal 'image/png', vi.image_content_type
 		assert_equal IMAGE_FILE_NAME, vi.image_file_name
 

@@ -1,5 +1,43 @@
-%table
-	%tr
-		%td.variant_images= render :partial => '/variant_images/variant_image', :collection => variant.variant_images, :locals => { :style => 'thumb' }
-		%td= link_to "#{variant.sku}: #{variant.color1} #{variant.color2}, $#{variant.cost_price}, #{variant.availability}", variant
-		
+%div{:id=>"variant_#{variant.id}", :class=>'row well'}
+  .span5
+    .pull-right
+      = link_to 'edit', edit_variant_path(variant), :remote=>true, :class=>'btn btn-small'
+      = link_to '+ sub', new_sub_variant_path(:variant_id=>variant.id), :remote=>true, :class=>'btn btn-small'
+
+    %h5
+      = link_to edit_variant_path(variant), :remote=>true do
+        -#= "#{variant.sku}: "
+        = "#{variant.color1} " if variant.color1
+        = "(#{variant.color1_code}) " if variant.color1_code
+        ="#{variant.color2} " if variant.color2
+        = "(#{variant.color2_code})" if variant.color2_code
+
+    %p
+      %b= variant.currency
+      - if variant.msrp
+        %span{:class=>'label', :title=>'MSRP'}= variant.msrp
+      - if variant.price
+        %span{:class=>'label label-success', :title=>'Full Price'}= variant.price
+      - if variant.sale_price
+        %span{:class=>'label label-info', :title=>'Sale Price'}= variant.sale_price
+      - if variant.cost_price
+        %span{:class=>'label label-warning', :title=>'Cost'}= variant.cost_price
+
+    %p= variant.amazon_description
+			
+    %table{:class=>"table table-condensed table-striped"}
+      - if !defined?(variant_counter) || variant_counter==0
+        %thead
+          %tr
+            %th Size
+            %th SKU
+            %th UPC / ASIN
+            %th Qty
+            %th Lag
+      %tbody{:id=>"variant_#{variant.id}_sub_variants"}
+        =render variant.sub_variants
+
+  .span1
+    = link_to '+ image', new_variant_image_path(:variant_id=>variant.id), :class=>'btn btn-small', :remote=>true
+    %ul{:id=>"variant_#{variant.id}_images", :class=>'thumbnails'}
+      = render :partial => '/variant_images/variant_image', :collection => variant.variant_images, :locals => { :style => 'thumb' }

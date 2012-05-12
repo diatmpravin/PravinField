@@ -1,0 +1,8 @@
+%tr{:id=>"sub_variant_#{sub_variant.id}"}
+	%td= link_to "#{sub_variant.size} (#{sub_variant.size_code})", edit_sub_variant_path(sub_variant), :remote=>true
+	%td= link_to sub_variant.sku, edit_sub_variant_path(sub_variant), :remote=>true
+	%td
+		= sub_variant.upc if !sub_variant.upc.nil?
+		= sub_variant.asin if !sub_variant.asin.nil?
+	%td= sub_variant.quantity
+	%td= sub_variant.fulfillment_latency

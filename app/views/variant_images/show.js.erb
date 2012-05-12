@@ -1,0 +1,4 @@
+$('#variant_<%= @variant.id %>_images').html("<%= j render @variant.variant_images %>")
+$('#myModal').modal('toggle')
+$('#variant_<%= @variant.id %>_images').effect("highlight", {}, 3000);
+<%= show_flashes %>

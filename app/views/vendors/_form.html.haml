@@ -1,0 +1,8 @@
+= simple_form_for(@vendor, :html=>{:class=>'form-horizontal'}) do |f|
+  = f.input :name
+  = f.input :base_url
+  = f.input :login_url
+  = f.input :username
+  = f.input :password
+  = f.input :icon, :as=>:file
+  .actions.controls= f.button :submit, :class=>'btn btn-primary btn-large'

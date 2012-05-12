@@ -78,10 +78,10 @@ class MwsRequestTest < ActiveSupport::TestCase
 	# process_response
 	
 	#TODO
-	test "validate_feed should work" do
-	  pending
-	  req = FactoryGirl.create(:mws_request)
-	  req.validate_feed
-	end
+	#test "validate_feed should work" do
+	#  pending
+	#  req = FactoryGirl.create(:mws_request)
+	#  req.validate_feed
+	#end
 	
 end

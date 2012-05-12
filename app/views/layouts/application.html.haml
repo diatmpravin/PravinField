@@ -26,44 +26,57 @@
             =image_tag(asset_path('logo.png'), :width=>'50px')
           .container.nav-collapse
             %ul.nav
-              %li= link_to 'Home', '/home'
-              %li.dropdown
-                %a(href='#' class="dropdown-toggle" data-toggle="dropdown") Amazon
-                %ul.dropdown-menu
-                  %li= link_to 'Requests', mws_requests_path
-                  %li= link_to 'Orders', mws_orders_path
+              %li= link_to 'Home', '/'
               %li= link_to 'Stores', stores_path
-              %li= link_to 'Vendors', vendors_path
-              %li= link_to 'Brands', brands_path
-              %li= link_to 'Products', products_path
+              %li= link_to 'Orders', mws_orders_path
               %li.dropdown
-                %a(href='#' class="dropdown-toggle" data-toggle="dropdown") Mappings
+                =link_to '#', {'data-toggle'=>"dropdown", :class=>"dropdown-toggle" } do              
+                  Inventory
+                  %b.caret
+                %ul.dropdown-menu
+                  %li= link_to 'Vendors', vendors_path
+                  %li= link_to 'Brands', brands_path
+                  %li= link_to 'Products', products_path
+                  %li= link_to 'Imports', imports_path
+              -#%li= link_to 'Listings', listings_path
+              %li.dropdown
+                =link_to '#', {'data-toggle'=>"dropdown", :class=>"dropdown-toggle" } do              
+                  Mappings
+                  %b.caret
                 %ul.dropdown-menu
                   %li= link_to 'States', products_path							
                   %li= link_to 'SKU Patterns', sku_patterns_path
                   %li= link_to 'SKU Mappings', sku_mappings_path
               %li= link_to 'Analytics', analytics_path
-              %li= link_to 'Imports', imports_path
+
               %li.dropdown
-                %a(href='#' class="dropdown-toggle" data-toggle="dropdown") Admin
+                =link_to '#', {'data-toggle'=>"dropdown", :class=>"dropdown-toggle" } do
+                  Admin
+                  %b.caret
                 %ul.dropdown-menu
                   = render 'shared/navigation'
+			
+
+    #container.container
       - if flash[:error]
-        #flasherrors= flash[:error]
+        #flasherrors{:class=>'alert'}
+          %button.close{ "data-dismiss" => 'alert'}= 'x'
+          = flash[:error]
       - if flash[:notice]
-        #flashnotices= flash[:notice]
+        #flashnotices{:class=>'alert alert-success'}
+          %button.close{ "data-dismiss" => 'alert'}= 'x'
+          = flash[:notice]
       - if flash[:alert]
-        #flasherrors= flash[:alert]
+        #flashalerts{:class=>'alert alert-error'}
+          %button.close{ "data-dismiss" => 'alert'}= 'x'
+          = flash[:alert]
 
-    .container
+      #myModal{:class=>'modal hide fade'}
 
-      .content
-        .row
-          .span12
-            = yield
+      .content= yield
     
-      %footer
-        %p &copy; HDO Group 2012
+      -#%footer
+      -#  %p &copy; HDO Group 2012
     /
       Javascripts
       \==================================================

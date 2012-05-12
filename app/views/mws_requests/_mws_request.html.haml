@@ -1,0 +1,35 @@
+- if mws_request_counter == 0
+  %thead
+    %tr
+      %th When
+      %th Status
+      %th
+        - if mws_request.request_type=='ListOrders'
+          = 'Orders'
+        - elsif mws_request.request_type=='ListOrderItems'
+          = 'Items'
+        - else
+          = 'Products'
+      %th Errors
+      %th
+
+%tr
+  %td= mws_request.updated_at
+  %td
+    = mws_request.request_type
+    = ' '+mws_request.feed_type if !mws_request.feed_type.nil?
+  %td
+    - if mws_request.request_type=='ListOrders'
+      = link_to mws_orders_path(:mws_request_id=>mws_request.id) do
+        %span{:class=>'badge badge-success'}=mws_request.mws_orders.count
+    - elsif mws_request.request_type=='SubmitFeed'
+      = link_to listings_path(:mws_request_id=>mws_request.id) do
+        %span{:class=>'badge badge-success'}=mws_request.listings.count
+
+  %td
+    - count = mws_request.get_total_error_count
+    - if count>0
+      %span{:class=>'badge badge-warning'}= mws_request.get_total_error_count
+  %td
+    = link_to mws_request do
+      %i.icon-chevron-right

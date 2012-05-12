@@ -1,49 +1,41 @@
-= form_for(@product) do |f|
-	- if @product.errors.any?
-		#error_explanation
-			%h2= pluralize(@product.errors.count, "error") + " prohibited this product from being saved:"
+= simple_form_for @product, :html=>{:class=>'form-horizontal'} do |f|
 
-			%ul
-				- @product.errors.full_messages.each do |msg|
-					%li= msg
+  .row
+    .span6
 
-	.field
-		= f.label :name
-		= f.text_field :name
-		
-	.field
-		= f.label :name, "Tags for this product"
-		= text_field_tag('tags', '')	
+      = f.association :brand
 
-	.field
-		= f.label :brand_id
-		= f.collection_select(:brand_id, Brand.all, :id, :name)
+      = f.input :name, :input_html=>{:class=>'input-xlarge'}
+      = f.input :amazon_name, :input_html=>{:class=>'input-xlarge'}
+      
+      = f.input :sku, :placeholder=>'sku', :input_html=>{:class=>'input-small'}, :wrapper_html=>{:class=>'inline'}
+      = f.input :sku2, :placeholder=>'sku2', :label=>false, :input_html=>{:class=>'input-small'}
 
-	.field
-		= f.label :sku
-		= f.text_field :sku
+      = f.input :category
+			
+      = f.input :department, :collection=>["Men's", "Women's", "Unisex"]
+			
+      = f.input :product_type, :collection=>['Accessory', 'Shorts', 'Shirt', 'Pants', 'Jacket']
+      = f.input :variation_theme, :collection=>['Size', 'SizeColor']
+      
+      .actions.controls
+        = f.button :submit, :class=>'btn btn-primary btn-large'
+        = link_to 'Delete', @product, confirm: 'Are you sure? This will remove all Variants, VariantImages, and SubVariants as well.  There is no undo.', method: :delete , :class=>'btn btn-danger btn-large'
 
-	.field
-		= f.label :category
-		= f.text_field :category
 
-	.field
-		= f.label :available_on
-		= f.datetime_select :available_on
-  
-	.field
-		= f.label :description
-		%br
-		= f.text_area :description
+    .span6
+
+      = f.input :description, :as=>:text, :input_html=>{:rows=>3, :class=>'input-xlarge'}
+      = f.input :amazon_description, :as=>:text, :input_html=>{:rows=>3, :class=>'input-xlarge'}
+
     
-	.field
-		= f.label :meta_description
-		%br
-		= f.text_area :meta_description
-  
-	.field
-		= f.label :meta_keywords
-		= f.text_field :meta_keywords
-    
-	.actions
-		= f.submit
+
+      = f.input :bullet_points, :as=>:text, :input_html=>{ :rows=>3, :class=>'input-xlarge' }
+      = f.input :style_keywords, :as=>:text, :input_html=>{:rows=>3, :class=>'input-xlarge'}
+      = f.input :search_keywords, :as=>:text, :input_html=>{:rows=>3, :class=>'input-xlarge'}
+      = f.input :occasion_lifestyle_keywords, :input_html=>{:as=>:text, :rows=>3, :class=>'input-xlarge'}
+	
+      .control-group
+        %label.collection-label= "Tags for this product"
+        .controls= text_field_tag 'tags', ''
+          

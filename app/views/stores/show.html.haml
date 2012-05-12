@@ -1,36 +1,42 @@
-%p
-	= link_to(image_tag(@store.icon),products_path(:store_id => @store.id))
+.row
+  .span12
+    
+    -#TODO make these remote true
+    .pull-right
 
-%p
-	%b Name:
-	= @store.name
+      = link_to products_path(:store_id=>@store.id), :class=>'btn btn-success btn-small' do
+        %i.icon-search
+        = "View #{@products} products"
 
-%p
-	%b Type:
-	= @store.store_type
+      = link_to products_path(:store_id=>@store.id, :listing_group=>'error'), :class=>'btn btn-warning btn-small' do
+        %i.icon-search
+        = "View #{@error_products} errors"        
 
-%p
-	%b Queue Flag:
-	= @store.queue_flag
+      = link_to queue_store_path(@store), { :class=>'btn btn-small', :method=>:post, :controller=>'store', :action=>:queue } do
+        %i.icon-arrow-right
+        = "Queue #{@dirty_products} updated"
 
-%p
-	%b Verify Flag:
-	= @store.verify_flag
 
-%p
-	%b Orders / Page:
-	= @store.order_results_per_page
+      = link_to sync_store_path(@store), { :class=>'btn btn-info btn-small', :method=>:post, :controller=>'store', :action=>:sync} do
+        %i.icon-refresh
+        ="Sync #{@queued_products} queued"    
 
-%p
-	%b Max order pages:
-	= @store.max_order_pages
 
-%hr
 
-%h2 Products in this store:
+    %h1
+      = image_tag(@store.icon(:original))
+      = "#{@store.name} (#{@store.store_type})"
+      = link_to 'Edit', edit_store_path(@store), :class=>'btn btn-small'
+      
+    %br
 
-= render @products
+.row
+  .span6
+    %h2 Request Orders
+    %table{:class=>'table table-striped'}= render @order_requests
+    =paginate @order_requests  
 
-%p
-	= link_to 'Edit', edit_store_path(@store)
-	= link_to 'Back', stores_path
+  .span6
+    %h2 Product Sync
+    %table{:class=>'table table-striped'}= render @feed_requests
+    = paginate @feed_requests

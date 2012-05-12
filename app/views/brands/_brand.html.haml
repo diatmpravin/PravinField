@@ -1,0 +1,30 @@
+- if brand_counter == 0
+  %thead
+    %tr
+      %th
+      %th Logo
+      %th Vendor
+      %th.c Products
+      %th SKU Patterns
+      %th 
+
+%tr
+  %td
+    = link_to brand do
+      %h3= "#{brand.name}"
+  %td= image_tag(brand.icon(:thumb))      
+  %td= link_to brand.vendor.name, brand.vendor
+  %td.c
+    - product_count = brand.products.length
+    - if product_count > 0
+      = link_to products_path(:brand_id => brand.id) do
+        %span{:class=>'badge badge-success'}= product_count  
+  %td
+    - sku_pattern_count = brand.sku_patterns.length
+    - if sku_pattern_count > 0
+      = link_to sku_patterns_path do
+        %span{:class=>'badge badge-info'}= sku_pattern_count  
+  %td
+    = link_to 'Show', brand
+    = link_to 'Edit', edit_brand_path(brand)
+    = link_to 'Destroy', brand, confirm: 'Are you sure?', method: :delete

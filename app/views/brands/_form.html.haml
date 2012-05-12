@@ -1,0 +1,8 @@
+= simple_form_for(@brand, :html=>{:class=>'form-horizontal'}) do |f|
+  = f.association :vendor
+  = f.input :name
+  = f.input :icon, :as => :file
+  = f.input :default_markup, :hint=>'Expressed as a decimal, thus 1 = 100% markup over cost, or 2x cost'
+  
+  .actions.controls
+    = f.button :submit, :class=>'btn btn-primary btn-large'

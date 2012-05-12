@@ -1,40 +1,78 @@
-.pane
-	%p=link_to image_tag(@product.brand.icon), products_path(:brand_id => @product.brand.id)
+.row
+  .span5
+
+    %h2= @product.name_for_amazon
+    %br
+
+    .pull-right= link_to '+ Add Variant', new_variant_path(:product_id => @product.id), :remote=>true, :class=>'btn btn-small'
+    .pull-right= link_to 'Edit', edit_product_path(@product), :class=>'btn btn-small'
 	
-	%p
-		%b Name:
-		= @product.name
-
-	%p
-		%b Base SKU:
-		= @product.sku
-
-	%p
-		%b Category:
-		= @product.category
+    %div{:class=>'pull-right btn-group'}
+      = link_to '#', :class=>'btn btn-small dropdown-toggle', "data-toggle"=>"dropdown" do
+        = "Sync"
+        %span.caret
+      %ul.dropdown-menu
+        - Store.all.each do |s|
+          %li
+            = link_to listings_path(:listing=>{:product_id=>@product.id, :store_id=>s.id }), { :method=>:post, :controller=>'listings', :action=>:create, :remote=>true } do
+              %i.icon-arrow-right
+              = s.name
+        - if @product.stores.any?
+          %li.divider
+            - @product.stores.each do |s|
+              %li.remove
+                = link_to listings_path(:listing=>{:product_id=>@product.id, :store_id=>s.id, :operation_type=>'Delete' }), { :method=>:post, :controller=>'listings', :action=>:create, :remote=>true } do
+                  %i.icon-remove
+                  = s.name
+	
+    .pull-left=link_to image_tag(@product.brand.icon(:thumb)), products_path(:brand_id => @product.brand.id)		
 		
-	%p
-		%b Description:
-		= @product.description
-	
-	%p
-		%b Meta Keywords:
-		= @product.meta_keywords
-	
-	%p
-		%b Available on:
-		= @product.available_on
+    %br
+    %br
 
-	= link_to 'Edit', edit_product_path(@product)
-	= link_to 'Back', products_path
-
-.pane
-	%p
-		%b Variants
-		= render @product.variants
+    %table{:class=>'table'}
+      %tbody
+      
+        %tr
+          %td Brand
+          %td= @product.brand.name
+        %tr
+          %td SKU
+          %td
+            = @product.sku
+            - if !@product.sku2.blank?
+              = ' / ' + @product.sku2
+        %tr
+          %td Category
+          %td= @product.category
+        %tr
+          %td Department
+          %td= @product.department
+        %tr
+          %td Product Type
+          %td= @product.product_type
+        %tr
+          %td Variation Theme
+          %td= @product.variation_theme					
+        %tr
+          %td Bullet Points
+          %td= @product.bullet_points
+        %tr
+          %td Style Keywords
+          %td= @product.style_keywords
+        %tr
+          %td Search Keywords
+          %td= @product.search_keywords
+        %tr
+          %td Occasion Lifestyle Keywords
+          %td= @product.occasion_lifestyle_keywords
+        %tr
+          %td Description
+          %td= @product.description_for_amazon
 	
-	-#= form_for(@product) do |f|
--#	= f.select(:store_id, Store.all.collect {|s| [ s.name, s.id ] })
--#	= f.submit "Push to Shopify"
+  .span7#variants= render @product.variants
 
-	= link_to 'Add Variant', new_variant_path(:product_id => @product.id)
+.row
+  .span12
+    %h2 MWS Messages (debug)
+    %table{:class=>'table table-striped'}=render @product.mws_messages

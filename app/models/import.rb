@@ -75,11 +75,9 @@ class Import < ActiveRecord::Base
       self.product_count += 1      
     end
     p.update_attributes(
-		  :name => r.field('product-name'),
-			:description => r.field('product-description'),
+		  :amazon_name => r.field('product-name'), #TODO for name clashes with existing products
+			:amazon_description => r.field('product-description'),
 			:available_on => r.field('release-date'),
-			#:meta_description => r.field('meta_description'),
-			#:meta_keywords => r.field('meta_keywords'),
 			:brand_id => brand.id,
 			:product_type => r.field('clothing-type'),
 			:variation_theme => r.field('variation-theme'),
@@ -117,20 +115,17 @@ class Import < ActiveRecord::Base
     end
     		
     #TODO what to do about update-delete field
-		#TODO variant image
 		#TODO check if data is newer or older
 		variant.update_attributes(
-			#:cost_price => r.field('item-price'),
-			#:size => r.field('size'),
-			:amazon_product_name => r.field('product-name'), #TODO save all other variant detail
+			#:cost_price => r.field('item-price'), #TODO accept a cost price via upload
+			:amazon_description => r.field('product-description')==p.amazon_description ? nil : r.field('product-description'),
 			:color1 => r.field('color'),
 			:color1_code => h[:color1_code],
 			:color2_code => h[:color2_code],
 			:price => r.field('item-price'),
-			:sale_price => r.field('sale-price'), #TODO save item-price
+			:sale_price => r.field('sale-price'),
 			:msrp => r.field('msrp'),
 			:currency => r.field('currency')
-			#:leadtime_to_ship => r.field('leadtime-to-ship')
 		)
     self.find_or_create_variant_images_from_csv(variant.id, r)
     
@@ -149,6 +144,7 @@ class Import < ActiveRecord::Base
 		sub_variant.update_attributes(
 		  :variant_id => v.id,
 			:size => r.field('size'),
+			:amazon_name => r.field('product-name')==v.product.amazon_name ? nil : r.field('product-name'),			
 			:upc => r.field('product-id-type')=='UPC' ? r.field('product-id') : nil,
 			:asin => r.field('product-id-type')=='ASIN' ? r.field('product-id') : nil,
 			:quantity => r.field('quantity'),

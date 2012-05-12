@@ -16,17 +16,13 @@
 		-tag_cloud(@tags, %w("label","label label-success","label label-warning","label label-important")) do |tag, css_class|
 			= link_to tag.name, :class => "label label-warning"
 
-	-#%td
-	-#	- product_stores_arr = product.products_stores
-	-#	- product_stores_arr.each do |ps|
-	-#		.pill
-	-#			-#= link_to image_tag('delete.png') + "#{s.name}", s
-	-#			= link_to image_tag('delete.png', :title => 'Remove from store', :alt => 'X') + "#{ps.store.name}", ps, :confirm => 'Are you sure you want to remove this product from this store?', :method => :delete
-	-#	%br
-	-#	- stores_arr2 = Store.all.keep_if { |s| !product.stores.include?(s) }
-	-#	- ps = ProductsStore.new(:product_id => product.id)
-	-#	= form_for ps do |f|
-	-#		= f.hidden_field :product_id
-	-#		= f.collection_select(:store_id, stores_arr2, :id, :name)
-	-#		= f.submit 'Add to'
-	-#	%br
+  %td
+    - product.stores.each do |s|
+      %span{:class=>"label label-inverse"}= s.name
+
+  %td
+    = link_to edit_product_path(product) do
+      %i.icon-pencil
+		
+    = link_to product, confirm: 'Are you sure?', method: :delete do
+      %i.icon-remove		

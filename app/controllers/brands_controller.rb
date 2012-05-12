@@ -112,35 +112,4 @@ class BrandsController < ApplicationController
     end
   end
   
-  # add_to_store_brand PUT   /brands/:id/add_to_store(.:format)
-  def add_to_store
-  	@brand = Brand.find(params[:id])
-  	@store = Store.find(params[:store_id])
-
-    respond_to do |format|
-      if @brand.add_listings(@store)
-        format.html { redirect_to brands_path, notice: 'Brand successfully added to store.' }
-        format.json { head :ok }
-      else
-        format.html { redirect_to brands_path, notice: "Error adding brand to store: #{@brand.errors}."  }
-        format.json { render json: @brand.errors, status: :unprocessable_entity }
-      end
-    end  	
-  end
-  
-  # remove_from_store_brand PUT   /brands/:id/remove_from_store(.:format)
-  def remove_from_store
-  	@brand = Brand.find(params[:id])
-  	@store = Store.find(params[:store_id])
-
-    respond_to do |format|
-      if @brand.remove_listings(@store)
-        format.html { redirect_to brands_path, notice: 'Brand successfully removed from store.' }
-        format.json { head :ok }
-      else
-        format.html { redirect_to brands_path, notice: "Error removing brand from store: #{@brand.errors}." }
-        format.json { render json: @brand.errors, status: :unprocessable_entity }
-      end
-    end  	
-  end
 end

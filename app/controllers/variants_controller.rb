@@ -43,6 +43,7 @@ class VariantsController < ApplicationController
 
     respond_to do |format|
       format.html # show.html.erb
+      format.js
       format.json { render json: @variant }
     end
   end
@@ -51,10 +52,14 @@ class VariantsController < ApplicationController
   # GET /variants/new.json
   def new
     @variant = Variant.new
-    @variant.product_id = params[:product_id]
+    @product = Product.find(params[:product_id])
+    @variant.product_id = @product.id
+    @variant.sku = @variant.product.sku #TODO add delimiter from sku pattern and a sku pattern reminder
+    @title = 'Add Variant'
 
     respond_to do |format|
       format.html # new.html.erb
+      format.js
       format.json { render json: @variant }
     end
   end
@@ -62,6 +67,7 @@ class VariantsController < ApplicationController
   # GET /variants/1/edit
   def edit
     @variant = Variant.find(params[:id])
+    @title = 'Edit Variant'
   end
 
   # POST /variants
@@ -71,10 +77,14 @@ class VariantsController < ApplicationController
 
     respond_to do |format|
       if @variant.save
-        format.html { redirect_to @variant, notice: 'Variant was successfully created.' }
+        flash[:notice] = 'Variant was successfully created'
+        format.html { redirect_to @variant }
+        format.js { redirect_to @variant }
         format.json { render json: @variant, status: :created, location: @variant }
       else
+        @title = 'Add Variant'
         format.html { render action: "new" }
+        format.js { render action: "new" }
         format.json { render json: @variant.errors, status: :unprocessable_entity }
       end
     end
@@ -87,10 +97,14 @@ class VariantsController < ApplicationController
 
     respond_to do |format|
       if @variant.update_attributes(params[:variant])
-        format.html { redirect_to @variant, notice: 'Variant was successfully updated.' }
+        flash[:notice] = 'Variant was successfully updated'
+        format.html { redirect_to @variant }
+        format.js { redirect_to @variant }
         format.json { head :ok }
       else
+        @title = 'Edit Variant'
         format.html { render action: "edit" }
+        format.js { render action: "edit" }
         format.json { render json: @variant.errors, status: :unprocessable_entity }
       end
     end
@@ -100,10 +114,13 @@ class VariantsController < ApplicationController
   # DELETE /variants/1.json
   def destroy
     @variant = Variant.find(params[:id])
+    @product = @variant.product
     @variant.destroy
 
     respond_to do |format|
-      format.html { redirect_to variants_url }
+      flash[:notice] = 'Variant destroyed successfully'
+      format.html { redirect_to @variant.product }
+      format.js
       format.json { head :ok }
     end
   end

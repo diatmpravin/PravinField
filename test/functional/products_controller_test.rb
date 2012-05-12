@@ -4,55 +4,85 @@ class ProductsControllerTest < ActionController::TestCase
   setup do
     @store = FactoryGirl.create(:store, :store_type=>'Shopify')
     @vendor = FactoryGirl.create(:vendor)
-    @brand = FactoryGirl.create(:brand, :vendor => @vendor)
-    @brand2 = FactoryGirl.create(:brand, :vendor => @vendor)
-    @product = FactoryGirl.create(:product, :brand => @brand, :name=>'Carrera 127/S')
-    @product2 = FactoryGirl.create(:product, :brand => @brand, :name=>'Carrera 127/S')
-    @product3 = FactoryGirl.create(:product, :brand => @brand2, :name=>'Carrera 128/S')
+    @brand = FactoryGirl.create(:brand, :vendor_id => @vendor.id)
+    @brand2 = FactoryGirl.create(:brand, :vendor_id => @vendor.id)
+    @product = FactoryGirl.create(:product, :brand_id => @brand.id, :name=>'Carrera 127/S')
+    @product2 = FactoryGirl.create(:product, :brand_id => @brand.id, :name=>'Carrera 127/S')
+    @product3 = FactoryGirl.create(:product, :brand_id => @brand2.id, :name=>'Carrera 128/S')
     @product4 = FactoryGirl.build(:product)
     @u = FactoryGirl.create(:user)
     sign_in :user, @u    
   end
 
   test "should get index" do
-    # basic function, should be 3 products
+    # Basic function, should be 3 products
     get :index
     assert_response :success
     assert_not_nil assigns(:products)
-    assert_select 'div.product', 3
+    assert_select '.product', 3
 
     get :index, :search => 'Carrera 127/S'
     assert_response :success
     assert_not_nil assigns(:products)
-    assert_select 'div.product', 2    
+    assert_select '.product', 2    
 
-    # only 2 products are for the given brand
+    # Only 2 products are for the given brand
     get :index, :brand_id => @brand.id
     assert_response :success
     assert_not_nil assigns(:products)
-    assert_select 'div.product', 2
+    assert_select '.product', 2
         
     # 3 products across 2 brands for this vendor
     get :index, :vendor_id => @vendor.id
     assert_response :success
     assert_not_nil assigns(:products)
-    assert_select 'div.product', 3
+    assert_select '.product', 3
     
-    @brand.add_listings(@store)    
+    # Add products to a store
+    assert_equal 0, @store.products.count    
+    @store.add_listings([@product, @product3])
+    @store.sync_listings(false)
+    assert_equal 2, @store.reload.products.count    
 
-    # only 2 products are for same store
+    # 2 products are for same store
     get :index, :store_id => @store.id
     assert_response :success
     assert_not_nil assigns(:products)
-    assert_select 'div.product', 2
+    assert_select '.product', 2
 
-    # 2 products for this combination of brand and store
+    # 1 product for this combination of brand and store
     get :index, :brand_id => @brand.id, :store_id => @store.id
     assert_response :success
     assert_not_nil assigns(:products)
-    assert_select 'div.product', 2
+    assert_select '.product', 1
 
-    @brand.remove_listings(@store)
+    # groups based on listing status
+    @product5 = FactoryGirl.create(:product)
+    @listing = FactoryGirl.create(:listing, :store_id=>@store.id, :product_id=>@product5.id)
+    get :index, :store_id => @store.id, :listing_group => 'queued'
+    assert_select '.product', 1        
+    
+    @listing.update_attributes!(:status=>'error', :built_at=>Time.now)
+    assert_equal 1, @store.error_products.length
+    get :index, :store_id => @store.id, :listing_group => 'error'
+    assert_select '.product', 1    
+    
+    @listing.update_attributes!(:status=>'active')
+    @product5.update_attributes(:department=>'MENS')
+    assert @listing.reload.is_dirty?
+    
+    get :index, :store_id => @store.id, :listing_group => 'dirty'
+    assert_select '.product', 1
+
+    # After removing the listings, there are no products for this store
+    @store.remove_listings([@product, @product3])
+    @store.sync_listings(false)
+    assert_equal 1, @store.reload.products.count # product 5 is still there
+
+    get :index, :store_id => @store.id
+    assert_response :success
+    assert_not_nil assigns(:products)
+    assert_select '.product', 1
   end
 
 	test "should get specific product if sku and brand_id are passed" do

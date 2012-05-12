@@ -255,6 +255,17 @@ class MwsOrder < ActiveRecord::Base
 		end
 	end
 
+  def omx_address
+    a1 = self.address_line_1
+		a2 = nil
+		if a1.nil?
+			a1 = "#{self.address_line_2} #{self.address_line_3}"
+		else
+			a2 = "#{self.address_line_2} #{self.address_line_3}"
+		end
+    return a1, a2
+  end
+
 	def omx_state
 		if self.state_or_region.nil?
 			return nil
@@ -338,14 +349,9 @@ class MwsOrder < ActiveRecord::Base
 			omx_shipping_amount += (i.get_ship_price + i.get_gift_price)
 		end 
 		
-		address1 = self.address_line_1
-		address2 = nil
-		if address1.nil?
-			address1 = "#{self.address_line_2} #{self.address_line_3}"
-		else
-			address2 = "#{self.address_line_2} #{self.address_line_3}"
-		end
+		address1, address2 = omx_address
 		
+		begin
 		result = omx_connection.send_udoa_request(
 			:keycode => request.keycode,
 			:order_id => self.amazon_order_id,
@@ -374,20 +380,23 @@ class MwsOrder < ActiveRecord::Base
 			:store_code => request.store_code,
 			:vendor => request.vendor, 
 			:raw_xml => 0)
+    rescue SocketError
+      omx_response = OmxResponse.create!(:omx_request_id => request.id, :success => 0, :error_data => 'Not sent, SocketError #{$!} (no internet connection)')
+    else
+  		omx_response = OmxResponse.create!(:omx_request_id => request.id, :success => result.success)		
+  		if omx_response.success != 1
+  			omx_response.error_data = result.error_data.strip
+  			#logger.debug "Order push was unsuccessful #{omx_response.error_data}"
+  		else
+  			omx_response.ordermotion_response_id = result.OMX
+  			omx_response.ordermotion_order_number = result.order_number
+  			#logger.debug "Success:#{result.success}, omx:#{result.OMX}, order number:#{result.order_number}"	
+  		end
+  		omx_response.save!      
+    end
 
 		# for raw_xml option
 		 #puts response.body.to_s
-
-		omx_response = OmxResponse.create!(:omx_request_id => request.id, :success => result.success)		
-		if omx_response.success != 1
-			omx_response.error_data = result.error_data.strip
-			#logger.debug "Order push was unsuccessful #{omx_response.error_data}"
-		else
-			omx_response.ordermotion_response_id = result.OMX
-			omx_response.ordermotion_order_number = result.order_number
-			#logger.debug "Success:#{result.success}, omx:#{result.OMX}, order number:#{result.order_number}"	
-		end
-		omx_response.save! 
 		return omx_response
 	end
 	

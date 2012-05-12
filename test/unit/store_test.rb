@@ -4,7 +4,6 @@ class StoreTest < ActiveSupport::TestCase
 
   setup do
     @p = FactoryGirl.create(:product)
-		assert_equal 0, @p.stores.count
   end
     
   test "store_type should be valid" do
@@ -56,6 +55,35 @@ class StoreTest < ActiveSupport::TestCase
 		end
 		
 	end
+
+  test "add and remove listings should work" do
+    @s = FactoryGirl.create(:store, :store_type=>'Shopify')
+    @p2 = FactoryGirl.create(:product)
+    @s.add_listings([@p, @p2])
+    
+    assert_equal 0, @s.reload.products.count
+    assert_equal 0, @p.reload.stores.count
+    assert_equal 2, @s.queued_listings.count
+    
+    @s.sync_listings(false)
+    assert_equal 2, @s.reload.products.count
+    assert_equal 1, @p.reload.stores.count
+    assert_equal 1, @p2.reload.stores.count
+    
+    @s.remove_listings([@p])
+    assert_equal 2, @s.reload.products.count
+    assert_equal 1, @p.reload.stores.count
+    assert_equal 1, @s.queued_listings.count
+    
+    @s.sync_listings(false)
+    assert_equal 1, @s.reload.products.count
+    assert_equal 0, @p.reload.stores.count
+    assert_equal 1, @p2.reload.stores.count
+    
+    @s.remove_listings([@p2])
+    @s.sync_listings(false)
+    assert_equal 0, @s.reload.products.count
+  end
 
   test "get_last_date should work" do
     s = FactoryGirl.create(:store)
@@ -110,16 +138,6 @@ class StoreTest < ActiveSupport::TestCase
       end
     end
   end
-
-
-	# shopify stores should have an authenticated URL
-	test "shopify stores should have an authenticated URL" do
-		s = FactoryGirl.create(:store)
-		s.store_type = 'Shopify'
-		assert s.valid?
-		s.authenticated_url = nil
-		assert s.invalid?, "Shopify store with nil authenticated_url is valid"
-	end
 	
 	test "get_orders_missing_items should work" do
 		assert_difference('MwsOrder.count',1) do
@@ -137,15 +155,22 @@ class StoreTest < ActiveSupport::TestCase
 		end
 	end
 
-	test "init_mws_connection should work" do
+	test "init_store_connection should work for MWS" do
   	s = FactoryGirl.create(:store, :store_type=>'MWS')
 		assert_instance_of Amazon::MWS::Base, s.mws_connection
+	end
+	
+	test "init_store_connection should work for Shopify" do
+		s = FactoryGirl.create(:store, :store_type => 'Shopify') # authenticated URL of test store is in Factory
+		assert s.valid?
+		s.authenticated_url = nil
+		assert s.invalid?, "Shopify store with nil authenticated_url is valid"	  
+    assert s.errors[:authenticated_url].any?
 	end
 
   # tests for listings
 
 	test "add and remove listings should work for Shopify" do
-	  pending
     # add shopify store
 		s = FactoryGirl.create(:store, :store_type => 'Shopify')		
 		assert_equal 0, s.products.count
@@ -156,7 +181,14 @@ class StoreTest < ActiveSupport::TestCase
 		# add listing to store.  Not stubbing connection to Shopify right now as connection is to test store
 		s.add_listings([p])
 		
-    # confirm successful addition to store
+		# No listings yet as we haven't run sync_listings
+		assert_equal 0, s.reload.products.count
+		assert_equal 0, p.reload.stores.count
+		
+		# Sync listings synchronously
+		s.sync_listings(false)
+		
+    # Confirm successful addition to store
 		assert_equal 1, s.reload.products.count
 		assert_equal 1, p.reload.stores.count
 		assert_equal p, s.products.first
@@ -164,53 +196,88 @@ class StoreTest < ActiveSupport::TestCase
 
     # remove from store
 		s.remove_listings([p])
+		
+		# Still have listings as we haven't run sync_listings yet
+		assert_equal 1, s.reload.products.count
+		assert_equal 1, p.reload.stores.count		
+		
+		s.sync_listings(false)
+		
+		# Confirm successful removal from store
 		assert_equal 0, s.reload.products.count
 		assert_equal 0, p.reload.stores.count
 	end
-
-  test "only active listings should be returned" do
-    pending
-    s = FactoryGirl.create(:store, :store_type => 'Shopify')
-    p = FactoryGirl.create(:product)
-    l = FactoryGirl.create(:listing, :product_id=>p.to_param, :store_id=>s.to_param)
-    assert_equal 1, s.reload.listings.count
-    assert_equal 1, s.products.count
+		
+	test "get dirty products should work" do
+	  s = FactoryGirl.create(:store)
+	  
+	  p1 = FactoryGirl.create(:product)
+	  p2 = FactoryGirl.create(:product)
+	  p3 = FactoryGirl.create(:product)
+	  p4 = FactoryGirl.create(:product)
+	  
+	  # store has 2 active listings, 1 queued, and two errors (both on the same product)
+	  # cannot set status in create because status is initialized to queued by model
+	  l1 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p1.id, :built_at=>Time.now)
+	  l1.update_attributes(:status=>'active')
+	  l2 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p2.id, :built_at=>Time.now)
+	  l2.update_attributes(:status=>'active')
+	  
+	  # One fresh queued listing
+	  l3 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p3.id, :built_at=>nil)
+	  
+	  # and 2 error listings (both for the same product)
+	  l4 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p4.id, :built_at=>Time.now)
+	  l4.update_attributes(:status=>'error')
+    l5 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p4.id, :built_at=>Time.now)
+    l5.update_attributes(:status=>'error')
     
-    l.inactivate
-    #l.destroy
-    assert_equal 0, s.reload.listings.count
-    assert_equal 0, s.reload.products.count
-  end
+    # Finally, one last listing, a queued listing for an already active product
+    l6 = FactoryGirl.create(:listing, :store_id=>s.id, :product_id=>p1.id)
 
-  test "sync_mws_listings should work" do
-    pending
+	  assert_equal 2, Listing.where(:status=>'active').count
+	  assert_equal 2, s.active_listings.length
+	  assert_equal 2, s.products.length
+	  assert_equal 2, s.queued_listings.length
+	  assert_equal 2, s.queued_products.length
+	  assert_equal 1, s.error_products.length
+	  assert_equal 2, s.error_listings.length
+    assert_equal 0, s.get_dirty_products.length
 
-		s = FactoryGirl.create(:store, :store_type => 'MWS', :name => 'Dummy')		
-		assert_equal 0, s.products.count
+    # first products does not become dirty because an update is already queued
+	  p1.update_attributes(:department=>'MENS')
+	  assert p1.reload.get_updated_at > l1.built_at
+	  assert l1.reload.is_dirty?
+    assert_equal 0, s.reload.get_dirty_products.length	   
 
-		# add product
-		p = FactoryGirl.create(:product)
-		
-		# stub mws_connection
-		s.mws_connection.stubs(:post).returns(xml_for('submit_feed',200))
-    assert_difference('MwsRequest.count', 1) do
-      assert_difference('MwsResponse.count', 1) do
-		    # add listing to store
-		    s.add_listings([p])
-		  end
-		end
-		
-		# confirm listing was created
-		assert_equal 1, s.reload.products.count
-		assert_equal 1, p.reload.stores.count
-		assert_equal p, s.products.first
-		assert_equal s, p.stores.first
+    # second product becomes dirty once modified after built_at
+	  p2.update_attributes(:department=>'MENS')
+	  assert p2.reload.get_updated_at > l2.built_at
+	  assert l2.reload.is_dirty?
+	  assert_equal 1, s.reload.get_dirty_products.length
+	  
+	  # a fresh queued product is already queued, so it can't become dirty
+	  p3.update_attributes(:department=>'MENS')
+	  assert !l3.reload.is_dirty?
+	  assert_equal 1, s.reload.get_dirty_products.length
+	  
+	  # an error product can become dirty and it stays in both lists
+	  p4.update_attributes(:department=>'MENS')
+	  assert_equal 2, s.reload.get_dirty_products.length
+	  assert_equal 1, s.error_products.length
 
-    # remove product from store
-		s.remove_listings([p])
-		assert_equal 0, s.reload.products.count
-		assert_equal 0, p.reload.stores.count		
+    # queuing the dirty products should remove them from the list of dirty products
+    assert_difference("Listing.count",2) do
+      s.queue_products
+    end
+    assert_equal 0, s.reload.get_dirty_products.length
     
-  end
-		
+    # syncing the queued listings should remove them from the queue
+    assert_equal 4, s.queued_listings.length
+    assert_equal 4, s.queued_products.length
+    s.sync_listings
+    assert_equal 0, s.reload.queued_products.length
+    assert_equal 'active', l2.reload.status # stays active until the end of processing
+	end
+
 end

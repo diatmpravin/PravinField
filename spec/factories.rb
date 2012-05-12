@@ -26,7 +26,10 @@ FactoryGirl.define do
   end
   
   factory :mws_message do
-    
+    feed_type 'Product'
+    listing
+    matchable_id 1
+    matchable_type 'Product'
   end
   
 	factory :vendor do
@@ -57,6 +60,7 @@ FactoryGirl.define do
 		#color2 'Metallic Green'
 		sequence(:sku) { |n| "234233411-V045C#{n}" }
 		sequence(:color1_code) { "V045C#{n}" }
+		price 129.99
 		#cost_price 129.99
 	end
 	

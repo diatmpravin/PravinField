@@ -84,4 +84,25 @@ class ProductTest < ActiveSupport::TestCase
 	  assert SkuMapping.count > 0
 	end
 	
+	test "get_updated_at should work" do	  
+	  p = FactoryGirl.create(:product)
+	  assert_equal p.reload.updated_at, p.reload.get_updated_at
+	  
+	  v = FactoryGirl.create(:variant, :product_id=>p.id)
+	  assert_not_equal p.updated_at, v.reload.updated_at
+	  assert_equal v.updated_at, p.reload.get_updated_at
+	  
+	  sv = FactoryGirl.create(:sub_variant, :variant_id=>v.id)
+	  assert_not_equal v.updated_at, sv.reload.updated_at
+	  assert_equal sv.updated_at, p.reload.get_updated_at
+	  
+	  p.update_attributes(:department=>'MENS')
+	  assert_not_equal sv.updated_at, p.reload.updated_at
+	  assert_equal p.updated_at, p.reload.get_updated_at
+	  
+	  sv.update_attributes(:sku=>'aasdfasdfa')
+	  assert_not_equal p.updated_at, sv.reload.updated_at
+	  assert_equal sv.updated_at, p.reload.get_updated_at
+	end
+	
 end

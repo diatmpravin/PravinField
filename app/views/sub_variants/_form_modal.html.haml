@@ -1,0 +1,18 @@
+.modal-header
+	%button.close{ "data-dismiss"=>"modal"} x
+	%h3= @title
+
+= simple_form_for(@sub_variant, :remote=>true, :html=>{:class=>'form-horizontal'}) do |f|
+	.modal-body
+		= f.input :variant_id, :as=>:hidden
+		= f.input :sku
+		= f.input :size, :placeholder=>'Size Title', :input_html=>{:class=>'input-small'}, :wrapper_html=>{:class=>'inline'}			
+		= f.input :size_code, :as=>:string, :label=>false, :placeholder=>'Size SKU Code', :input_html=>{:class=>'input-small'}
+		= f.input :quantity, :as=>:string, :input_html=>{:class=>'input-small'}
+		= f.input :fulfillment_latency, :input_html=>{:class=>'input-small'}
+		= f.input :upc, :input_html=>{:class=>'input-medium', :length=>12 }
+		= f.input :asin, :as=>:string, :input_html=>{:class=>'input-medium', :length=>10}
+
+	.modal-footer
+		= f.button :submit, :class=>'btn btn-primary btn-large'
+		= link_to 'Destroy', @sub_variant, confirm: 'Are you sure?', method: :delete, :remote=>true, :class=>'btn btn-large btn-danger' if params[:action]=='edit'

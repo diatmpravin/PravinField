@@ -49,6 +49,6 @@ class VariantImagesControllerTest < ActionController::TestCase
       delete :destroy, id: @variant_image.to_param
     end
 
-    assert_redirected_to variant_path(@variant_image.variant)
+    assert_redirected_to @variant_image.variant.product
   end
 end

@@ -1,0 +1,40 @@
+- if store_counter == 0
+  %thead
+    %tr
+      %th
+      %th.c Active Products
+      %th.c Error Products
+      %th.c Queued Products
+      %th.c Unsynced Products
+      %th 
+
+%tr
+  %td
+    = link_to store do
+      %h2= "#{store.name} (#{store.store_type})"
+      =image_tag(store.icon)      
+  %td.c
+    - active_count = store.products.length
+    - if active_count > 0
+      = link_to products_path(:store_id => store.id) do
+        %span{:class=>'badge badge-success'}= active_count
+  %td.c
+    - error_count = store.error_products.length
+    - if error_count > 0
+      = link_to products_path(:store_id => store.id, :listing_group => 'error') do
+        %span{:class=>'badge badge-warning'}= error_count
+  %td.c
+    - queued_count = store.queued_products.length
+    - if queued_count > 0
+      = link_to products_path(:store_id => store.id, :listing_group => 'queued') do
+        %span{:class=>'badge badge-info'}= queued_count
+  %td.c
+    - dirty_count = store.get_dirty_count
+    - if dirty_count > 0
+      = link_to products_path(:store_id => store.id, :listing_group => 'dirty') do
+        %span{:class=>'badge'}= dirty_count
+  
+  %td
+    = link_to 'Show', store
+    = link_to 'Edit', edit_store_path(store)
+    = link_to 'Destroy', store, confirm: 'Are you sure?', method: :delete

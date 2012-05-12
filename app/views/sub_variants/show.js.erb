@@ -1,0 +1,10 @@
+if( $('#sub_variant_<%= @sub_variant.id %>').length==0){
+	$('#myModal').modal('toggle');	
+	$('#variant_<%= @variant.id %>_sub_variants').append("<%= j render @sub_variant %>");
+	$('#sub_variant_<%= @sub_variant.id %>').effect("highlight", {}, 3000);	
+}else{
+	$('#myModal').modal('toggle');
+	$('#sub_variant_<%= @sub_variant.id %>').replaceWith("<%= j render @sub_variant %>");
+	$('#sub_variant_<%= @sub_variant.id %>').effect("highlight", {}, 3000);
+}
+<%= show_flashes %>

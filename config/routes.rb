@@ -5,29 +5,28 @@ Fieldday::Application.routes.draw do
   resources :sku_mappings
   resources :sku_patterns
   
-  resources :imports, :only => [:index, :show, :new, :create] do
-    collection do
-      post 'importProductFile'
-    end
-  end
+  resources :imports, :only => [:index, :show, :new, :create]
 
   resources :states
-  resources :stores #TODO member do for adding groups of products to store
+  
+  resources :mws_messages, :only => [:show]
+  
+  resources :stores do
+    post 'sync', :on => :member
+    post 'queue', :on => :member
+  end
+  
   resources :vendors do
   	get 'by_name', :on => :collection
   end
   resources :brands do
   	get 'by_name', :on => :collection
-  	member do
-  		put 'add_to_store'
-  		put 'remove_from_store'
-  	end
   end
   resources :products do
-  	collection do  		
-  		get 'by_sku_and_brand_id'
-  	end		  	
+  	get 'by_sku_and_brand_id', :on => :collection		  	
   end
+  
+  resources :listings # TODO only index?
   
   resources :variants, :variant_images do
   	get 'by_sku', :on => :collection
@@ -49,12 +48,12 @@ Fieldday::Application.routes.draw do
   resources :mws_order_items, :only => [:show]
   resources :analytics, :only => [:index]	
 
-  match 'welcome'            => 'home#welcome'
-  match 'design'             => 'home#design'
-  match 'login'              => 'login#index',        :as => :login
-  match 'login/authenticate' => 'login#authenticate', :as => :authenticate
-  match 'login/finalize'     => 'login#finalize',     :as => :finalize
-  match 'login/logout'       => 'login#logout',       :as => :logout
+  #match 'welcome'            => 'home#welcome'
+  #match 'design'             => 'home#design'
+  #match 'login'              => 'login#index',        :as => :login
+  #match 'login/authenticate' => 'login#authenticate', :as => :authenticate
+  #match 'login/finalize'     => 'login#finalize',     :as => :finalize
+  #match 'login/logout'       => 'login#logout',       :as => :logout
   root :to                   => 'home#index'
 
   # The priority is based upon order of creation:

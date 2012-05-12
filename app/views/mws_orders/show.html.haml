@@ -1,96 +1,89 @@
-%h1= "Order Detail Received From Amazon"
+.row
+  .span6
+    .well
+      %h1 Customer details
+      
+      %dl.dl-horizontal
+      
+        %dt Ship To
+        %dd
+          %address
+            =@mws_order.name
+            %br
+            = "#{@mws_order.address_line_1} #{@mws_order.address_line_2} #{@mws_order.address_line_3}"
+            %br
+            = "#{@mws_order.city} #{@mws_order.county} #{@mws_order.district} - #{@mws_order.state_or_region}"
+            %br
+            = "#{@mws_order.postal_code} #{@mws_order.country_code}"
+      
+        %dt Ship service level
+        %dd= "#{@mws_order.shipment_service_level_category}: #{@mws_order.ship_service_level}"
+        
+        %dt Phone
+        %dd= @mws_order.phone
+        
+        %dt Bill To
+        %dd= "#{@mws_order.buyer_name} (#{@mws_order.buyer_email})"
+  
+  .span6
+    .well
 
-.block
-	%h2= "Customer Details"
-	
-	%p
-		%b="Ship To:"
-		%br
-		= @mws_order.name
-		%br
-		= "#{@mws_order.address_line_1} #{@mws_order.address_line_2} #{@mws_order.address_line_3}"
-		%br
-		= "#{@mws_order.city} #{@mws_order.county} #{@mws_order.district} - #{@mws_order.state_or_region}"
-		%br
-		= "#{@mws_order.postal_code} #{@mws_order.country_code}"
+      .pull-right
+        = form_for(@mws_order) do |f|
+          = f.submit "Reprocess Order", :class=>'btn btn-primary btn-large'
+    
+      %h1 Order properties
+      
+      %dl.dl-horizontal
+      
+        %dt Amazon order
+        %dd= @mws_order.amazon_order_id
+      
+        %dt Purchase date
+        %dd= @mws_order.purchase_date
+      
+        %dt Last updated
+        %dd= @mws_order.last_update_date
+      
+        %dt Order status
+        %dd= "#{@mws_order.order_status} (#{@mws_order.number_of_items_shipped} shipped, #{@mws_order.number_of_items_unshipped} unshipped)"
+    
+        %dt Channel
+        %dd= "#{@mws_order.fulfillment_channel} #{@mws_order.sales_channel} #{@mws_order.order_channel} #{@mws_order.marketplace_id}"
 
-	%p
-		%b="Ship service level:"
-		= "#{@mws_order.shipment_service_level_category}: #{@mws_order.ship_service_level}"
-	
-	%p
-		%b="Phone:"
-		= @mws_order.phone
+.row
+  .span12
+    %h2 Order items
+    %table{:class=>'table-striped table-condensed order'}
+      %tr		
+        %th="SKU"
+        %th="Title"
+        %th="# Ordered"
+        %th="# Shipped"
+        %th="Item(s)"
+        %th="Shipping"
+        %th="Gift"
+        %th="Total"
+        %th
+        %th="Show"
+      =render @mws_order.mws_order_items
+      
+      - if @mws_order.mws_order_items.count>1
+        %tr.total
+          %td
+          %td
+          %td.num= @mws_order.get_item_quantity_ordered
+          %td.num= @mws_order.number_of_items_unshipped
+          %td.num= number_to_currency(@mws_order.get_item_price, :precision => 2)
+          %td.num= number_to_currency(@mws_order.get_ship_price, :precision => 2)
+          %td.num= number_to_currency(@mws_order.get_gift_price, :precision => 2)
+          %td.num= number_to_currency(@mws_order.get_total_price, :precision => 2)
+          %td
+          %td
 
-	%p
-		%b="Bill To:"
-		= "#{@mws_order.buyer_name} (#{@mws_order.buyer_email})"
-	
-.block
-	%h2= "Order Properties"
-
-	= form_for(@mws_order) do |f|
-		= f.submit "Reprocess Order"
-	
-	%p
-		%b="Amazon order:"
-		= @mws_order.amazon_order_id
-
-	%p
-		%b="Seller order:"
-		= @mws_order.seller_order_id
-	
-	%p
-		%b="Purchase date:"
-		= @mws_order.purchase_date
-	
-	%p
-		%b="Last update date:"
-		= @mws_order.last_update_date
-	
-	%p
-		%b="Order status:"
-		= "#{@mws_order.order_status} (#{@mws_order.number_of_items_shipped} shipped, #{@mws_order.number_of_items_unshipped} unshipped)"
-
-	%p
-		%b="Channel:"
-		= "#{@mws_order.fulfillment_channel} #{@mws_order.sales_channel} #{@mws_order.order_channel} #{@mws_order.marketplace_id}"
-
-	%p
-		%b="Amazon Request:"
-		= link_to 'Request', @mws_order.mws_response.mws_request
-	
-%table
-	%tr		
-		%th="SKU"
-		%th="Title"
-		%th="# Ordered"
-		%th="# Shipped"
-		%th="Item(s)"
-		%th="Shipping"
-		%th="Gift"
-		%th="Total"
-		%th
-		%th="Show"
-	= render @mws_order.mws_order_items
-	- if @mws_order.mws_order_items.count>1
-		%tr.total
-			%td
-			%td
-			%td.num= @mws_order.get_item_quantity_ordered
-			%td.num= @mws_order.number_of_items_unshipped
-			%td.num= number_to_currency(@mws_order.get_item_price, :precision => 2)
-			%td.num= number_to_currency(@mws_order.get_ship_price, :precision => 2)
-			%td.num= number_to_currency(@mws_order.get_gift_price, :precision => 2)
-			%td.num= number_to_currency(@mws_order.get_total_price, :precision => 2)
-			%td
-			%td
-		
-%table
-	%tr
-		%th= "OMX Request"
-		%th= "OMX Response"
-	= render @mws_order.omx_requests
-
-%p
-	= link_to 'Back', mws_orders_path
+    %h2 OMX status
+    %table{:class=>'table-striped table-condensed order'}
+      %tr
+        %th= "OMX Request"
+        %th= "OMX Response"
+      = render @mws_order.omx_requests
